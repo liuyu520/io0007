@@ -461,19 +461,21 @@ public class TextCompUtil2 {
 			}
 
 			@Override
-			public void keyPressed(KeyEvent e) {
+			public void keyPressed(KeyEvent e) { 
 				if (EventHWUtil.isJustShiftDown(e)) {
 					if (lastTimeMillSencond == 0) {
 						lastTimeMillSencond = System.currentTimeMillis();
 					} else {
 						long currentTime = System.currentTimeMillis();
-						if (MenuUtil2.isDoubleClick(currentTime
-								- lastTimeMillSencond)) {//双击Shift
+						long delta=currentTime
+								- lastTimeMillSencond;
+						if (MenuUtil2.isDoubleClick(delta)) {//双击Shift
 							popupMenu(inputTextArea, e);
 							lastTimeMillSencond = 0;
 						} else {
 							lastTimeMillSencond = System.currentTimeMillis();
 						}
+						delta=0l;
 					}
 				}
 			}

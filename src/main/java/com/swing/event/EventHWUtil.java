@@ -17,6 +17,8 @@ public class EventHWUtil {
 						&&keyCode!= KeyEvent.VK_COLON/*分号*/
 						&&keyCode!= KeyEvent.VK_PERIOD/*句号*/
 						&&keyCode!= KeyEvent.VK_COMMA/*逗号*/
-						&&keyCode!= KeyEvent.VK_AT/*逗号*/;
+						&&keyCode!= KeyEvent.VK_AT/*@*/
+						&&keyCode!= KeyEvent.VK_2/*@*/
+						&&keyCode==KeyEvent.VK_SHIFT;
 	}
 }

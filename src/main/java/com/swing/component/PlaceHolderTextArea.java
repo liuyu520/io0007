@@ -7,20 +7,22 @@ import com.swing.component.inf.IPlaceHolder;
  * Created by Administrator on 2016/1/10.
  */
 public class PlaceHolderTextArea extends UndoTextArea implements IPlaceHolder {
-    public PlaceHolderTextArea(String text) {
+	private static final long serialVersionUID = 8763942143577054045L;
+
+	public PlaceHolderTextArea(String text) {
         super(text);
-        initlize();
+//        initlize();//不需要,否则就会重复执行initlize 方法
     }
 
     public PlaceHolderTextArea() {
         super();
-        initlize();
+//        initlize();
 
     }
 
     public PlaceHolderTextArea(int rows, int columns) {
         super(rows, columns);
-        initlize();
+//        initlize();
 
     }
 
