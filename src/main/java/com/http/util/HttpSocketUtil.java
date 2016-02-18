@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 public class HttpSocketUtil {
 	public static final String BOUNDARY = "---------------------------41184676334";
+	public static final String end = "\r\n";
 	private static Map<String, List<String>> responseHeaderFields;
 	/***
 	 * 是否执行System out语句
@@ -643,7 +644,6 @@ public class HttpSocketUtil {
 			boolean ssl, InputStream sendData, String contentDisposition,
 			String cookie, Map<String, String> headers, int connectTimeout,
 			int readTimeout) throws Exception {
-		String end = "\r\n";
 		String twoHyphens = "--";
 
 //		URL url = new URL(urlStr);
@@ -1028,7 +1028,7 @@ public class HttpSocketUtil {
 	private static void setHeaderUploadFile(HttpURLConnection huc,
 			int contentLength, String mode, String cookie,
 			Map<String, String> headers) throws Exception {
-		String end = "\r\n";
+
 		String twoHyphens = "--";
 
 		huc.setRequestMethod(mode);

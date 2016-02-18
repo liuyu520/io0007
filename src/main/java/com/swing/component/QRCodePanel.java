@@ -11,6 +11,7 @@ import com.string.widget.util.ValueWidget;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericFrame;
 import com.swing.dialog.GenericPanel;
+import com.swing.event.EventHWUtil;
 import com.swing.event.QRCodeMenuActionListener;
 import com.swing.menu.MenuUtil2;
 import com.swing.messagebox.GUIUtil23;
@@ -229,6 +230,31 @@ public class QRCodePanel extends GenericPanel {
 					inputQRTextArea.setText(WindowUtil.getSysClipboardText());
 				}
 			}
+		});
+		inputQRTextArea.addKeyListener(new KeyListener() {
+		    private long lastTimeMillSencond;
+		    @Override
+		    public void keyTyped(KeyEvent e) {
+		    }
+		    @Override
+		    public void keyReleased(KeyEvent e) {
+		    }
+		    @Override
+		    public void keyPressed(KeyEvent e) {
+		        if (EventHWUtil.isJustShiftDown(e)) {
+		            if (lastTimeMillSencond == 0) {
+		                lastTimeMillSencond = System.currentTimeMillis();
+		            } else {
+		                long currentTime = System.currentTimeMillis();
+		                if (MenuUtil2.isDoubleClick(currentTime - lastTimeMillSencond )) {
+		                    genQRbutton.doClick(); 
+		                    lastTimeMillSencond = 0;
+		                } else {
+		                    lastTimeMillSencond = System.currentTimeMillis();
+		                }
+		            }
+		        }
+		    }
 		});
 		// 增加滚动条
 		JScrollPane inputScroll = new JScrollPane(inputQRTextArea);

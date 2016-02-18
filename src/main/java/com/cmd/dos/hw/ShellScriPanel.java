@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class ShellScriPanel extends GenericPanel{
+	public static final String exit_code_label = "<html>exit code:%s<html/>";
 	private static final long serialVersionUID = 1644076682819874235L;
 	/***
 	 * logging
@@ -146,8 +147,7 @@ public class ShellScriPanel extends GenericPanel{
 		gbl_bottomPane.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		bottomPane.setLayout(gbl_bottomPane);
 		exitcodeLabel = new JLabel();
-		exitcodeLabel.setText("<html>"
-				+ "exit code:未知"+ "<html/>");
+		exitcodeLabel.setText(String.format(exit_code_label, "未知"));
 		GridBagConstraints gbc_exitcodeLabel = new GridBagConstraints();
 		gbc_exitcodeLabel.fill = GridBagConstraints.BOTH;
 		gbc_exitcodeLabel.insets = new Insets(0, 0, 5, 5);
@@ -343,12 +343,10 @@ public class ShellScriPanel extends GenericPanel{
 				} else {
 					int exitCode2 = executeLocalCmd(input, pb, resultTP,
 							encoding,callbackWorker);
-					exitcodeLabel.setText("<html>"
-							+ "exit code:"
-							+ String.format(
-									exitCode2 == 0 ? SystemHWUtil.SWING_DIALOG_BLUE
-											: SystemHWUtil.SWING_DIALOG_RED,
-									exitCode2) + "<html/>");
+					exitcodeLabel.setText(String.format(exit_code_label, String.format(
+							exitCode2 == 0 ? SystemHWUtil.SWING_DIALOG_BLUE
+									: SystemHWUtil.SWING_DIALOG_RED,
+							exitCode2)));
 					// System.out.println("result:" + result);
 					// System.out.println("after exitValue");
 					// return result2;
