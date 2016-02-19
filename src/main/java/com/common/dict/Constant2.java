@@ -149,6 +149,7 @@ public class Constant2 {
 	public static final String LOGIN_RESULT_KEY="result";
 	public static final String RESPONSE_KEY_ERROR_MESSAGE="errorMessage";
 	public static final String RESPONSE_RIGHT_RESULT="{\"result\":true}";
+	public static final String RESPONSE_WRONG_RESULT="{\"result\":false}";
 	public static final String KEY_REQUESTTARGET = "requestTarget";
 	/***
 	 * 记录条数
@@ -218,6 +219,13 @@ public class Constant2 {
 	public static final String KEY_LABEL = "label";
 	public static final String KEY_CURRENT_TIME = "currentTime";
 	public static final String Slash = "/";
+	public static final String stub_folder_no_Slash = "stub";
+    /***
+     * stub/
+     */
+    public static final String stub_folder = stub_folder_no_Slash + Constant2.Slash;
+    public static final String stub_file_Suffix = ".json";
+    
 	static {
 		REQUEST_METHOD_MAP.put("GET", REQUEST_METHOD_GET);
 		REQUEST_METHOD_MAP.put("POST", REQUEST_METHOD_POST);

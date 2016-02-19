@@ -1955,13 +1955,16 @@ public final class FileUtils {
 		return files;
 	}
 
+	public static List<File> getListFiles(Object obj) {
+		return getListFiles(obj, null);
+	}
 	/***
 	 * 获取指定目录下的所有的文件（不包括文件夹），采用了递归
 	 * 
 	 * @param obj
 	 * @return
 	 */
-	public static List<File> getListFiles(Object obj) {
+	public static List<File> getListFiles(Object obj,String suffix) {
 		File directory = null;
 		if (obj instanceof File) {
 			directory = (File) obj;
@@ -1969,7 +1972,7 @@ public final class FileUtils {
 			directory = new File(obj.toString());
 		}
 		ArrayList<File> files = new ArrayList<File>();
-		if (directory.isFile()) {
+		if (directory.isFile()&&(suffix==null||directory.getName().endsWith(suffix))) {
 			files.add(directory);
 			return files;
 		} else if (directory.isDirectory()) {
@@ -1977,7 +1980,7 @@ public final class FileUtils {
 			if(!ValueWidget.isNullOrEmpty(fileArr)){
 				for (int i = 0; i < fileArr.length; i++) {
 					File fileOne = fileArr[i];
-					files.addAll(getListFiles(fileOne));
+					files.addAll(getListFiles(fileOne,suffix));
 				}
 			}
 		}
