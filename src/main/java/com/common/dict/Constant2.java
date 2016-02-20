@@ -167,9 +167,21 @@ public class Constant2 {
 	 */
 	public static final int LOGS_ACCESS_TYPE_LEAVE=2;
 	/***
-	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
 	 */
 	public static final int LOGS_ACCESS_TYPE_UPLOAD_FILE=3;
+	/***
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 */
+	public static final int LOGS_ACCESS_TYPE_DOWNLOAD_FILE=4;
+	/***
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 */
+	public static final int LOGS_ACCESS_TYPE_DELETE=5;
+	/***
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 */
+	public static final int LOGS_ACCESS_TYPE_UPDATE=6;
 	public static final String SESSION_KEY_LOGINED_USER="user";
 	/***
 	 * HTTP请求方式:GET
