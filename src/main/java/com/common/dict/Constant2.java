@@ -180,8 +180,19 @@ public class Constant2 {
 	public static final int LOGS_ACCESS_TYPE_DELETE=5;
 	/***
 	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 * <br />8,登录<br />9,注销/退出
 	 */
 	public static final int LOGS_ACCESS_TYPE_UPDATE=6;
+	/**
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 * <br />8,登录<br />9,注销/退出
+	 */
+	public static final int LOGS_ACCESS_TYPE_LOGIN = 8;
+	/**
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 * <br />8,登录<br />9,注销/退出
+	 */
+	public static final int LOGS_ACCESS_TYPE_LOGOUT = 9;
 	public static final String SESSION_KEY_LOGINED_USER="user";
 	/***
 	 * HTTP请求方式:GET
