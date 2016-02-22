@@ -179,10 +179,15 @@ public class Constant2 {
 	 */
 	public static final int LOGS_ACCESS_TYPE_DELETE=5;
 	/***
-	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录<br>7,增加记录
 	 * <br />8,登录<br />9,注销/退出
 	 */
 	public static final int LOGS_ACCESS_TYPE_UPDATE=6;
+	/***
+	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录<br>7,增加记录
+	 * <br />8,登录<br />9,注销/退出
+	 */
+	public static final int LOGS_ACCESS_TYPE_ADD = 7;
 	/**
 	 * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
 	 * <br />8,登录<br />9,注销/退出
@@ -248,7 +253,60 @@ public class Constant2 {
      */
     public static final String stub_folder = stub_folder_no_Slash + Constant2.Slash;
     public static final String stub_file_Suffix = ".json";
-    
+	/***
+	 * 用户名不存在
+	 */
+	public static final int LOGIN_RESULT_USERNAME_INVALID = 2;
+	/***
+	 * 用户名为空
+	 */
+	public static final int LOGIN_RESULT_USERNAME_EMPTY = 3;
+	/***
+	 * 密码为空
+	 */
+	public static final int LOGIN_RESULT_PASSWORD_EMPTY = 4;
+	/***
+	 * 登录失败
+	 */
+	public static final int LOGIN_RESULT_FAILED = 5;
+	/***
+	 * 缺少参数
+	 */
+	public static final int ERROR_CODE_NEED_ARGUMENT = 7;
+	/***
+	 * 注册时,用户名已经存在
+	 */
+	public static final int REGISTER_RESULT_USERNAME_EXIST = 10;
+	/***
+	 * 注册时邮箱不能为空
+	 */
+	public static final int REGISTER_RESULT_EMAIL_EMPTY = 11;
+	/***
+	 * 用户还没有登录
+	 */
+	public static final int MODIFY_PASS_RESULT_NOT_LOGINED_YET = 21;
+	/***
+	 * 修改密码时,两次密码不能相同
+	 */
+	public static final int MODIFY_PASS_RESULT_PASS_SAME = 22;
+	/***
+	 * 新密码为空
+	 */
+	public static final int MODIFY_PASS_RESULT_NEW_PASS_EMPTY = 23;
+	/***
+	 * 旧密码不对
+	 */
+	public static final int MODIFY_PASS_RESULT_OLD_PASS_WRONG = 24;
+	/***
+	 * 需要更新手机端的密码
+	 */
+	public static final int GET_PASS_RESULT_NEED_REFRESH = 30;
+	/***
+	 * 不需要更新手机端的密码
+	 */
+	public static final int GET_PASS_RESULT_ALREADY_NEWEST = 31;
+	public static final String COOKIE_KEY_JSESSIONID = "JSESSIONID";
+
 	static {
 		REQUEST_METHOD_MAP.put("GET", REQUEST_METHOD_GET);
 		REQUEST_METHOD_MAP.put("POST", REQUEST_METHOD_POST);

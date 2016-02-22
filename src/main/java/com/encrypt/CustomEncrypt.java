@@ -108,6 +108,13 @@ public class CustomEncrypt {
 		byte[]source=highRevers(source2);//最高位取反
 		byte[]md5= SystemHWUtil.getMD5Bytes(source);//原字节数组的md5
 		if(!SystemHWUtil.isSame(md5Bytes, md5)){//MD5校验失败,则返回null
+			String tempDir=System.getProperty("user.home");
+			if(!tempDir.endsWith(File.separator)){
+				tempDir+=File.separator;
+			}
+			String destFilepath=tempDir+"AppData\\Local\\Temp\\http"+File.separator+"old.dat";
+			FileUtils.writeBytesToFile(encryptData, destFilepath);
+			System.out.println("[decrypt]MD5校验失败,保存至:"+destFilepath);
 			return null;
 		}
 		return source;
@@ -158,6 +165,10 @@ public class CustomEncrypt {
 	}
 	public static void decrypt2File(String filePath,String key,File destFile) throws Exception{
 		byte[]encryptedData=decrypt(filePath, key);
+		if(encryptedData==null||encryptedData.length==0){
+			System.out.println("encryptedData is null");
+			return;
+		}
 		FileUtils.writeBytesToFile(encryptedData, destFile);
 	}
 	/***

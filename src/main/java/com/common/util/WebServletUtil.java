@@ -1,32 +1,18 @@
 package com.common.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.common.bean.ClientOsInfo;
+import com.common.dict.Constant2;
+import com.string.widget.util.ValueWidget;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.common.bean.ClientOsInfo;
-import com.common.dict.Constant2;
-import com.string.widget.util.ValueWidget;
+import java.io.*;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.*;
 
 /***
  * 注意:部分方法依赖于tomcat.如果使用jetty,可能部分方法不好使
@@ -34,12 +20,26 @@ import com.string.widget.util.ValueWidget;
  * @since 2014年11月24日
  */
 public final class WebServletUtil {
+	private static final String[] HEADERS_TO_TRY = {
+	    "X-Forwarded-For",
+	    "Proxy-Client-IP",
+	    "WL-Proxy-Client-IP",
+	    "HTTP_X_FORWARDED_FOR",
+	    "HTTP_X_FORWARDED",
+	    "HTTP_X_CLUSTER_CLIENT_IP",
+	    "HTTP_CLIENT_IP",
+	    "HTTP_FORWARDED_FOR",
+	    "HTTP_FORWARDED",
+	    "HTTP_VIA",
+	    "REMOTE_ADDR",
+	    "X-Real-IP"};
+
 	/***
 	 * java web //
 	 * D:\xxx\eclipse\workspace\.metadata\.plugins\org.eclipse.wst.server
 	 * .core\tmp0\wtpwebapps\shop_goods\images //
 	 * D:\xxx\eclipse\workspace\shop_goods\ upload
-	 * 
+	 *
 	 * @param uploadFolderName
 	 * @param projectName
 	 * @param sContext
@@ -80,9 +80,10 @@ public final class WebServletUtil {
 			String projectName, ServletContext sContext) {
 		return getUploadedPath(uploadFolderName, projectName, sContext, null);
 	}
+
 	/***
 	 * download file
-	 * 
+	 *
 	 * @param response
 	 * @param downloadFilePath
 	 * @param filename
@@ -116,7 +117,7 @@ public final class WebServletUtil {
 
 	/***
 	 * download file
-	 * 
+	 *
 	 * @param response
 	 * @param downloadFilePath
 	 * @throws IOException
@@ -128,7 +129,7 @@ public final class WebServletUtil {
 
 	/***
 	 * Get all selected(checked) checkboxes
-	 * 
+	 *
 	 * @param request
 	 * @param sumAttribute
 	 *            : The total number of the checkbox
@@ -180,7 +181,7 @@ public final class WebServletUtil {
 
 	/***
 	 * Get request query string, form method : post
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 * @throws IOException
@@ -200,7 +201,7 @@ public final class WebServletUtil {
 
 	/***
 	 * Compatible with GET and POST
-	 * 
+	 *
 	 * @param request
 	 * @return : <code>byte[]</code>
 	 * @throws IOException
@@ -224,7 +225,7 @@ public final class WebServletUtil {
 
 	/**
 	 * Compatible with GET and POST
-	 * 
+	 *
 	 * @param request
 	 * @return : <code>String</code>
 	 * @throws IOException
@@ -260,7 +261,7 @@ public final class WebServletUtil {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param requestStr : username=huangwei&password=123
 	 * @param isTrimBank
 	 * @return : {"username":"huangwei","password":"123"}
@@ -282,6 +283,7 @@ public final class WebServletUtil {
 		}
 		return requestMap;
 	}
+
 	/***
 	 * 把请求体转化为map
 	 * @param request
@@ -301,7 +303,7 @@ public final class WebServletUtil {
 			return null;
 		}
 //		System.out.println("requestStr:"+requestStr);
-		
+
 		return parseRequestStr(requestStr, isTrimBank);
 	}
 
@@ -316,9 +318,10 @@ public final class WebServletUtil {
 			String charEncoding) throws IOException {
 		return parseRequest(request, charEncoding, false);
 	}
+
 	/***
 	 * Send http request test ok
-	 * 
+	 *
 	 * @param response
 	 * @param bytes
 	 *            :字节数组
@@ -344,7 +347,7 @@ public final class WebServletUtil {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param response
 	 * @param sendData
 	 *            :<code>String</code>
@@ -367,7 +370,7 @@ public final class WebServletUtil {
 
 	/***
 	 * test ok
-	 * 
+	 *
 	 * @param response
 	 * @param bytes
 	 * @param contentType
@@ -393,7 +396,7 @@ public final class WebServletUtil {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param response
 	 * @param bytes
 	 * @throws IOException
@@ -405,7 +408,7 @@ public final class WebServletUtil {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param request
 	 *            :HttpServletRequest
 	 * @param attName
@@ -417,6 +420,7 @@ public final class WebServletUtil {
 		String parameterValue = request.getParameter(parameterName);
 		return SystemHWUtil.parseObj(parameterValue);
 	}
+
 	/***
 	 * 获取header 的所有内容
 	 * @param request
@@ -434,10 +438,11 @@ public final class WebServletUtil {
 //			 message="header value:\t"+headerValue;
 			 resultMap.put(key, headerValue);
 //			 System.out.println(message);
-			 
+
 		 }
 		 return resultMap;
 	}
+
 	/***
 	 * 获取Parameter 的所有内容
 	 * @param request
@@ -455,10 +460,11 @@ public final class WebServletUtil {
 //			 message="Parameter value:\t"+headerValue;
 			 resultMap.put(key, headerValue);
 //			 System.out.println(message);
-			 
+
 		 }
 		 return resultMap;
 	}
+
 	/***
 	 * 针对多个cookie键值对.<br>Map的value为false时才表示删除该cookie
 	 * @param request
@@ -478,11 +484,12 @@ public final class WebServletUtil {
 				cookieValue=(String)val22;
 				System.out.println("remember cookie ,key:"+obj);
 			}
-			
+
 			rememberMe(cookies, response, (String)obj, cookieValue, isSave);
 		}
 
 	}
+
 	/***
 	 * 是否保存cookie
 	 * @param request
@@ -495,7 +502,7 @@ public final class WebServletUtil {
 	public static Cookie rememberMe(Cookie[] cookies , /*HttpServletRequest request,*/HttpServletResponse response,String emaiCookieName, String cookieValue,
 			boolean isSave) {
 //		HttpServletRequest request = ServletActionContext.getRequest();
-		
+
 		boolean flag = false;
 		// Cookie passwordCook = null;
 		Cookie emailCook = null;
@@ -554,13 +561,14 @@ public final class WebServletUtil {
 				response.addCookie(emailCook);
 			}
 		}
-	
+
 
 		return emailCook;
 	}
+
 	/***
 	 * 指定字符编码，无损地读取文本文件.推荐!
-	 * 
+	 *
 	 * @param in
 	 *            : 输入流，会关闭
 	 * @param charset
@@ -589,6 +597,7 @@ public final class WebServletUtil {
 		}
 		return sbuffer;
 	}
+
 	public static String getUploadedFilePath(HttpServletRequest request,
 											 String uploadFolderName, String webappPath/* src\main\webapp */) {
 		// String
@@ -626,8 +635,9 @@ public final class WebServletUtil {
 		realpath = SystemHWUtil.getRealPath(realpath, projectName);
 		return realpath;
 	}
+
 	/***
-	 * 
+	 *
 	 * @param request
 	 * @param uploadFolderName
 	 * @return
@@ -650,7 +660,7 @@ public final class WebServletUtil {
 	}
 
 	/***
-	 * 
+	 *
 	 * @param request
 	 * @param uploadFolderName
 	 *            :eg.WEB-INF/download
@@ -671,9 +681,10 @@ public final class WebServletUtil {
 		}
 		return savefile;
 	}
+
 	/**
 	 * 获取basePath
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -683,9 +694,10 @@ public final class WebServletUtil {
 				+ "/";
 		return basePath;
 	}
+
 	/**
 	 * 获取客户端ip地址(可以穿透代理)
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -708,19 +720,6 @@ public final class WebServletUtil {
 		}
 		return ip;
 	}
-	private static final String[] HEADERS_TO_TRY = { 
-	    "X-Forwarded-For",
-	    "Proxy-Client-IP",
-	    "WL-Proxy-Client-IP",
-	    "HTTP_X_FORWARDED_FOR",
-	    "HTTP_X_FORWARDED",
-	    "HTTP_X_CLUSTER_CLIENT_IP",
-	    "HTTP_CLIENT_IP",
-	    "HTTP_FORWARDED_FOR",
-	    "HTTP_FORWARDED",
-	    "HTTP_VIA",
-	    "REMOTE_ADDR",
-	    "X-Real-IP"};
 
 	/***
 	 * 获取客户端ip地址(可以穿透代理)
@@ -871,6 +870,29 @@ public final class WebServletUtil {
         }
         String result=sbuffer.toString();
         return result.replaceAll("(.*)&[\\s]*$", "$1");
+    }
+	/***
+	 * 用于转化request.getParameterMap()
+	 * @param requestParams
+	 * @return
+	 */
+	public static Map getParamMap(Map requestParams) {
+
+        Map<String, String> params = new HashMap<String, String>();
+
+        for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext();) {
+
+            String name = (String) iter.next();
+            String[] values = (String[]) requestParams.get(name);
+            String valueStr = "";
+            for (int i = 0; i < values.length; i++) {
+                valueStr = (i == values.length - 1) ? valueStr + values[i] : valueStr + values[i] + ",";
+            }
+            // 乱码解决，这段代码在出现乱码时使用。如果mysign和sign不相等也可以使用这段代码转化
+            // valueStr = new String(valueStr.getBytes("ISO-8859-1"), "gbk");
+            params.put(name, valueStr);
+        }
+        return params;
     }
 	/***
 	 * eg:http://127.0.0.1:8080/tv_mobile/

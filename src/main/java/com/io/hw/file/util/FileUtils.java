@@ -1385,6 +1385,10 @@ public final class FileUtils {
 	 */
 	public static void writeBytesToFile(byte[] bytes, File destFile)
 			throws IOException {
+		if(bytes==null||bytes.length==0){
+			System.out.println("bytes is null");
+			return;
+		}
 		FileOutputStream out = new FileOutputStream(destFile);
 		write2File(bytes, out);
 	}

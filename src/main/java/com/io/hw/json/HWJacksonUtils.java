@@ -1,28 +1,30 @@
 package com.io.hw.json;
 
+import com.string.widget.util.ValueWidget;
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import org.codehaus.jackson.map.ser.FilterProvider;
+import org.codehaus.jackson.type.JavaType;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
-import org.codehaus.jackson.map.ser.FilterProvider;
-import org.codehaus.jackson.type.JavaType;
-
-import com.string.widget.util.ValueWidget;
-
 public class HWJacksonUtils {
-	private static ObjectMapper mapper =null;
 	protected static Logger logger=Logger.getLogger(HWJacksonUtils.class);
+	private static ObjectMapper mapper =null;
+
 	public static ObjectMapper getObjectMapper(){
 		if(mapper==null){
 			mapper = new ObjectMapper();
 		}
+		mapper.setSerializationInclusion(Inclusion.NON_NULL);
 		return mapper;
 	}
 	/***
