@@ -368,6 +368,10 @@ public class RegexUtil {
 		}
 		return input.replaceAll("^[\\s-]*[^{]*(\\{.*)", "$1");
 	}
+
+	public static String splitPlus(String input, String cr, String quote) {
+		return splitPlus(input, cr, quote, false);
+	}
 	/***
 	 * 把换行的段落当做字符串拼接
 	 * @param input
@@ -375,12 +379,17 @@ public class RegexUtil {
 	 * @param quote
 	 * @return
 	 */
-	public static String splitPlus(String input,String cr,String quote){
+	public static String splitPlus(String input, String cr, String quote, boolean keepBlank) {
 		input=input.replaceAll(cr+"+$","");
 		String chinese;
 //		String quote="\"";
 		String replacement=quote+" +$1"+quote+"$2";
-		String regex="[\\s]*([^\\s]+.*)";
+		String regex = null;
+		if (keepBlank) {//保持空格
+			regex = "([\\s]*[^\\s]+.*)";
+		} else {
+			regex = "[\\s]*([^\\s]+.*)";
+		}
 		input=input.replace(quote, "\\"+quote);//原字符串转义
 		
 		if(cr.equals("\\r\\n")){
