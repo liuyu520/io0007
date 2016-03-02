@@ -1,5 +1,6 @@
 package com.string.widget.util;
 
+import com.common.dict.Constant2;
 import com.common.util.ReflectHWUtils;
 import com.common.util.SystemHWUtil;
 
@@ -1047,6 +1048,29 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 		String []arr=source.split(SystemHWUtil.EMPTY);
 		Arrays.sort(arr);
 		return SystemHWUtil.formatArr(arr, SystemHWUtil.EMPTY);
+	}
+
+	/**
+	 * if ( $uri ~* "^/user/loginInput$" ) {
+	 * rewrite ^/(.*)$ http://123.57.250.51/$1 redirect;
+	 * }
+	 * 生成nginx 脚本
+	 *
+	 * @param targetUrl
+	 * @param stubUrl   : www.yhskyc.com
+	 * @return
+	 */
+	public static String getNginxDispatch(String targetUrl, String stubUrl) {
+		targetUrl = targetUrl.replaceAll("^http://", "");
+		int index = targetUrl.indexOf(Constant2.Slash);
+		targetUrl = targetUrl.substring(index);
+		if (!stubUrl.endsWith(Constant2.Slash)) {
+			stubUrl = stubUrl + Constant2.Slash;
+		}
+		String dispatch = "        if ( $uri ~* \"^" + targetUrl + "$\" ) {" + SystemHWUtil.CRLF +
+				"                rewrite ^/(.*)$ http://" + stubUrl + "stub_test/stub/$1 redirect;" + SystemHWUtil.CRLF +
+				"        }";
+		return dispatch;
 	}
 
 	/***
