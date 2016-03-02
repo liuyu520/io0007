@@ -550,7 +550,7 @@ public final class WebServletUtil {
 					e.printStackTrace();
 				}
 			}
-			emailCook.setMaxAge(10000000);
+			emailCook.setMaxAge(10000000);//单位是秒,所以大概115 天
 			response.addCookie(emailCook);
 			flag=true;
 			System.out.println("保存cookie:"+emailCook.getValue());
