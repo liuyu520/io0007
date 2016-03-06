@@ -29,11 +29,13 @@ public class CustomDefaultDialog extends GenericDialog {
 //	public static final String helpDesc="";
 
 	
-
+    public CustomDefaultDialog(String helpDesc,String title,boolean isParseHtml){
+    	this(helpDesc, title, isParseHtml, null);
+    }
 	/**
 	 * Create the frame.
 	 */
-	public CustomDefaultDialog(String helpDesc,String title,boolean isParseHtml) {
+	public CustomDefaultDialog(String helpDesc,String title,boolean isParseHtml,Integer height) {
 		if(helpDesc==null){
 			helpDesc=SystemHWUtil.EMPTY;
 		}
@@ -42,7 +44,10 @@ public class CustomDefaultDialog extends GenericDialog {
 		}
 		setTitle(title);
 		setModal(true);
-		setLoc(450, 400);
+		if(null==height){
+			height=430;
+		}
+		setLoc(450, height);
 		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
