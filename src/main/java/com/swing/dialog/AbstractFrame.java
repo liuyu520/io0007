@@ -183,28 +183,39 @@ public abstract class AbstractFrame extends JFrame implements DialogInterface{
 	}
 	
 	 /***
-		 * 增加全局快捷键.<Br>
-		 * Ctrl+S,触发保存配置文件
-		 */
-		protected void setGlobalShortCuts() {
-			// Add global shortcuts
-			Toolkit toolkit = Toolkit.getDefaultToolkit();
-			// 注册应用程序全局键盘事件, 所有的键盘事件都会被此事件监听器处理.
-			toolkit.addAWTEventListener(new java.awt.event.AWTEventListener() {
-				public void eventDispatched(AWTEvent event) {
-					if (event.getClass() == KeyEvent.class) {
-						KeyEvent kE = ((KeyEvent) event);
-						// 处理按键事件 Ctrl+S
-						if (kE.getKeyCode() == KeyEvent.VK_S
-								&& kE.isControlDown()&&!kE.isAltDown()
-								&& kE.getID() == KeyEvent.KEY_PRESSED) {
-							saveConfig();
-						} 
+	 * 增加全局快捷键.<Br>
+	 * Ctrl+S,触发保存配置文件
+	 */
+	protected void setGlobalShortCuts() {
+		// Add global shortcuts
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		// 注册应用程序全局键盘事件, 所有的键盘事件都会被此事件监听器处理.
+		toolkit.addAWTEventListener(new java.awt.event.AWTEventListener() {
+			public void eventDispatched(AWTEvent event) {
+				if (event.getClass() == KeyEvent.class) {
+					KeyEvent kE = ((KeyEvent) event);
+					// 处理按键事件 Ctrl+S
+					if (kE.getKeyCode() == KeyEvent.VK_S
+							&& kE.isControlDown()&&!kE.isAltDown()&&!kE.isShiftDown()
+							&& kE.getID() == KeyEvent.KEY_PRESSED) {
+						saveConfig();
+					} else if(kE.getKeyCode() == KeyEvent.VK_E
+							&& kE.isControlDown()&&!kE.isAltDown()&&!kE.isShiftDown()
+							&& kE.getID() == KeyEvent.KEY_PRESSED){//最近访问的文件或窗口
+						showRecentList();//Ctrl+E或者Alt+Shift+C  最近更改的代码
 					}
 				}
-			}, java.awt.AWTEvent.KEY_EVENT_MASK);
+			}
+		}, java.awt.AWTEvent.KEY_EVENT_MASK);
 
-		}
+	}
+	/***
+	 * Ctrl+E 最近打开的文件<br>
+	 * 子类可以覆写
+	 */
+	public void showRecentList(){
+		
+	}
 		/***
 		 * Ctrl+S 保存配置文件
 		 * @throws IOException
