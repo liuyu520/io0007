@@ -70,11 +70,7 @@
             <classifier>sources</classifier>
         </dependency>
 
-        <dependency>
-            <groupId>com.kunlunsoft</groupId>
-            <artifactId>is_chinese</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
-        </dependency>
+  
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>

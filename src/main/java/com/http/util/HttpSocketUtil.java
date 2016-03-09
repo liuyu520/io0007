@@ -548,8 +548,15 @@ public class HttpSocketUtil {
 				}
 			} };
 			sc.init(null, tmArr, new SecureRandom());
-
+			if (isDetail) {
+				if(!ValueWidget.isNullOrEmpty(tmArr)){
+					System.out.println("first TrustManager:" + tmArr[0]);
+				}
+			}
 			huc = (HttpsURLConnection) url.openConnection();
+			if (isDetail) {
+				System.out.println("huc:" + huc);
+			}
 			((HttpsURLConnection) huc).setSSLSocketFactory(sc
 					.getSocketFactory());
 			System.setProperty("jsse.enableSNIExtension", "false");
