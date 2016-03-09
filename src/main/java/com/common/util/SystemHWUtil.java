@@ -3870,12 +3870,36 @@ public final class SystemHWUtil {
 		}
 		return initBool;
 	}
-	
-	/***
+
+    /***
+     * 过滤
+     *
+     * @param integerList
+     * @return
+     */
+    public static List<Integer> uniqueInt(List<Integer> integerList) {
+        List<Integer> uniqueIntegers = new ArrayList<Integer>();
+        int size = integerList.size();
+        for (int i = size - 1; i >= 0; i--) {
+            /**
+             * 解决的问题:<br>
+             * 32, 33, 34, 34, 25, 26]<br>
+             * 32, 33, 34,  26]<br>
+             * */
+            Integer ii = integerList.get(i);
+            if (!uniqueIntegers.contains(ii)) {
+                uniqueIntegers.add(ii);
+            }
+        }
+        Collections.reverse(uniqueIntegers);
+        return uniqueIntegers;
+    }
+
+    /***
 	 * Filter out the elements of the same
-	 * 
-	 * @param intArray
-	 * @return
+     *
+     * @param strArray
+     * @return
 	 */
 	public static boolean uniqueStr(String[] strArray) {
 		boolean initBool = true;
@@ -4424,7 +4448,6 @@ public final class SystemHWUtil {
 	 * 
 	 * @param list
 	 * @param propertyName
-	 * @param propertyValue
 	 * @return
 	 * @throws SecurityException
 	 * @throws IllegalArgumentException

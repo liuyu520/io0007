@@ -248,7 +248,7 @@ public class TableUtil3 {
 		ParameterIncludeBean parameterIncludeBean = new ParameterIncludeBean();
 		if (!ValueWidget.isNullOrEmpty(key)) {
 			if (key.contains("=") || key.contains(":")) {
-				String[] strs = key.split("[:=]");
+				String[] strs = key.split("[:=]",2);//解决黏贴时,冒号后面被截断的问题
 				parameterIncludeBean.setKey(strs[0]);
 				parameterIncludeBean.setValue(strs[1]);
 			} else {
