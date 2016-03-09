@@ -6,6 +6,7 @@ import com.http.bean.HttpRequestBean;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -28,7 +29,8 @@ import java.util.regex.Pattern;
 public class HttpSocketUtil {
 	public static final String BOUNDARY = "---------------------------41184676334";
 	public static final String end = "\r\n";
-	private static Map<String, List<String>> responseHeaderFields;
+    protected static Logger logger = Logger.getLogger(HttpSocketUtil.class);
+    private static Map<String, List<String>> responseHeaderFields;
 	/***
 	 * 是否执行System out语句
 	 */
@@ -560,7 +562,9 @@ public class HttpSocketUtil {
 			((HttpsURLConnection) huc).setSSLSocketFactory(sc
 					.getSocketFactory());
 			System.setProperty("jsse.enableSNIExtension", "false");
-		} else {
+            logger.info("set jsse.enableSNIExtension to false");
+            logger.info("huc:" + huc);
+        } else {
 			huc = (HttpURLConnection) url.openConnection();
 		}
 		return huc;
@@ -612,7 +616,9 @@ public class HttpSocketUtil {
 		if(!ValueWidget.isNullOrEmpty(requestMethod)){
 			mode=requestMethod;
 		}
-		if (isDetail) {
+        logger.info("request method:" + mode);
+        logger.info("sendData:" + sendData);
+        if (isDetail) {
 			System.out.println("forcePost:" + forcePost);
 			System.out.println("request mode:" + mode);
 			System.out.println("[HttpSocketUtil.httpRequest]request method:"
@@ -627,7 +633,9 @@ public class HttpSocketUtil {
 		// 是否缓存数据，post方法不需要缓存数据
 		huc.setUseCaches(false);
 		if (/*mode.equalsIgnoreCase("POST") &&*/ sendByte != null) {
-			huc.getOutputStream().write(sendByte);
+            System.out.println("write request body:" + sendData);
+            logger.info("write request body:" + sendData);
+            huc.getOutputStream().write(sendByte);
 			huc.getOutputStream().flush();
 			huc.getOutputStream().close();
 		}
@@ -651,7 +659,10 @@ public class HttpSocketUtil {
 			boolean ssl, InputStream sendData, String contentDisposition,
 			String cookie, Map<String, String> headers, int connectTimeout,
 			int readTimeout) throws Exception {
-		String twoHyphens = "--";
+        if (null == sendData) {
+            return null;
+        }
+        String twoHyphens = "--";
 
 //		URL url = new URL(urlStr);
 		HttpURLConnection huc = null;
@@ -682,8 +693,10 @@ public class HttpSocketUtil {
 		DataOutputStream dos = new DataOutputStream(outs);
 
 		dos.writeBytes(twoHyphens + BOUNDARY + end);
-		dos.writeBytes("Content-Disposition: " + contentDisposition + end);
-		dos.writeBytes(end);
+        String contentDispositionHeader = "Content-Disposition: " + contentDisposition + end;
+        logger.info(contentDispositionHeader);
+        dos.writeBytes(contentDispositionHeader);
+        dos.writeBytes(end);
 
 		FileUtils.writeIn2Output(sendData, outs, false, true);
 		dos.writeBytes(end);
@@ -839,8 +852,8 @@ public class HttpSocketUtil {
 			return retArr;
 		}
 		if (!ValueWidget.isNullOrEmpty(result)) {
-			System.out.println("read result length of bytes:" + result.length);
-		}
+            System.out.println("read response length of bytes:" + result.length);
+        }
 		
 		String session_value = huc
 				.getHeaderField(SystemHWUtil.KEY_HEADER_COOKIE);
@@ -887,9 +900,9 @@ public class HttpSocketUtil {
 	/***
 	 * 
 	 * @param huc
-	 * @param sendBytes
-	 * @param mode
-	 * @param isWrite2file
+     * @param file
+     * @param sizeHeadKey
+     * @param isWrite2file
 	 *            : 是否写入文件
 	 * @return
 	 * @throws Exception
@@ -897,8 +910,9 @@ public class HttpSocketUtil {
 	private static byte[] connection(int resCode,HttpURLConnection huc,
 			boolean isWrite2file, Object file, String sizeHeadKey)
 			throws Exception {
-
-		if (resCode == HttpURLConnection.HTTP_OK
+        System.out.println("response Code:" + resCode);
+        logger.info("response Code:" + resCode);
+        if (resCode == HttpURLConnection.HTTP_OK
 				|| resCode == HttpURLConnection.HTTP_CREATED
 				|| resCode == HttpURLConnection.HTTP_ACCEPTED) {
 			int contentLength = 0;
@@ -911,7 +925,8 @@ public class HttpSocketUtil {
 				}
 
 			}
-			if (isDetail) {
+            logger.info("contentLength:" + contentLength);
+            if (isDetail) {
 				System.out
 						.println("[connection]contentLength:" + contentLength);
 				responseHeaderFields = huc.getHeaderFields();
@@ -953,7 +968,8 @@ public class HttpSocketUtil {
 					if (file instanceof File) {
 						file2 = (File) file;
 						writeFileFromLength(huc, contentLength, file2);
-						if (isDetail) {
+                        logger.info("write into file:" + file);
+                        if (isDetail) {
 							System.out.println("download success:"
 									+ file2.getAbsolutePath());
 						}
@@ -979,7 +995,7 @@ public class HttpSocketUtil {
 				return readData(huc);
 			}
 		} else {
-			System.out.println("response Code:" + resCode);
+
 			return FileUtils.readBytes3(huc.getErrorStream());
 		}
 	}
@@ -998,13 +1014,16 @@ public class HttpSocketUtil {
 		// huc.setRequestProperty("User-Agent",
 		// "Profile/MIDP-2.0 Configuration/CLDC-1.0");
 		// huc.setRequestProperty("Connection", "Keep-Alive");
-		if (contentType == null) {
+        logger.info("headers:" + headers);
+        if (contentType == null) {
 			contentType = SystemHWUtil.CONTENTTYPE_X_WWW_FORM_URLENCODED;
 		}
 		huc.addRequestProperty("content-type", contentType);
-		if (ValueWidget.isHasValue(cookie)) {
+        logger.info("content-type:" + contentType);
+        if (ValueWidget.isHasValue(cookie)) {
 			huc.setRequestProperty("Cookie", cookie);
-		}
+            logger.info("Cookie:" + cookie);
+        }
 		if (contentLength != 0) {
 			huc.setRequestProperty("Content-Length", "" + contentLength);
 		} else {
@@ -1252,7 +1271,8 @@ public class HttpSocketUtil {
 	 * @return
 	 */
 	public static InputStream returnBitMap(String url) {
-		URL myFileUrl = null;
+        logger.info(url);
+        URL myFileUrl = null;
 		// Bitmap bitmap = null;
 		try {
 			myFileUrl = new URL(url);
