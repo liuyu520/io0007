@@ -221,31 +221,38 @@ public class TableUtil3 {
      */
     public static void addParameter(JTable parameterTable_1,String key,boolean hasTextField,boolean isTF_table_cell) {
 //        System.out.println("增加一行");
-		DefaultTableModel tableModel = (DefaultTableModel) parameterTable_1.getModel();
-        RadioButtonPanel panel = new RadioButtonPanel();
-        panel.init(hasTextField);
+        List<ParameterIncludeBean> parameterIncludeBeans = getParameterIncludeBeans(key);
+        addParameter(parameterTable_1, hasTextField, isTF_table_cell, parameterIncludeBeans);
+    }
 
-		ParameterIncludeBean parameterIncludeBean = getParameterIncludeBean(key);
+    public static void addParameter(JTable parameterTable_1, boolean hasTextField, boolean isTF_table_cell, List<ParameterIncludeBean> parameterIncludeBeans) {
+        DefaultTableModel tableModel = (DefaultTableModel) parameterTable_1.getModel();
 
-		Object[] rowData =null;
-		if(isTF_table_cell){
-        	Color clor=CustomColor.getMoreLightColor();
-			JTextArea keyTA = new AssistPopupTextArea(parameterIncludeBean.getKey());
-			keyTA.setBackground(clor);
-        	JComponent keyTA2=new JScrollPane(keyTA);
+        Object[] rowData = null;
+        int size = parameterIncludeBeans.size();
+        for (int i = 0; i < size; i++) {
+            RadioButtonPanel panel = new RadioButtonPanel();
+            panel.init(hasTextField);
+            ParameterIncludeBean parameterIncludeBean = parameterIncludeBeans.get(i);
+            if (isTF_table_cell) {
+                Color clor = CustomColor.getMoreLightColor();
+                JTextArea keyTA = new AssistPopupTextArea(parameterIncludeBean.getKey());
+                keyTA.setBackground(clor);
+                JComponent keyTA2 = new JScrollPane(keyTA);
 
-			JTextArea valTA = new GenerateJsonTextArea(parameterIncludeBean.getValue());
-			valTA.setBackground(clor);
-        	JComponent valScroll=new JScrollPane(valTA);
-        	rowData =new Object[]{keyTA2, valScroll, panel};
-        } else {
-			rowData = new Object[]{parameterIncludeBean.getKey(), parameterIncludeBean.getValue(), panel};
-		}
-        tableModel.addRow(rowData);
-	}
+                JTextArea valTA = new GenerateJsonTextArea(parameterIncludeBean.getValue());
+                valTA.setBackground(clor);
+                JComponent valScroll = new JScrollPane(valTA);
+                rowData = new Object[]{keyTA2, valScroll, panel};
+            } else {
+                rowData = new Object[]{parameterIncludeBean.getKey(), parameterIncludeBean.getValue(), panel};
+            }
+            tableModel.addRow(rowData);
+        }
+    }
 
-	public static ParameterIncludeBean getParameterIncludeBean(String key) {
-		ParameterIncludeBean parameterIncludeBean = new ParameterIncludeBean();
+    public static ParameterIncludeBean getParameterIncludeBean(String key) {
+        ParameterIncludeBean parameterIncludeBean = new ParameterIncludeBean();
 		if (!ValueWidget.isNullOrEmpty(key)) {
 			if (key.contains("=") || key.contains(":")) {
 				String[] strs = key.split("[:=]",2);//解决黏贴时,冒号后面被截断的问题
@@ -258,7 +265,22 @@ public class TableUtil3 {
 		return parameterIncludeBean;
 	}
 
-	public static TreeMap getParameterMap(List<ParameterIncludeBean> parameters, boolean isUrlEncoding, String requestCharset) {
+    public static List<ParameterIncludeBean> getParameterIncludeBeans(String key) {
+        List<ParameterIncludeBean> beans = new ArrayList<ParameterIncludeBean>();
+        /***
+         * windows	\r\n
+         linux	\n
+         */
+        String[] keyVals = key.split("(\n)|(\r\n)");
+        int length = keyVals.length;
+        for (int i = 0; i < length; i++) {
+            ParameterIncludeBean parameterIncludeBean = getParameterIncludeBean(keyVals[i]);
+            beans.add(parameterIncludeBean);
+        }
+        return beans;
+    }
+
+    public static TreeMap getParameterMap(List<ParameterIncludeBean> parameters, boolean isUrlEncoding, String requestCharset) {
 		TreeMap map = new TreeMap();
         int size = parameters.size();
         for (int i = 0; i < size; i++) {
