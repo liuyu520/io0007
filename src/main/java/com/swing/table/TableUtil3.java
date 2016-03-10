@@ -227,28 +227,49 @@ public class TableUtil3 {
 
     public static void addParameter(JTable parameterTable_1, boolean hasTextField, boolean isTF_table_cell, List<ParameterIncludeBean> parameterIncludeBeans) {
         DefaultTableModel tableModel = (DefaultTableModel) parameterTable_1.getModel();
-
-        Object[] rowData = null;
-        int size = parameterIncludeBeans.size();
-        for (int i = 0; i < size; i++) {
-            RadioButtonPanel panel = new RadioButtonPanel();
-            panel.init(hasTextField);
-            ParameterIncludeBean parameterIncludeBean = parameterIncludeBeans.get(i);
-            if (isTF_table_cell) {
-                Color clor = CustomColor.getMoreLightColor();
-                JTextArea keyTA = new AssistPopupTextArea(parameterIncludeBean.getKey());
-                keyTA.setBackground(clor);
-                JComponent keyTA2 = new JScrollPane(keyTA);
-
-                JTextArea valTA = new GenerateJsonTextArea(parameterIncludeBean.getValue());
-                valTA.setBackground(clor);
-                JComponent valScroll = new JScrollPane(valTA);
-                rowData = new Object[]{keyTA2, valScroll, panel};
-            } else {
-                rowData = new Object[]{parameterIncludeBean.getKey(), parameterIncludeBean.getValue(), panel};
+        if (ValueWidget.isNullOrEmpty(parameterIncludeBeans)) {
+            addTableRow(hasTextField, isTF_table_cell, tableModel, null);
+        } else {
+            int size = parameterIncludeBeans.size();
+            for (int i = 0; i < size; i++) {
+                ParameterIncludeBean parameterIncludeBean = parameterIncludeBeans.get(i);
+                addTableRow(hasTextField, isTF_table_cell, tableModel, parameterIncludeBean);
             }
-            tableModel.addRow(rowData);
         }
+
+    }
+
+    public static void addTableRow(boolean hasTextField, boolean isTF_table_cell, DefaultTableModel tableModel, ParameterIncludeBean parameterIncludeBean) {
+        Object[] rowData = null;
+        RadioButtonPanel panel = new RadioButtonPanel();
+        panel.init(hasTextField);
+
+        if (isTF_table_cell) {
+            Color clor = CustomColor.getMoreLightColor();
+            JTextArea keyTA = null;
+            if (parameterIncludeBean == null) {
+                keyTA = new AssistPopupTextArea();
+            } else {
+                keyTA = new AssistPopupTextArea(parameterIncludeBean.getKey());
+            }
+
+            keyTA.setBackground(clor);
+            JComponent keyTA2 = new JScrollPane(keyTA);
+
+            JTextArea valTA = null;
+            if (parameterIncludeBean == null) {
+                valTA = new GenerateJsonTextArea();
+            } else {
+                valTA = new GenerateJsonTextArea(parameterIncludeBean.getValue());
+            }
+
+            valTA.setBackground(clor);
+            JComponent valScroll = new JScrollPane(valTA);
+            rowData = new Object[]{keyTA2, valScroll, panel};
+        } else {
+            rowData = new Object[]{parameterIncludeBean.getKey(), parameterIncludeBean.getValue(), panel};
+        }
+        tableModel.addRow(rowData);
     }
 
     public static ParameterIncludeBean getParameterIncludeBean(String key) {
@@ -266,6 +287,9 @@ public class TableUtil3 {
 	}
 
     public static List<ParameterIncludeBean> getParameterIncludeBeans(String key) {
+        if (ValueWidget.isNullOrEmpty(key)) {
+            return null;
+        }
         List<ParameterIncludeBean> beans = new ArrayList<ParameterIncludeBean>();
         /***
          * windows	\r\n
