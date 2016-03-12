@@ -64,8 +64,9 @@ public class PlaceHolderTextArea extends UndoTextArea implements IPlaceHolder {
      *
      * @param placeHolder
      */
-    public void placeHolder(String placeHolder) {
+    public PlaceHolderTextArea placeHolder(String placeHolder) {
         setPlaceHolder(placeHolder);
         TextCompUtil2.placeHolderFocus(this, placeHolder);
+        return this;
     }
 }

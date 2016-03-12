@@ -117,9 +117,10 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 	 * 设置默认提示语,包括监听focus事件
 	 * @param placeHolder
 	 */
-	public void placeHolder(String placeHolder){
+	public UndoTextField placeHolder(String placeHolder){
 		setPlaceHolder(placeHolder);
 		TextCompUtil2.placeHolderFocus(this, placeHolder);
+		return this;
 	}
 
 	/***
