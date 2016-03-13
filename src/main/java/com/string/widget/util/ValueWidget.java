@@ -1063,6 +1063,9 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 	public static String getNginxDispatch(String targetUrl, String stubUrl) {
 		targetUrl = targetUrl.replaceAll("^http://", "");
 		int index = targetUrl.indexOf(Constant2.Slash);
+		if(index==SystemHWUtil.NEGATIVE_ONE){
+			return null;
+		}
 		targetUrl = targetUrl.substring(index);
 		if (!stubUrl.endsWith(Constant2.Slash)) {
 			stubUrl = stubUrl + Constant2.Slash;

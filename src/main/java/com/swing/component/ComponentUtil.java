@@ -285,7 +285,7 @@ public final class ComponentUtil {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(ValueWidget.isNullOrEmpty(ta)){
-					ToastMessage.toast("文本框为null,请确认文本框是否已经创建",3000,Color.red);
+					ToastMessage.toast("文本框为null,请确认文本框是否已经创建",4000,Color.red);
 				}else{
 					String input = ta.getText();
 					if (!ValueWidget.isNullOrEmpty(input)) {
