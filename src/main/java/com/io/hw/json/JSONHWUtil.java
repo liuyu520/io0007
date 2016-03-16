@@ -1,5 +1,6 @@
 package com.io.hw.json;
 
+import com.common.util.SystemHWUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -159,13 +160,17 @@ public class JSONHWUtil {
 	}
 
 	/***
-	 * callback({"auth_code":"v39hXq"}) -->{"auth_code":"v39hXq"}
+	 * callback({"auth_code":"v39hXq"}) -->{"auth_code":"v39hXq"}<br>
+	 * 删除"\r\n "
 	 * @param input
 	 * @param callbackName
 	 * @return
 	 */
 	public static String deleteCallback(String input,String callbackName){
-		return input.replaceAll("^"+callbackName + "\\((.*\\})\\);?$", "$1");
+//		System.out.println(input);
+		String result=input.replaceAll("^"+callbackName + "\\((.*\\})\\);?$", "$1").replace("\\r\\n", SystemHWUtil.EMPTY);
+//		System.out.println(result);
+		return result;
 	}
 
 	public void test_addQuotationMarks() {

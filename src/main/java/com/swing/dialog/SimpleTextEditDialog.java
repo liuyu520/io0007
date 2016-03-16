@@ -82,9 +82,9 @@ public class SimpleTextEditDialog extends GenericDialog {
         }
     }
 
-    /**
+   /* *//**
      * Launch the application.
-     */
+     *//*
     public static void main(String[] args) {
         try {
             SimpleTextEditDialog dialog = new SimpleTextEditDialog(null);
@@ -93,6 +93,6 @@ public class SimpleTextEditDialog extends GenericDialog {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
 }
