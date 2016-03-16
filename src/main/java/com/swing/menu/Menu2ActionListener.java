@@ -165,12 +165,19 @@ public class Menu2ActionListener implements ActionListener {
 			}
 			content=content.replace("[\\n]", SystemHWUtil.EMPTY);
 			area2.setText(content);
-		}else if (command.startsWith(MenuUtil2.ACTION_DELETE_N_R)) {// 删除所有的\\r\\n
+		} else if (command.startsWith(MenuUtil2.ACTION_DELETE_N_R)) {// 删除所有的\\n\\r
 			String content=area2.getText();
 			if(ValueWidget.isNullOrEmpty(content)){
 				return;
 			}
-			content=content.replace("\\r\\n", SystemHWUtil.EMPTY);
+			content = content.replace("\\n\\r", SystemHWUtil.EMPTY);
+			area2.setText(content);
+		} else if (command.startsWith(MenuUtil2.ACTION_DELETE_R_N)) {// 删除所有的\\r\\n
+			String content = area2.getText();
+			if (ValueWidget.isNullOrEmpty(content)) {
+				return;
+			}
+			content = content.replace("\\r\\n", SystemHWUtil.EMPTY);
 			area2.setText(content);
 		}else if (command.startsWith(MenuUtil2.ACTION_URL_ENCODE)) {// 退出应用程序
 			String content=area2.getText();

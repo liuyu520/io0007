@@ -119,7 +119,8 @@ public class MenuUtil2
      * 删除[\n]
      */
     public static final String ACTION_DELETE_N        = "删除[\\n]";
-    public static final String ACTION_DELETE_N_R        = "删除\\r\\n";
+    public static final String ACTION_DELETE_R_N = "删除\\r\\n";
+    public static final String ACTION_DELETE_N_R = "删除\\n\\r";
     public static final String ACTION_URL_ENCODE        = "URL 编码";
     public static final String ACTION_URL_DECODE        = "URL 解码";
     public static final String ACTION_XML2JSON        = "xml -> json";
@@ -189,6 +190,8 @@ public class MenuUtil2
                 MenuUtil2.ACTION_DELETE_N);
         JMenuItem deleteNRM = new JMenuItem(
                 MenuUtil2.ACTION_DELETE_N_R);
+        JMenuItem deleteRNM = new JMenuItem(
+                MenuUtil2.ACTION_DELETE_R_N);
         
         JMenuItem urlEncodeM = new JMenuItem(
                 MenuUtil2.ACTION_URL_ENCODE);
@@ -247,6 +250,7 @@ public class MenuUtil2
         replaceChinaQuotesM.addActionListener(myMenuListener);
         deleteNM.addActionListener(myMenuListener);
         deleteNRM.addActionListener(myMenuListener);
+        deleteRNM.addActionListener(myMenuListener);
         urlEncodeM.addActionListener(myMenuListener);
         urlDecodeM.addActionListener(myMenuListener);
         xml2jsonM.addActionListener(myMenuListener);
@@ -287,6 +291,7 @@ public class MenuUtil2
         textMenu.add(replaceChinaQuotesM);
         textMenu.add(deleteNM);
         textMenu.add(deleteNRM);
+        textMenu.add(deleteRNM);
         textMenu.add(urlEncodeM);
         textMenu.add(urlDecodeM);
         textMenu.add(xml2jsonM);
