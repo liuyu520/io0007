@@ -4033,7 +4033,7 @@ public final class SystemHWUtil {
 		String[] queryArr = queryString.split("&");
 		for (int i = 0; i < queryArr.length; i++) {
 			String string = queryArr[i];
-			String keyAndValue[] = string.split("=");
+			String keyAndValue[] = string.split("=", 2);
 			if (keyAndValue.length != 2) {
 				argMap.put(keyAndValue[0], EMPTY);
 			} else {
