@@ -41,7 +41,6 @@ public class SearchInputDialog extends GenericDialog {
             JPanel buttonPane = new JPanel();
             buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
-            {
                 JButton searchButton = new JButton("搜索");
                 searchButton.addActionListener(new ActionListener() {
                     @Override
@@ -63,8 +62,6 @@ public class SearchInputDialog extends GenericDialog {
                 });
                 buttonPane.add(searchButton);
                 getRootPane().setDefaultButton(searchButton);
-            }
-            {
                 JButton cancelButton = new JButton("Cancel");
                 cancelButton.setActionCommand("Cancel");
                 cancelButton.addActionListener(new ActionListener() {
@@ -74,15 +71,16 @@ public class SearchInputDialog extends GenericDialog {
                     }
                 });
                 buttonPane.add(cancelButton);
-            }
         }
         if (ValueWidget.isNullOrEmpty(keyword)) {
             keyword = WindowUtil.getSysClipboardText();
             if (!ValueWidget.isNullOrEmpty(keyword) && keyword.length() < 20) {//太长的字符串就忽略
                 textArea.setText(keyword);
+                textArea.selectAll();
             }
         } else {
             textArea.setText(keyword);
+            textArea.selectAll();
         }
 
     }

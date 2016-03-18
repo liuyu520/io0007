@@ -4021,6 +4021,14 @@ public final class SystemHWUtil {
 	 * @return
 	 */
 	public static Map<String, Object> parseQueryString(String queryString) {
+		if (ValueWidget.isNullOrEmpty(queryString)) {
+			return null;
+		}
+		int index = queryString.indexOf("?");
+		if (index != SystemHWUtil.NEGATIVE_ONE) {
+			queryString = queryString.substring(index + 1);
+		}
+		
 		Map<String, Object> argMap = new HashMap<String, Object>();
 		String[] queryArr = queryString.split("&");
 		for (int i = 0; i < queryArr.length; i++) {
