@@ -496,4 +496,23 @@ public class RegexUtil {
 		Matcher m = p.matcher(source);
 		return m.find();
 	}
+	/***
+	 * 驼峰标识<br>
+	 * 
+	 * @param input : aaa_bbb_ccc_ddd
+	 * @return : aaaBbbCccDdd
+	 */
+	public static String humpMarking(String input){
+		Pattern p=Pattern.compile("_[a-z]");
+        Matcher m=p.matcher(input);
+        StringBuffer sb = new StringBuffer();
+        boolean result=m.find();
+        while(result){
+            String findResult=m.group().toUpperCase().replaceAll("^_", SystemHWUtil.EMPTY);
+            m.appendReplacement(sb, findResult);
+            result=m.find();
+        }
+        m.appendTail(sb);
+        return sb.toString().replaceAll("_$", SystemHWUtil.EMPTY);
+	}
 }
