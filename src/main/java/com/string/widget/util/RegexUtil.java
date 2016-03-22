@@ -515,4 +515,8 @@ public class RegexUtil {
         m.appendTail(sb);
         return sb.toString().replaceAll("_$", SystemHWUtil.EMPTY);
 	}
+
+	public static String convertBr(String input) {
+		return input.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+	}
 }

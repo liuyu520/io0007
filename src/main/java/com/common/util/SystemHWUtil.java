@@ -852,6 +852,9 @@ public final class SystemHWUtil {
 		return encod.length();
 	}
 
+	public static String splitAndFilterString(String input, int length) {
+		return splitAndFilterString(input, length, true);
+	}
 	/**
 	 * 删除input字符串中的html格式
 	 * 
@@ -860,7 +863,7 @@ public final class SystemHWUtil {
 	 *            显示的字符的个数
 	 * @return
 	 */
-	public static String splitAndFilterString(String input, int length) {
+	public static String splitAndFilterString(String input, int length, boolean appendEllipsis) {
 		if (input == null || input.trim().equals("")) {
 			return "";
 		}
@@ -874,7 +877,9 @@ public final class SystemHWUtil {
 			return str;
 		} else {
 			str = str.substring(0, length);
-			str += "......";
+			if (appendEllipsis) {
+				str += "......";
+			}
 		}
 		return str;
 	}
@@ -4682,6 +4687,13 @@ public final class SystemHWUtil {
 	public static boolean parse2Boolean(Object obj) {
 		if (ValueWidget.isNullOrEmpty(obj)) {
 			return false;
+		}
+		if (obj instanceof String) {
+			if (((String) obj).equalsIgnoreCase("true")) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 		if (obj instanceof String){
 			return Boolean.parseBoolean((String) obj);
