@@ -155,6 +155,7 @@ public class UnicodePanel extends GenericPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 doAction();
+                resultTextArea.requestFocus();//聚焦结果文本域
             }
         });
         panel_1.add(button);
