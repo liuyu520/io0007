@@ -610,6 +610,9 @@ public final class DialogUtil {
 		} else {// eg "com/pass/img/posterous_uploader.png"
 			InputStream is = clazz.getClassLoader()
 					.getResourceAsStream(resourcePath);
+			if (null == is) {
+				return null;
+			}
 			BufferedInputStream isr = new BufferedInputStream(is);
 			byte[] b = null;
 			/*
