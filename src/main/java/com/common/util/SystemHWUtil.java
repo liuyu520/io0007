@@ -218,6 +218,7 @@ public final class SystemHWUtil {
 		}
 	}
 
+	//MD5
 	static {
 		md5Map.put("96e79218965eb72c92a549dd5a330112", "111111");
 		md5Map.put("e10adc3949ba59abbe56e057f20f883e", "123456");

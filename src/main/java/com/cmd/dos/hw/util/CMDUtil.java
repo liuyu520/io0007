@@ -211,7 +211,7 @@ public class CMDUtil {
 	}
 
 	public static int modifyAttrib(String filePath, String flags) {
-		if (new File(filePath).exists()) {
+		if (SystemHWUtil.isWindows && new File(filePath).exists()) {
 			Process p = CMDUtil.executeCmd("attrib " + filePath + " " + flags);
 			try {
 				p.waitFor();
