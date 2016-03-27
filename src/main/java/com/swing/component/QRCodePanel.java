@@ -339,6 +339,7 @@ public class QRCodePanel extends GenericPanel {
 					return;
 				}
 				generateQRAction(true);
+				inputQRTextArea.requestFocus();
 			}
 		});
 		panel_2.add(genQRbutton);
