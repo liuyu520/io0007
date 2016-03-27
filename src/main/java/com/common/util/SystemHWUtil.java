@@ -202,14 +202,20 @@ public final class SystemHWUtil {
 	public static boolean isHP_UX = false;
 	public static boolean isSolaris = false;
 	public static boolean isOS32bit = true;
+	/***
+	 * 是否是苹果电脑
+	 */
+	public static boolean isMacOSX = false;
 
 	static {
 		if (SystemHWUtil.OSNAME.toLowerCase().contains("window")) {
 			isWindows = true;
-		}
+		}else
 		if (SystemHWUtil.OSNAME.toLowerCase().contains("hp-ux")) {
 			isHP_UX = true;
-		}
+		} else if (SystemHWUtil.OSNAME.toLowerCase().contains("mac os x")) {
+			isMacOSX = true;
+			}
 		if (SystemHWUtil.OSNAME.toLowerCase().contains("Solaris")) {
 			isSolaris = true;
 		}
@@ -449,10 +455,11 @@ public final class SystemHWUtil {
 		return new File(fullpath).getName();
 	}
 
-	// public static void main(String[] args) throws IOException
-	// {
-	// copyFile("/home/whuang2/study/linux/study/c/main.exe", "/home/whuang2");
-	// }
+	public static void main(String[] args) throws IOException {
+//	 copyFile("/home/whuang2/study/linux/study/c/main.exe", "/home/whuang2");
+//		 System.out.println(SystemHWUtil.OSNAME);
+//		 System.out.println(isMacOSX);
+	 }
 	public static String convertUTF2ISO(String oldName) {
 		if (oldName == null) {
 			return oldName;
