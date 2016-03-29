@@ -329,7 +329,7 @@ public class Menu2ActionListener implements ActionListener {
 			CustomDefaultDialog customDefaultDialog=new CustomDefaultDialog(selectContent,"显示HTML",true);
 			customDefaultDialog.setVisible(true);
 		}else if(command.equals("格式化json")){
-			JSONHWUtil.formatJson(area2,false);
+			JSONHWUtil.formatJson(area2, false, null);
 		}else if(command.equals(MenuUtil2.ACTION_TF_EDITABLE)){
 			area2.setEditable(true);
 			area2.setEnabled(true);

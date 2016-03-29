@@ -36,10 +36,13 @@ public class JSONHWUtil {
 	 *
 	 * @param ta
 	 */
-	public static void formatJson(JTextComponent ta,boolean isFurther) {
+	public static void formatJson(JTextComponent ta, boolean isFurther, String oldJson) {
 		String json=ta.getText();
 		if(ValueWidget.isNullOrEmpty(json)){
 			return ;
+		}
+		if (null == oldJson) {//oldJson用于解析json报错时恢复原始json的
+			oldJson = json;
 		}
 		JsonElement jsonEle = null;
 		try {
@@ -62,7 +65,7 @@ public class JSONHWUtil {
 					// System.out.println(jsonStr);
 					ta.setText(jsonStr);
 					if(isFurther){
-						formatJson(ta, false);
+						formatJson(ta, false, oldJson);
 					}
 				}
 			} else {
@@ -73,6 +76,13 @@ public class JSONHWUtil {
 		} catch (Exception ex) {
 //			GUIUtil23.warningDialog("非法JSON字符串！");
 //			GUIUtil23.errorDialog(ex.getMessage());
+			if (!ValueWidget.isNullOrEmpty(oldJson)) {
+				ta.setText(oldJson);
+				formatJson(ta, false, null);
+				ComponentUtil.appendResult(ta, null, false, false);
+				ComponentUtil.appendResult(ta, "历史错误信息", true, false);
+			}
+			
 			ComponentUtil.appendResult(ta, null, false,true);
 			ComponentUtil.appendResult(ta, ex.getMessage(), true);
 		}
