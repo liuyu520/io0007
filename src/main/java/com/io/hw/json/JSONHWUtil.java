@@ -57,8 +57,7 @@ public class JSONHWUtil {
 				if (jsonStr != null) {
 					jsonStr = StringEscapeUtils.unescapeJava(jsonStr);
 					if(isFurther){
-						jsonStr=jsonStr.replaceAll("\"(\\{.+\\})\"([\\s]*[,}])", "$1$2");
-						jsonStr=jsonStr.replaceAll("\"(\\[.+\\])\"([\\s]*[,}])", "$1$2");
+						jsonStr = optimizationJson(jsonStr);
 					}
 
 //					jsonStr = gson.toJson(StringEscapeUtils.escapeJava(jsonStr));
@@ -86,6 +85,18 @@ public class JSONHWUtil {
 			ComponentUtil.appendResult(ta, null, false,true);
 			ComponentUtil.appendResult(ta, ex.getMessage(), true);
 		}
+	}
+
+	/***
+	 * 优化json字符串
+	 *
+	 * @param jsonStr
+	 * @return
+	 */
+	public static String optimizationJson(String jsonStr) {
+		jsonStr = jsonStr.replaceAll("\"(\\{.+\\})\"([\\s]*[,}])", "$1$2");
+		jsonStr = jsonStr.replaceAll("\"(\\[.+\\])\"([\\s]*[,}])", "$1$2");
+		return jsonStr;
 	}
 
 	public static String[]parse(net.sf.json.JSONArray array){
