@@ -34,7 +34,7 @@ public class SearchInputDialog extends GenericDialog {
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(new BorderLayout(0, 0));
-        textArea = new AssistPopupTextField();
+        textArea = new AssistPopupTextField(false/*needSearch*/);
         textArea.placeHolder("请输入关键字,不区分大小写");
         contentPanel.add(textArea, BorderLayout.NORTH);
         {

@@ -1,16 +1,13 @@
 package com.swing.component;
 
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
-
 import com.swing.event.EventHWUtil;
 import com.swing.menu.MenuUtil2;
 import com.swing.menu.OpenFileMenuActionListener;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 /***
  * 继承 AssistPopupTextField<br>
  * 有两个菜单:浏览文件所在目录<br>
@@ -34,8 +31,8 @@ public class OpenDirTextField extends AssistPopupTextField {
 	}
 
 	@Override
-	protected void initlize() {
-		super.initlize();
+	protected void initlize(boolean needSearch) {
+		super.initlize(needSearch);
 		dropListMenu();
 	}
 

@@ -113,8 +113,11 @@ public class TextCompUtil2 {
             e.printStackTrace();
         }
 	}
-
 	public static void addActionMap(final JTextComponent tc,final UndoManager undo) {
+		addActionMap(tc, undo, true);
+	}
+
+	public static void addActionMap(final JTextComponent tc, final UndoManager undo, boolean needSearch) {
 		tc.getActionMap().put("Undo", new AbstractAction("Undo11") {
 			private static final long serialVersionUID = 2434402629308759912L;
 			public void actionPerformed(ActionEvent evt) {
@@ -227,9 +230,13 @@ public class TextCompUtil2 {
 		});
 		tc.getInputMap().put(KeyStroke.getKeyStroke("control E"), "Editable");
 
-        //按Ctrl+F 搜索文本
-        tc.getActionMap().put("search", searchAction);
-        tc.getInputMap().put(KeyStroke.getKeyStroke("control F"), "search");
+		if (needSearch) {
+			//按Ctrl+F 搜索文本
+			//需要区分对待,因为有的文本框不需要Ctrl+F 快捷键
+			tc.getActionMap().put("search", searchAction);
+			tc.getInputMap().put(KeyStroke.getKeyStroke("control F"), "search");
+
+		}
 
 		//按Ctrl+G 截屏(只截文本框)
 		tc.getActionMap().put("screenshotDialog", copyImage2ClipAction);

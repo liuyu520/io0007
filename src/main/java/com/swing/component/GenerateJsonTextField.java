@@ -19,8 +19,8 @@ public class GenerateJsonTextField extends AssistPopupTextField {
 	}
 
 	@Override
-	protected void initlize() {
-		super.initlize();
+	protected void initlize(boolean needSearch) {
+		super.initlize(needSearch);
 		TextCompUtil2.dropListMenu(this);
 		placeHolder(TextCompUtil2.PLACEHOLDER_DOUBLE_SHIFT);
 	}

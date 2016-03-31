@@ -1,18 +1,14 @@
 package com.swing.component;
 
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
-
 import com.swing.event.EventHWUtil;
 import com.swing.menu.DropListMenuActionListener;
 import com.swing.menu.MenuUtil2;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.List;
 /***
  * 双击Shift 弹出下拉菜单,选中则会填入该文本框
  * <br> 继承AssistPopupTextField
@@ -36,8 +32,8 @@ public abstract class DropListTextField extends AssistPopupTextField {
 	}
 
 	@Override
-	protected void initlize() {
-		super.initlize();
+	protected void initlize(boolean needSearch) {
+		super.initlize(needSearch);
 		dropListMenu();
 	}
 

@@ -33,21 +33,30 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 	private UndoManager undo = new UndoManager();
 	private Document doc = getDocument();
 	private FindTxtResultBean findTxtResultBean;
-	public UndoTextField(String text) {
-		super(text);
-		initlize();
-	}
-	public UndoTextField() {
-		super();
-		initlize();
 
+	public UndoTextField(String text, boolean needSearch) {
+		super(text);
+		initlize(needSearch);
+	}
+
+	public UndoTextField(boolean needSearch) {
+		super();
+		initlize(needSearch);
+
+	}
+
+	public UndoTextField() {
+		this(true);
+	}
+
+	public UndoTextField(int size, boolean needSearch) {
+		super(size);
+		initlize(needSearch);
 	}
 
 	public UndoTextField(int size) {
-		super(size);
-		initlize();
+		this(size, true);
 	}
-
 	public static GenericDialog getScreenshotDialog() {
 		return screenshotDialog;
 	}
@@ -77,14 +86,14 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 		undo.discardAllEdits();
 	}
 
-	protected void initlize() {
+	protected void initlize(boolean needSearch) {
 		doc.addUndoableEditListener(new UndoableEditListener() {
 			public void undoableEditHappened(UndoableEditEvent e) {
 				undo.addEdit(e.getEdit());
 			}
 		});
 //		addActionMap();
-		TextCompUtil2.addActionMap(this, undo);
+		TextCompUtil2.addActionMap(this, undo, needSearch);
 	}
 
 	/***
