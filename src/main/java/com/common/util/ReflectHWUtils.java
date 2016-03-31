@@ -831,6 +831,9 @@ public class ReflectHWUtils {
 			Object obj=list.get(i);
 			Field keyf =null;
 			keyf = getSpecifiedField(obj.getClass(), property);
+			if (null == keyf) {
+				continue;
+			}
 			keyf.setAccessible(true);
 			
 			try {
