@@ -39,7 +39,13 @@ public class CMDUtil {
         BufferedReader reader = null;
         try
         {
-            String command2=SystemHWUtil.CMD_SHORT + command;
+			String command2 = null;
+			if (SystemHWUtil.isWindows) {
+				command2 = SystemHWUtil.CMD_SHORT + command;
+			} else {
+				command2 = command;
+			}
+
             p = Runtime.getRuntime().exec(command2);
             System.out.println(command2);
             reader = new BufferedReader(new InputStreamReader(p.getInputStream(),charset));
