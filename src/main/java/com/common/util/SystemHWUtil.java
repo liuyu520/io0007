@@ -3765,7 +3765,7 @@ public final class SystemHWUtil {
 	 * @param j
 	 * @return
 	 */
-	public static int isContains(String[] strArray, String j) { 
+	public static int indexOf(String[] strArray, String j) {
 		int index = SystemHWUtil.NEGATIVE_ONE;
 		if(ValueWidget.isNullOrEmpty(strArray)){
 			return index;
@@ -3781,8 +3781,13 @@ public final class SystemHWUtil {
 		return index;
 	}
 
+	public static boolean isContains(String[] strArray, String j) {
+		return (indexOf(strArray, j) != SystemHWUtil.NEGATIVE_ONE);
+	}
+
 	/***
 	 * 去掉相同的元素
+	 *
 	 * @param strs
 	 */
 	public static String[] unique(String strs[]){
@@ -3792,7 +3797,7 @@ public final class SystemHWUtil {
 		String strs_new[]=new String[length];
 		int count=0;
 		for(int i=0;i<strs.length;i++){
-			if(SystemHWUtil.isContains(strs_new, strs[i])==SystemHWUtil.NEGATIVE_ONE){
+			if (SystemHWUtil.isContains(strs_new, strs[i])) {
 				strs_new[count]=strs[i];
 				count++;
 			}
