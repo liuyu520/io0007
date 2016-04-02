@@ -108,7 +108,7 @@ public class ReflectHWUtils {
 	 */
 	public static void setObjectValue(Object obj, Map<String, Object> params)
 			throws SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+			IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
 		if(ValueWidget.isNullOrEmpty(obj)){
 			return;
 		}
