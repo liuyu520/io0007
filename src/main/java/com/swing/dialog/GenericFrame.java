@@ -225,8 +225,8 @@ public class GenericFrame extends AbstractFrame {
         	String roots_old[]=roots.split(Constant2.SHAREDPICDIVISION);
         	int index;
         	String urls_new[] = null;
-        	if((index=SystemHWUtil.isContains(roots_old, rootPath))==SystemHWUtil.NEGATIVE_ONE){//不包含
-        		roots=rootPath+Constant2.SHAREDPICDIVISION+roots;//把新增的item插入到最前面
+			if ((index = SystemHWUtil.indexOf(roots_old, rootPath)) == SystemHWUtil.NEGATIVE_ONE) {//不包含
+				roots=rootPath+Constant2.SHAREDPICDIVISION+roots;//把新增的item插入到最前面
         		if(freshCombox){
         			comboBox.removeAllItems();
             		ComponentUtil.fillComboBox(comboBox, roots);
