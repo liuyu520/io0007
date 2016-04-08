@@ -226,8 +226,11 @@ public class ShellScriPanel extends GenericPanel{
 		if (input.equals("pwd")) {/*windows 没有“pwd” 命令*/
 			input = "cd";
 		}
-		input = Constant2.FIX_PREFIX_COMMAND + input;
-		String[] commands = input.split("[ \t]");
+        if (SystemHWUtil.isWindows) {
+            input = Constant2.FIX_PREFIX_COMMAND + input;
+        }
+
+        String[] commands = input.split("[ \t]");
 		pb.command(commands);
 
 		// if (directory != null)

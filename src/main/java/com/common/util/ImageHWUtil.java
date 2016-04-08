@@ -439,7 +439,10 @@ public class ImageHWUtil {
 		 * @return
 		 */
 		public static BufferedImage bufferImage(BufferedImage image, int type,int fixedWidth) {
-			int width22 = image.getWidth(null);
+            if (null == image) {
+                return null;
+            }
+            int width22 = image.getWidth(null);
 			int height22 = image.getHeight(null);
 			System.out.println("width22:" + width22);
 			System.out.println("height22:" + height22);
