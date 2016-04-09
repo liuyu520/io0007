@@ -1,6 +1,8 @@
 package com.swing.table;
 
 import com.common.bean.ParameterIncludeBean;
+import com.common.bean.RequestInfoBean;
+import com.common.bean.ResponseResult;
 import com.common.bean.TableDataBean;
 import com.common.util.SystemHWUtil;
 import com.io.hw.awt.color.CustomColor;
@@ -282,7 +284,8 @@ public class TableUtil3 {
 			} else {
 				parameterIncludeBean.setKey(key);
 			}
-		}
+            parameterIncludeBean.setInclude(true);
+        }
 		return parameterIncludeBean;
 	}
 
@@ -507,5 +510,14 @@ public class TableUtil3 {
 		tc.setMinWidth(width);
 		table.getTableHeader().getColumnModel().getColumn(column).setMaxWidth(width);
 		table.getTableHeader().getColumnModel().getColumn(column).setMinWidth(width);
-	}
+    }
+
+    public static String getPreRequestVal(ResponseResult preResponseResult, RequestInfoBean requestInfoBean) {
+        Map<String, String> responseMapLogin = preResponseResult.getResponseJsonMap();
+        String preRequestKey = requestInfoBean.getPreRequestParameterName();
+        if (ValueWidget.isNullOrEmpty(preRequestKey)) {
+            System.out.println("preRequestKey is null.servlet path:" + requestInfoBean.getActionPath());
+        }
+        return responseMapLogin.get(preRequestKey);
+    }
 }
