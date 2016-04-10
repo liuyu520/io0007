@@ -242,7 +242,7 @@ public final class WebServletUtil {
 			System.out.println("[getRequestQueryStr]charEncoding:"
 					+ charEncoding2);
 			System.out.println("[getRequestQueryStr]Content-Type:"
-					+ request.getHeader(Constant2.REQUEST_HEADER_CONTENT_TYPE));
+                    + getRequestContentType(request));
 //			System.out.println("[getRequestQueryStr]contentType:"
 //					+ request.getHeader("contentType"));
 			// if (charEncoding == null) {
@@ -260,7 +260,17 @@ public final class WebServletUtil {
 		}
 	}
 
-	/***
+    /***
+     * 获取请求的Content-Type
+     *
+     * @param request
+     * @return
+     */
+    public static String getRequestContentType(HttpServletRequest request) {
+        return request.getHeader(Constant2.REQUEST_HEADER_CONTENT_TYPE);
+    }
+
+    /***
 	 *
 	 * @param requestStr : username=huangwei&password=123
 	 * @param isTrimBank

@@ -6,6 +6,7 @@ import com.http.util.HttpSocketUtil;
 import com.io.hw.json.JSONHWUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.messagebox.GUIUtil23;
+import org.apache.log4j.Logger;
 
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import java.util.Map;
  * Created by huangweii on 2016/3/10.
  */
 public class ResponseResult {
+    protected static Logger logger = Logger.getLogger(ResponseResult.class);
     private boolean myResult;
     private RequestInfoBean requestInfoBean;
     private String requestCharset;
@@ -71,6 +73,10 @@ public class ResponseResult {
     public ResponseResult invoke() {
         String port = getPort(requestInfoBean);
         String servletAction = requestInfoBean.getActionPath();//接口路径
+        if (ValueWidget.isNullOrEmpty(servletAction)) {
+            logger.error("servletAction is null");
+            return null;
+        }
         if (!servletAction.startsWith("/")) {//兼容"接口"文本框前面没有斜杠
             servletAction = "/" + servletAction;
         }
