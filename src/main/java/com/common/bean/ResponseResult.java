@@ -88,10 +88,16 @@ public class ResponseResult {
             url += ("?" + requestInfoBean.getRequestBodyData());
         } else {//POST请求
             postData = requestInfoBean.getRequestBodyData();
-            contentType = SystemHWUtil.CONTENTTYPE_X_WWW_FORM_URLENCODED;
+            if (requestInfoBean.isRequestBodyIsJson()) {
+                contentType = SystemHWUtil.CONTENTTYPE_JSON;
+            } else {
+                contentType = SystemHWUtil.CONTENTTYPE_X_WWW_FORM_URLENCODED;
+            }
+            
             if (requestInfoBean.isEncodingCheckbox()) {//是否选中了复选框
                 contentType = contentType + (";charset=" + requestCharset);//request.getCharacterEncoding() 获取的就是该编码
             }
+            System.out.println("contentType:" + contentType);
             forcePost = true;
         }
         requestInfoBean.setUrl(url);
