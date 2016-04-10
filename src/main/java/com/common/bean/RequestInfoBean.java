@@ -32,6 +32,10 @@ public class RequestInfoBean implements Serializable {
      */
     private String charset;
     /***
+     * 请求的Content Type
+     */
+    private String customRequestContentType;
+    /***
      * POST:2<br>GET:0
      */
     private int requestMethod;
@@ -335,6 +339,15 @@ public class RequestInfoBean implements Serializable {
 
     public void updateRequestBody() {
         this.setRequestBodyData(WebServletUtil.getRequestBodyFromMap(this.getRequestParameters()));
+    }
+
+
+    public String getCustomRequestContentType() {
+        return customRequestContentType;
+    }
+
+    public void setCustomRequestContentType(String customRequestContentType) {
+        this.customRequestContentType = customRequestContentType;
     }
 
     public TreeMap<String, Object> addParameter(String key, Object val) {
