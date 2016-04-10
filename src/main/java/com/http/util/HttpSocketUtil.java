@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 public class HttpSocketUtil {
 	public static final String BOUNDARY = "---------------------------41184676334";
 	public static final String end = "\r\n";
+    public static final String HEAD_KEY_CONTENT_LENGTH = "Content-Length";
     protected static Logger logger = Logger.getLogger(HttpSocketUtil.class);
     private static Map<String, List<String>> responseHeaderFields;
 	/***
@@ -598,8 +599,8 @@ public class HttpSocketUtil {
 		if (readTimeout != SystemHWUtil.NEGATIVE_ONE) {
 			huc.setReadTimeout(readTimeout);
 		}
-		int length = 0;
-		byte[] sendByte = null;
+        int length = SystemHWUtil.NEGATIVE_ONE;
+        byte[] sendByte = null;
 		String mode = "GET";
 		if (!ValueWidget.isNullOrEmpty(sendData)) {
 			if (ValueWidget.isNullOrEmpty(charset)) {
@@ -1024,12 +1025,13 @@ public class HttpSocketUtil {
 			huc.setRequestProperty("Cookie", cookie);
             logger.info("Cookie:" + cookie);
         }
-		if (contentLength != 0) {
-			huc.setRequestProperty("Content-Length", "" + contentLength);
-		} else {
-			huc.setRequestProperty("Content-Length", "");
-		}
-		setRequestProperty(huc, headers);
+        if (contentLength != SystemHWUtil.NEGATIVE_ONE) {
+            huc.setRequestProperty(HEAD_KEY_CONTENT_LENGTH, String.valueOf(contentLength));
+        } else {
+            huc.setRequestProperty(HEAD_KEY_CONTENT_LENGTH, "");
+        }
+        logger.info(HEAD_KEY_CONTENT_LENGTH + ":" + contentLength);
+        setRequestProperty(huc, headers);
 
 	}
 
