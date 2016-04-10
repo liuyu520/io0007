@@ -84,7 +84,7 @@ public class ResponseResult {
 
 
         boolean forcePost = false;
-        if (requestInfoBean.getRequestMethod() == Constant2.REQUEST_METHOD_GET && !ValueWidget.isNullOrEmpty(requestInfoBean.getRequestBodyData())) {//GET请求
+        if (!requestInfoBean.isRequestBodyIsJson() && requestInfoBean.getRequestMethod() == Constant2.REQUEST_METHOD_GET && !ValueWidget.isNullOrEmpty(requestInfoBean.getRequestBodyData())) {//GET请求
             url += ("?" + requestInfoBean.getRequestBodyData());
         } else {//POST请求
             postData = requestInfoBean.getRequestBodyData();
@@ -104,8 +104,12 @@ public class ResponseResult {
 
         HttpSocketUtil.setDetail(true);
         //获取请求方法,例如 GET,POST,PUT,DELETE
-        String requestMethod = getRequestMethod(requestInfoBean);
-
+        String requestMethod = null;
+        if (requestInfoBean.isRequestBodyIsJson()) {
+            requestMethod = "POST";
+        } else {
+            requestMethod = getRequestMethod(requestInfoBean);
+        }
         byte[] resultJsonBytes = null;
         resultArr = null;
         resCode = -1;
