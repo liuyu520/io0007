@@ -306,6 +306,7 @@ public class Constant2 {
 	 */
 	public static final int GET_PASS_RESULT_ALREADY_NEWEST = 31;
 	public static final String COOKIE_KEY_JSESSIONID = "JSESSIONID";
+    public static final String HEAD_KEY_CONTENT_LENGTH = "Content-Length";
 
 	static {
 		REQUEST_METHOD_MAP.put("GET", REQUEST_METHOD_GET);
