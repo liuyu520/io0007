@@ -271,7 +271,10 @@ public final class FileUtils {
 	 * @throws IOException
 	 */
 	public static byte[] readBytes4file(File file) throws IOException {
-		FileInputStream in = new FileInputStream(file);
+        if (null == file || (!file.exists())) {
+            return null;
+        }
+        FileInputStream in = new FileInputStream(file);
 		return readBytes3(in);
 
 	}

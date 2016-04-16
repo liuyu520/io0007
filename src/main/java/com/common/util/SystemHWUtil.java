@@ -4930,15 +4930,19 @@ public final class SystemHWUtil {
 					Object obj1 = ReflectHWUtils.getObjectValue(o1, comparedProperty);
 					Object obj2 = ReflectHWUtils.getObjectValue(o2, comparedProperty);
 					if (isConvertInteger) {
-						int num1;
-						int num2;
-						if (obj1 instanceof Integer) {
+                        int num1 = 0;
+                        int num2 = 0;
+                        if (obj1 instanceof Integer) {
 							num1 = (Integer) obj1;
 							num2 = (Integer) obj2;
 						} else {
-							num1 = Integer.parseInt(obj1.toString());
-							num2 = Integer.parseInt(obj2.toString());
-						}
+                            String str1 = obj1.toString();
+                            String str2 = obj2.toString();
+                            if (ValueWidget.isNumeric(str1) && ValueWidget.isNumeric(str2)) {
+                                num1 = Integer.parseInt(str1);
+                                num2 = Integer.parseInt(str2);
+                            }
+                        }
 						if (num1 > num2) {
 							return 1;
 						} else if (num1 < num2) {
