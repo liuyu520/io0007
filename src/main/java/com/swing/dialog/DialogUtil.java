@@ -5,6 +5,7 @@ import com.common.bean.FindTxtResultBean;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
+import com.swing.component.inf.IPlaceHolder;
 import com.swing.dialog.inf.DialogInterface;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.messagebox.GUIUtil23;
@@ -257,6 +258,12 @@ public final class DialogUtil {
 	 */
 	public static boolean verifyTFEmpty(JTextField sourceFileTF, String title,boolean custome) {
 		String targetFile_dir = sourceFileTF.getText();
+		if (!ValueWidget.isNullOrEmpty(targetFile_dir)) {
+			if (sourceFileTF instanceof IPlaceHolder) {
+				IPlaceHolder placeHolder = (IPlaceHolder) sourceFileTF;
+				targetFile_dir = placeHolder.getText2();
+			}
+		}
 		if (ValueWidget.isNullOrEmpty(targetFile_dir)) {
 			String tips=null;
 			if(custome){
