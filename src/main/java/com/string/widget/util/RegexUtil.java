@@ -519,4 +519,15 @@ public class RegexUtil {
 	public static String convertBr(String input) {
 		return input.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
 	}
+
+    /***
+     * 删除字符串中的空格,包括中间的空格
+     *
+     * @param input
+     * @return
+     */
+    public static String filterBlank(String input) {
+        String result = input.replaceAll("[\\s]+", SystemHWUtil.EMPTY);//IE中识别不了有空格的json
+        return result;
+    }
 }
