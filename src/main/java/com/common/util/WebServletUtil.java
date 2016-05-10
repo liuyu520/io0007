@@ -577,11 +577,25 @@ public final class WebServletUtil {
 		return emailCook;
 	}
 
-	/***
+    /***
+     * 解决关闭浏览器之后需要重新登录的问题
+     *
+     * @param request
+     * @param response
+     * @throws UnsupportedEncodingException
+     */
+    public static void setSessionIdCookie(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+        //解决关闭浏览器之后需要重新登录的问题
+        Cookie c = new Cookie("JSESSIONID", URLEncoder.encode(request.getSession().getId(), "utf-8"));
+        c.setPath("/");
+        //先设置cookie有效期为4天
+        c.setMaxAge(96 * 60 * 60);
+        response.addCookie(c);
+    }
+
+    /***
 	 * 指定字符编码，无损地读取文本文件.推荐!
 	 *
-	 * @param in
-	 *            : 输入流，会关闭
 	 * @param charset
 	 *            : 字符编码
 	 * @return
