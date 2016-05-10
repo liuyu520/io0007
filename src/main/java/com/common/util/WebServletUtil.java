@@ -586,7 +586,7 @@ public final class WebServletUtil {
      */
     public static void setSessionIdCookie(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
         //解决关闭浏览器之后需要重新登录的问题
-        Cookie c = new Cookie("JSESSIONID", URLEncoder.encode(request.getSession().getId(), "utf-8"));
+        Cookie c = new Cookie(Constant2.COOKIE_KEY_JSESSIONID, URLEncoder.encode(request.getSession().getId(), "utf-8"));
         c.setPath("/");
         //先设置cookie有效期为4天
         c.setMaxAge(96 * 60 * 60);
