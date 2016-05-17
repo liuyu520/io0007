@@ -385,8 +385,8 @@ public final class WebServletUtil {
 	 * @param bytes
 	 * @param contentType
 	 *            : default value:application/json
-	 * @param encoding
-	 * @throws IOException
+     * @param responseEncoding
+     * @throws IOException
 	 */
 	public static void sendRequestStream(HttpServletResponse response,
 			byte[] bytes, String contentType, String responseEncoding)
@@ -421,8 +421,8 @@ public final class WebServletUtil {
 	 *
 	 * @param request
 	 *            :HttpServletRequest
-	 * @param attName
-	 *            :parameter name
+     * @param parameterName
+     *            :parameter name
 	 * @return
 	 */
 	public static int parseIntFromRequest(HttpServletRequest request,
@@ -502,7 +502,6 @@ public final class WebServletUtil {
 
 	/***
 	 * 是否保存cookie
-	 * @param request
 	 * @param response
 	 * @param emaiCookieName
 	 * @param cookieValue

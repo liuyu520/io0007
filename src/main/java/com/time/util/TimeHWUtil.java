@@ -471,8 +471,8 @@ public class TimeHWUtil {
 	/***
 	 * 以小时为单位
 	 * @param d
-	 * @param month
-	 * @return
+     * @param hour
+     * @return
 	 */
 	public static java.util.Date getDateAfterByHour(Date d, int hour) {
 		Calendar now = Calendar.getInstance();
@@ -480,8 +480,13 @@ public class TimeHWUtil {
 		now.set(Calendar.HOUR, now.get(Calendar.HOUR) + hour);
 		return now.getTime();
 	}
-	
-	/**
+
+    public static java.util.Date getDateAfterByHour(String dateStr, int hour) throws ParseException {
+        Date d = getDate4Str(dateStr);
+        return getDateAfterByHour(d, hour);
+    }
+
+    /**
 	 * 
 	 * Determine whether date is valid, including the case of a leap year
 	 * 
@@ -502,6 +507,24 @@ public class TimeHWUtil {
 		Pattern p = Pattern.compile(reg.toString());
 		return p.matcher(date).matches();
 	}
+
+    /***
+     * 20150705
+     *
+     * @param dateStr
+     * @return
+     */
+    public static boolean isShortDate(String dateStr) {
+        boolean isRegexRight = dateStr.matches("[\\d]{8}");
+        if (!isRegexRight) {
+            return false;
+        }
+        Date date = parseDateByPattern(dateStr, YYYYMMDD_NO_LINE);
+        if (date == null) {
+            return false;
+        }
+        return true;
+    }
 
 	/***
 	 * format Date
@@ -655,8 +678,22 @@ public class TimeHWUtil {
 	public static String getCron(java.util.Date  date){
 		String dateFormat="ss mm HH dd MM ? yyyy";
 		return formatDateByPattern(date, dateFormat);
-	}
-	/***
+    }
+
+    /***
+     * 两个日期相差多少秒
+     *
+     * @param date1 : 建议大于 date2
+     * @param date2
+     * @return
+     */
+    public static int getTimeDelta(Date date1, Date date2) {
+        long timeDelta = (date1.getTime() - date2.getTime()) / 1000;//单位是秒
+        int secondsDelta = timeDelta > 0 ? (int) timeDelta : (int) Math.abs(timeDelta);
+        return secondsDelta;
+    }
+
+    /***
 	 * 两个日期相差多少秒
 	 * 
 	 * @param date1
@@ -757,7 +794,30 @@ public class TimeHWUtil {
 		timeLong.setMinute(minutes);
 		timeLong.setSecond(second);
 		return timeLong;
-	}
+    }
+
+    /***
+     * @param date1
+     * @param date2
+     * @return : TimeLong
+     */
+    public static TimeLong getDeltaDate(Date date1, Date date2) {
+        int second = getTimeDelta(date1, date2);
+        TimeLong timeLong = getTimeLong(second);
+        return timeLong;
+    }
+
+    /***
+     * 从当前时间算,离 endTime还剩下多少时间
+     *
+     * @param endTime
+     * @return : 天
+     */
+    public static int getDeltaDate(Date endTime) {
+        Date date2 = getCurrentTimestamp();
+        return getDeltaDate(endTime, date2).getDay();
+    }
+
 	public void test_002(){
 		String now="2014-02-25";
 		String endTime="2014-01-25";
