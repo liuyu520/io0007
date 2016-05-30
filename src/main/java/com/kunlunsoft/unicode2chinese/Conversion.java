@@ -1,6 +1,7 @@
 package com.kunlunsoft.unicode2chinese;
 
 import com.kunlunsoft.isch.util.IsChineseUtil;
+import com.string.widget.util.ValueWidget;
 
 public class Conversion {
 	/**
@@ -26,26 +27,17 @@ public class Conversion {
 	public static String chinaToUnicode(String str,boolean isUpperCase) {
 		return chinaToUnicode(str,isUpperCase,"\\u");
 	}
-	/**
-	 * unicode转-->中文
-	 * 
-	 * @return 中文
-	 */
-	/*
-	 * public static String unicodeToChinese(String str) { StringBuffer sb = new
-	 * StringBuffer(); for (char c : str.toCharArray()) { sb.append(c); } return
-	 * sb.toString(); }
-	 */
-	public String abc() {
-		return "abc";
-	}
+
 	/**
 	 * 把unicode转化为中文
 	 * @param str
 	 * @return
 	 */
 	public static String unicodeToChinese(String str) {
-		if (IsChineseUtil.isHasChinses2(str))//判断是否有中文字符
+        if (ValueWidget.isNullOrEmpty(str)) {
+            return str;
+        }
+        if (IsChineseUtil.isHasChinses2(str))//判断是否有中文字符
 			return str;
 		if (str.indexOf("\\u") == -1 || str == null || "".equals(str.trim())) {/*若不是unicode，则直接返回*/
 			return str.replaceAll("\\\\ ", " ");//删掉英文中的\,such as "default\ value1"
@@ -61,12 +53,12 @@ public class Conversion {
 			str = str.substring(0, str.length() - 1);
 		}
 		String[] chs = str.trim().split("\\\\u");
-		
+
 		for (int i = 0; i < chs.length; i++) {
 			String ch = chs[i].trim();
-			if (ch != null && !"".equals(ch)) {
-				int length_ch=ch.length();
-				if(length_ch>4){
+            if (!ValueWidget.isNullOrEmpty(ch)) {
+                int length_ch = ch.length();
+                if(length_ch>4){
 					length_ch=4;
 				}//中文的长度是4，英文的长度是2
 				sb.append((char) Integer.parseInt(ch.substring(0, length_ch), 16));//按照十六进制解析
@@ -95,17 +87,32 @@ public class Conversion {
 		if (isToUnicode) {
 			return chinaToUnicode(oldValue,isUpperCase);
 		} else {
-			return unicodeToChinese(new String(oldValue));
-		}
+            return unicodeToChinese(oldValue);
+        }
 	}
-	/***
-	 * 把中文转化为unicode
+
+    /***
+     * 把中文转化为unicode
 	 * @param oldValue
 	 * @param isToUnicode
 	 * @return
 	 */
 	public static String resolveUnicode(String oldValue, boolean isToUnicode) {
 		return resolveUnicode(oldValue, isToUnicode,false);
+    }
+
+    /**
+     * unicode转-->中文
+     *
+     * @return 中文
+     */
+    /*
+     * public static String unicodeToChinese(String str) { StringBuffer sb = new
+	 * StringBuffer(); for (char c : str.toCharArray()) { sb.append(c); } return
+	 * sb.toString(); }
+	 */
+    public String abc() {
+        return "abc";
 	}
 
 }
