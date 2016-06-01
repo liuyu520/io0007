@@ -3,6 +3,7 @@ package com.swing.dialog;
 import com.common.util.WindowUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.dialog.inf.DialogInterface;
+import com.swing.dialog.toast.ToastMessage;
 import com.swing.menu.MenuUtil2;
 
 import javax.swing.*;
@@ -199,7 +200,8 @@ public abstract class AbstractFrame extends JFrame implements DialogInterface{
 							&& kE.isControlDown()&&!kE.isAltDown()&&!kE.isShiftDown()
 							&& kE.getID() == KeyEvent.KEY_PRESSED) {
 						saveConfig();
-					} else if(kE.getKeyCode() == KeyEvent.VK_E
+                        ToastMessage.toast("保存配置文件成功", 3000);
+                    } else if(kE.getKeyCode() == KeyEvent.VK_E
 							&& kE.isControlDown()&&!kE.isAltDown()&&!kE.isShiftDown()
 							&& kE.getID() == KeyEvent.KEY_PRESSED){//最近访问的文件或窗口
 						showRecentList();//Ctrl+E或者Alt+Shift+C  最近更改的代码

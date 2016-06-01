@@ -58,7 +58,13 @@ public class GenericFrame extends AbstractFrame {
 		
 	}
 
-	public void init33(final GenericFrame frame) {
+    /***
+     * 在 GenericFrame和AbstractFrame 中都没有调用<br>
+     * 应该在GenericFrame 的子类中调用
+     *
+     * @param frame
+     */
+    public void init33(final GenericFrame frame) {
 		this.addWindowListener(new WindowAdapter() {
 
 			@Override
@@ -250,7 +256,9 @@ public class GenericFrame extends AbstractFrame {
     }
     /***
      * 关闭窗口之前执行的操作<br>
-     * 善后,现场保留
+     * 善后,现场保留<br>
+     * 被GenericFrame.init33() 方法调用,注意:不会自动调用<br>
+     * 只有子类调用了GenericFrame.init33() 方法,beforeDispose() 才会被调用
      */
     public void beforeDispose(){
     	

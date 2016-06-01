@@ -113,7 +113,10 @@ public class HWJacksonUtils {
 	 * @return
 	 */
 	public static Object deSerialize(String jsonInput,Class clazz){
-		Object obj=null;
+        if (ValueWidget.isNullOrEmpty(jsonInput)) {
+            return null;
+        }
+        Object obj=null;
 		try {
 			ObjectMapper mapper = getObjectMapper();
 //			DeserializationConfig deserializationConfig=mapper.getDeserializationConfig();
