@@ -46,20 +46,10 @@ public abstract class AbstractFrame extends JFrame implements DialogInterface{
      */
 	public abstract void layout3(Container contentPane);
 
-	/***
-	 * 
-	 * 
-	 * @param resourcePath : "/com/pass/img/posterous_uploader.png"
-	 * @throws IOException
-	 */
-	public void setIcon(String resourcePath,Class<?> clazz) throws IOException {
-		ImageIcon imageIcon=DialogUtil.getImageIcon(resourcePath, clazz);
-		if (null != imageIcon) {
-			setIconImage(imageIcon.getImage());
-		}
-	}
 
-
+    public void setIcon(String resourcePath, Class<?> clazz) throws IOException {
+        DialogUtil.setIcon(this, resourcePath, clazz);
+    }
 
 	/***
 	 * 全屏

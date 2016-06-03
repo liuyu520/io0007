@@ -642,7 +642,24 @@ public final class DialogUtil {
 			return imageIcon;
 		}
 	}
-	public static void showMaximizeDialog(final JComponent area2) {
+
+    /***
+     * @param resourcePath : "/com/pass/img/posterous_uploader.png"
+     * @throws IOException
+     */
+    public static void setIcon(JFrame jframe, String resourcePath, Class<?> clazz) throws IOException {
+        ImageIcon imageIcon = DialogUtil.getImageIcon(resourcePath, clazz);
+        if (null != imageIcon) {
+            jframe.setIconImage(imageIcon.getImage());
+            if (SystemHWUtil.isMacOSX) {//mac os
+                com.apple.eawt.Application.getApplication().setDockIconImage(
+                        imageIcon.getImage());
+            }
+
+        }
+    }
+
+    public static void showMaximizeDialog(final JComponent area2) {
 		showMaximizeDialog(area2,true);
 	}
 	public static void showMaximizeDialog(final JComponent area2,final boolean isNeedScrollPane) {
