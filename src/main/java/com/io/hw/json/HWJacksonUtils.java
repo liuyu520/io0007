@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public class HWJacksonUtils {
-	protected static Logger logger=Logger.getLogger(HWJacksonUtils.class);
-	private static ObjectMapper mapper =null;
+    protected static final Logger logger = Logger.getLogger(HWJacksonUtils.class);
+    private static ObjectMapper mapper =null;
 
 	public static ObjectMapper getObjectMapper(){
 		if(mapper==null){

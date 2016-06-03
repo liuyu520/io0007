@@ -25,7 +25,7 @@ public class ResponseResult {
     /*private JTextArea respTextArea_9;
     private AutoTestPanel autoTestPanel;
     private MemoAssistPopupTextArea resultTextPane;*/
-    private String contentType = null;
+    private String requestContentType = null;
 
     public ResponseResult(RequestInfoBean requestInfoBean/*, JTextArea respTextArea_9, AutoTestPanel autoTestPanel, MemoAssistPopupTextArea resultTextPane*/) {
         this.requestInfoBean = requestInfoBean;
@@ -96,12 +96,12 @@ public class ResponseResult {
             postData = requestInfoBean.getRequestBodyData();
             //自定义的content type的优先级高
             if (ValueWidget.isNullOrEmpty(requestInfoBean.getCustomRequestContentType())) {
-                contentType = getReqContentType();
+                requestContentType = getReqContentType();
             } else {
-                contentType = requestInfoBean.getCustomRequestContentType();
+                requestContentType = requestInfoBean.getCustomRequestContentType();
             }
 
-            System.out.println("contentType:" + contentType);
+            System.out.println("request contentType:" + requestContentType);
             forcePost = true;
         }
         requestInfoBean.setUrl(url);
@@ -125,7 +125,7 @@ public class ResponseResult {
 
             //真正发送请求
             resultArr = HttpSocketUtil.httpRequest(url, requestInfoBean.isSsl(),
-                    forcePost, requestMethod, postData, contentType,
+                    forcePost, requestMethod, postData, requestContentType,
                     requestInfoBean.getRequestCookie(), null, false/*isWrite2file */, null, requestCharset/*newEncoding*/,
                     85000, 85000);
             Integer respCode = (Integer) resultArr[3];
@@ -184,12 +184,21 @@ public class ResponseResult {
         this.requestCharset = requestCharset;
     }
 
-    public String getContentType() {
-        return contentType;
+
+    public RequestInfoBean getRequestInfoBean() {
+        return requestInfoBean;
     }
 
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
+    public void setRequestInfoBean(RequestInfoBean requestInfoBean) {
+        this.requestInfoBean = requestInfoBean;
+    }
+
+    public String getRequestContentType() {
+        return requestContentType;
+    }
+
+    public void setRequestContentType(String requestContentType) {
+        this.requestContentType = requestContentType;
     }
 
     public Map<String, String> getResponseJsonMap() {
