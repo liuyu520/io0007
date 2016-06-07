@@ -3791,8 +3791,14 @@ public final class SystemHWUtil {
 	 * @param strs
 	 */
 	public static String[] unique(String strs[]){
-		Set set=convert2Set(strs);
-		int length=set.size();
+        if (ValueWidget.isNullOrEmpty(strs)) {
+            return strs;
+        }
+        Set set=convert2Set(strs);
+        if (ValueWidget.isNullOrEmpty(set)) {
+            return strs;
+        }
+        int length=set.size();
 		set=null;
 		String strs_new[]=new String[length];
 		int count=0;
