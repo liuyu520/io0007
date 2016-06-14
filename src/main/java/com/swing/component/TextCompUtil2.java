@@ -131,7 +131,7 @@ public class TextCompUtil2 {
 				}
 			}
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, getDefaultModifier()/*"control Z"*/), "Undo");
 
 		//为什么要注释?因为下面有control R,表示只读
 		/*tc.getActionMap().put("Redo", new AbstractAction("Redo1111") {
@@ -172,7 +172,7 @@ public class TextCompUtil2 {
 			}
 
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control X"), "Cut");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, getDefaultModifier()/*"control X"*/), "Cut");
 
 		tc.getActionMap().put("Paste", new AbstractAction("Paste111") {
 			private static final long serialVersionUID = -3548620001691220571L;
@@ -181,7 +181,7 @@ public class TextCompUtil2 {
 				tc.paste();
 			}
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control V"), "Paste");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, getDefaultModifier()/*"control V"*/), "Paste");
 
 		// redo Ctrl + Y
 		tc.getActionMap().put("Redo", new AbstractAction("reDo111") {
@@ -193,7 +193,7 @@ public class TextCompUtil2 {
 				}
 			}
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, getDefaultModifier()/*"control Y"*/), "Redo");
 
 		/*tc.getActionMap().put("Save", new AbstractAction("save111") {
 			private static final long serialVersionUID = -3548620001691220571L;
@@ -213,9 +213,9 @@ public class TextCompUtil2 {
 				}
 			}
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control R"), "Readonly");
-		
-		//按Ctrl+E 使文本框可编辑
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, getDefaultModifier()/*"control R"*/), "Readonly");
+
+        //按Ctrl+E 使文本框可编辑
 		tc.getActionMap().put("Editable", new AbstractAction("Editable111") {
 			private static final long serialVersionUID = -3548620001691220571L;
 			public void actionPerformed(ActionEvent evt) {
@@ -228,23 +228,23 @@ public class TextCompUtil2 {
 				}
 			}
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control E"), "Editable");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_E, getDefaultModifier()/*"control E"*/), "Editable");
 
 		if (needSearch) {
 			//按Ctrl+F 搜索文本
 			//需要区分对待,因为有的文本框不需要Ctrl+F 快捷键
 			tc.getActionMap().put("search", searchAction);
-			tc.getInputMap().put(KeyStroke.getKeyStroke("control F"), "search");
+            tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, getDefaultModifier() /*"control F"*/), "search");
 
 		}
 
 		//按Ctrl+G 截屏(只截文本框)
 		tc.getActionMap().put("screenshotDialog", copyImage2ClipAction);
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control G"), "screenshotDialog");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_G, getDefaultModifier()/*"control G"*/), "screenshotDialog");
 
 		//按Ctrl+L 最大化文本框
 		tc.getActionMap().put("rtaMaximizeTAAction", maximizeTAAction);
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control L"), "rtaMaximizeTAAction");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_L, getDefaultModifier()/*"control L"*/), "rtaMaximizeTAAction");
 
 
 		//按Ctrl+D 清空文本框
@@ -258,8 +258,18 @@ public class TextCompUtil2 {
 				}
 			}
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control D"), "cleanUp");
-	}
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, getDefaultModifier()/*"control D"*/), "cleanUp");
+    }
+
+    /**
+     * Returns the default modifier key for a system.  For example, on Windows
+     * this would be the CTRL key (<code>InputEvent.CTRL_MASK</code>).
+     *
+     * @return The default modifier key.
+     */
+    protected static final int getDefaultModifier() {
+        return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    }
 
 	public static void showSearchDialog(JTextComponent tf,String keyword) {
 		SearchInputDialog searchInputDialog = new SearchInputDialog(tf,keyword);
