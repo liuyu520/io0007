@@ -939,4 +939,15 @@ public final class WebServletUtil {
 		String ip=WebServletUtil.getClientIpAddr(request);
 		return ip.equals("127.0.0.1")||ip.equals("localhost")||ip.equals("0:0:0:0:0:0:0:1");
 	}
+
+    /***
+     * 是否需要URL编码<br>
+     * http请求参数中含有&,则必须URL编码
+     *
+     * @param value
+     * @return
+     */
+    public static boolean isShouldURLEncode(String value) {
+        return !ValueWidget.isNullOrEmpty(value) && value.contains("&");
+    }
 }
