@@ -74,15 +74,13 @@ public class ParameterIncludeBean {
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
-        } else {//如果参数中含有特殊字符&,则强制URL编码,为什么?因为http参数就是通过& 分隔的
-            if (WebServletUtil.isShouldURLEncode(this.value)) {
+        } else if (WebServletUtil.isShouldURLEncode(this.value)) {//如果参数中含有特殊字符&,则强制URL编码,为什么?因为http参数就是通过& 分隔的
                 try {
                     this.value = URLEncoder.encode(this.value, SystemHWUtil.CHARSET_UTF);//必须使用UTF-8编码
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
             }
-        }
         return this.key + "=" + this.value;
     }
 }
