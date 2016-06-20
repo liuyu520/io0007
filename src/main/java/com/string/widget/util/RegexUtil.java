@@ -530,4 +530,23 @@ public class RegexUtil {
         String result = input.replaceAll("[\\s]+", SystemHWUtil.EMPTY);//IE中识别不了有空格的json
         return result;
     }
+
+    /***
+     * 过滤表情符号<br>
+     * see:http://blog.csdn.net/beatrice_g20/article/details/48489437
+     *
+     * @param str
+     * @return
+     */
+    public static String filter(String str) {
+
+        if (ValueWidget.isNullOrEmpty(str)) {
+            return str;
+        }
+        String pattern = "[\ud83c\udc00-\ud83c\udfff]|[\ud83d\udc00-\ud83d\udfff]|[\u2600-\u27ff]";
+        Pattern emoji = Pattern.compile(pattern);
+        Matcher emojiMatcher = emoji.matcher(str);
+        str = emojiMatcher.replaceAll(SystemHWUtil.EMPTY);
+        return str;
+    }
 }
