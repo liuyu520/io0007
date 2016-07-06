@@ -391,16 +391,17 @@ public class RegexUtil {
 			regex = "[\\s]*([^\\s]+.*)";
 		}
 		input=input.replace(quote, "\\"+quote);//原字符串转义
-		
-		if(cr.equals("\\r\\n")){
-			chinese=input.replaceAll("(\r\n)"+regex, replacement);
-		}else if(cr.equals("\\n")){
-			chinese=input.replaceAll("(\n)"+regex, replacement);
-		}else if(cr.equals("\\r")){
-			chinese=input.replaceAll("(\r)"+regex, replacement);
-		}else{
-			chinese=input.replaceAll("(\n\r)"+regex, replacement);
-		}
+        //简单点说,就是把[换行]替换为['(单引号)+(加号)'(单引号)]
+        //所以最前面和最后面需要各补一个单引号
+        if(cr.equals("\\r\\n")){
+            chinese = input.replaceAll("(\r\n)+" + regex, replacement);
+        }else if(cr.equals("\\n")){
+            chinese = input.replaceAll("(\n)+" + regex, replacement);
+        }else if(cr.equals("\\r")){
+            chinese = input.replaceAll("(\r)+" + regex, replacement);
+        }else{
+            chinese = input.replaceAll("(\n\r)+" + regex, replacement);
+        }
 		return quote+chinese+quote+";";
 	}
 	/***
@@ -538,7 +539,7 @@ public class RegexUtil {
      * @param str
      * @return
      */
-    public static String filter(String str) {
+    public static String filterExpression(String str) {
 
         if (ValueWidget.isNullOrEmpty(str)) {
             return str;
