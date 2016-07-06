@@ -58,7 +58,7 @@ public class MavenTookitDialog extends GenericDialog {
         gbl_contentPane.columnWidths = new int[]{0, 0, 0};
         gbl_contentPane.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
         gbl_contentPane.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-        gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+        gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE};
         contentPane.setLayout(gbl_contentPane);
 
         JLabel label = new JLabel("文件");
@@ -163,6 +163,18 @@ public class MavenTookitDialog extends GenericDialog {
 		gbc_textField_1.gridy = 5;
 		contentPane.add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);*/
+        
+        JScrollPane scrollPane = new JScrollPane();
+        GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+        gbc_scrollPane.gridwidth = 2;
+        gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
+        gbc_scrollPane.fill = GridBagConstraints.BOTH;
+        gbc_scrollPane.gridx = 0;
+        gbc_scrollPane.gridy = 5;
+        contentPane.add(scrollPane, gbc_scrollPane);
+        
+        JTextArea textArea = new JTextArea();
+        scrollPane.setViewportView(textArea);
 
         JPanel panel = new JPanel();
         GridBagConstraints gbc_panel = new GridBagConstraints();
