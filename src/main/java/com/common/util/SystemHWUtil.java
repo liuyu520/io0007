@@ -3766,9 +3766,9 @@ public final class SystemHWUtil {
 	 * @return
 	 */
 	public static int indexOf(String[] strArray, String j) {
-		int index = SystemHWUtil.NEGATIVE_ONE;
-		if(ValueWidget.isNullOrEmpty(strArray)){
-			return index;
+        int index = SystemHWUtil.NEGATIVE_ONE;//-1 表示没有找到
+        if (ValueWidget.isNullOrEmpty(strArray) || ValueWidget.isNullOrEmpty(j)) {
+            return index;
 		}
 		int length2=strArray.length;
 		for (int ii=0;ii<length2;ii++ ) {
