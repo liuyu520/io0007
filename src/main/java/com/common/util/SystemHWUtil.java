@@ -3803,8 +3803,8 @@ public final class SystemHWUtil {
 		String strs_new[]=new String[length];
 		int count=0;
 		for(int i=0;i<strs.length;i++){
-			if (SystemHWUtil.isContains(strs_new, strs[i])) {
-				strs_new[count]=strs[i];
+            if (!SystemHWUtil.isContains(strs_new, strs[i])) {
+                strs_new[count]=strs[i];
 				count++;
 			}
 		}
