@@ -401,14 +401,16 @@ public class UnitTest3 {
 
     }
 
-    //	@Test
+    @Test
     public void unique_stringarr() {
         String[] strs = new String[]
                 {"a", "b", "c", "b", "c"};
         System.out.println(SystemHWUtil.formatArr(strs, ","));
         System.out.println("---------------");
         String[] strs_new = SystemHWUtil.unique(strs);
-        System.out.println(SystemHWUtil.formatArr(strs_new, ","));
+        String result = SystemHWUtil.formatArr(strs_new, ",");
+        System.out.println(result);
+        Assert.assertEquals("a,b,c", result);
     }
 
     /***

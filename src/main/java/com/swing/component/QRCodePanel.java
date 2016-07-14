@@ -354,7 +354,15 @@ public class QRCodePanel extends GenericPanel {
 			}
 		});
 		panel_2.add(cleanUpButton);
-
+        /*JButton hideDialogButton = new JButton("隐藏对话框");
+		hideDialogButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				resultArea.setText(SystemHWUtil.EMPTY);
+			}
+		});
+		panel_2.add(hideDialogButton);*/
+		
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setDividerLocation(getFullHeight()/2);
 		splitPane.setDividerSize(8);
