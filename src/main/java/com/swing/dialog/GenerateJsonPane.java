@@ -226,7 +226,8 @@ public class GenerateJsonPane extends GenericDialog {
 	private void readJson(String text) {
 		if(!ValueWidget.isNullOrEmpty(text))
 		{
-			if(text.startsWith("{")&&text.endsWith("}")){
+            text = text.trim();
+            if(text.startsWith("{")&&text.endsWith("}")){
 				System.out.println("是json");
 				Map map=(Map) HWJacksonUtils.deSerialize(text, Map.class);
 				TableUtil3.setTableData3(parameterTable_1, map,false, true, columnNames);
