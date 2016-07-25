@@ -525,8 +525,8 @@ public class HttpSocketUtil {
 	// destFilepath, connectTimeout, readTimeout);
 	//
 	// }
-	private static HttpURLConnection getHttpURLConnection(String urlStr,
-			boolean ssl) throws NoSuchAlgorithmException,
+    public static HttpURLConnection getHttpURLConnection(String urlStr,
+                                                         boolean ssl) throws NoSuchAlgorithmException,
 			KeyManagementException, IOException {
 		URL url = new URL(urlStr);
 		HttpURLConnection huc = null;
