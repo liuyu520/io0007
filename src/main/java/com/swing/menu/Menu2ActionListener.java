@@ -267,7 +267,7 @@ public class Menu2ActionListener implements ActionListener {
 //				return;
 			}
 			Map requestMap = new HashMap();
-            SystemHWUtil.setArgumentMap(requestMap, selectContent, true, null, null);
+            SystemHWUtil.setArgumentMap(requestMap, selectContent, true, null, null, false);
             String jsonResult=HWJacksonUtils.getJsonP(requestMap);
             if(!ValueWidget.isNullOrEmpty(jsonResult)){
             	if(isSelectContent){

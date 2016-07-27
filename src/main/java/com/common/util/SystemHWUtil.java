@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -4761,8 +4762,8 @@ public final class SystemHWUtil {
 		return list;
 	}
 
-	public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding) {
-		String args[] = oneRequestArg.split(divideString);
+    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode) {
+        String args[] = oneRequestArg.split(divideString);
 		for (int i = 0; i < args.length; i++) {
 			String string = args[i];
 			String[] strs = string.split("=", 2);
@@ -4775,7 +4776,10 @@ public final class SystemHWUtil {
 				try {
 					if (ValueWidget.isNullOrEmpty(oldEncoding)
 							|| ValueWidget.isNullOrEmpty(newEncoding)) {
-						requestMap.put(strs[0], strs[1]);
+                        if (urlDecode) {
+                            strs[1] = URLDecoder.decode(strs[1], SystemHWUtil.CHARSET_UTF);
+                        }
+                        requestMap.put(strs[0], strs[1]);
 					} else {
 						requestMap.put(strs[0],
 								new String(strs[1].getBytes(oldEncoding),
@@ -4789,13 +4793,13 @@ public final class SystemHWUtil {
 
 	}
 
-	public static void setArgumentMap(Map requestMap, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding) {
-		setArgumentMap(requestMap, "&", oneRequestArg, isTrimBank, oldEncoding, newEncoding);
-	}
+    public static void setArgumentMap(Map requestMap, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode) {
+        setArgumentMap(requestMap, "&", oneRequestArg, isTrimBank, oldEncoding, newEncoding, urlDecode);
+    }
 
-	public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank) {
-		setArgumentMap(requestMap, divideString, oneRequestArg, isTrimBank, null, null);
-	}
+    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, boolean urlDecode) {
+        setArgumentMap(requestMap, divideString, oneRequestArg, isTrimBank, null, null, urlDecode);
+    }
 
 	/***
 	 * 用于命令行工具

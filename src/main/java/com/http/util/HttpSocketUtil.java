@@ -1439,7 +1439,7 @@ public class HttpSocketUtil {
 	 */
 	public static String getPostForm(String parameters,String action,String charset){
 		Map<String,String> parametersMap=new HashMap<String,String>();
-		SystemHWUtil.setArgumentMap(parametersMap, parameters, true, null, null);
-		return getPostForm(parametersMap,action,charset);
+        SystemHWUtil.setArgumentMap(parametersMap, parameters, true, null, null, false);
+        return getPostForm(parametersMap,action,charset);
 	}
 }
