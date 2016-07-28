@@ -6,11 +6,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.string.widget.util.ValueWidget;
-import com.swing.component.ComponentUtil;
+import com.swing.dialog.toast.ToastMessage;
 import net.sf.json.JSONException;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import javax.swing.text.JTextComponent;
+import java.awt.*;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.List;
@@ -36,8 +37,8 @@ public class JSONHWUtil {
 	 *
 	 * @param ta
 	 */
-	public static void formatJson(JTextComponent ta, boolean isFurther, String oldJson) {
-		String json=ta.getText();
+    public static void formatJson(JTextComponent ta, boolean isFurther, String oldJson, boolean isSuppressWarnings) {
+        String json=ta.getText();
 		if(ValueWidget.isNullOrEmpty(json)){
 			return ;
 		}
@@ -64,26 +65,36 @@ public class JSONHWUtil {
 					// System.out.println(jsonStr);
 					ta.setText(jsonStr);
 					if(isFurther){
-						formatJson(ta, false, oldJson);
-					}
+                        formatJson(ta, false, oldJson, isSuppressWarnings);
+                    }
 				}
 			} else {
 				String message="是否缺少开始“{”或结束“}”？";
 //				GUIUtil23.warningDialog(message);
-				ComponentUtil.appendResult(ta, message, true);
-			}
+//				ComponentUtil.appendResult(ta, message, true);
+                if (!isSuppressWarnings) {
+                    ToastMessage.toast(message, 2000, Color.red);
+                }
+            }
 		} catch (Exception ex) {
 //			GUIUtil23.warningDialog("非法JSON字符串！");
 //			GUIUtil23.errorDialog(ex.getMessage());
 			if (!ValueWidget.isNullOrEmpty(oldJson)) {
 				ta.setText(oldJson);
-				formatJson(ta, false, null);
-				ComponentUtil.appendResult(ta, null, false, false);
-				ComponentUtil.appendResult(ta, "历史错误信息", true, false);
-			}
-			
-			ComponentUtil.appendResult(ta, null, false,true);
-			ComponentUtil.appendResult(ta, ex.getMessage(), true);
+                formatJson(ta, false, null, isSuppressWarnings);
+//				ComponentUtil.appendResult(ta, null, false, false);
+//				ComponentUtil.appendResult(ta, "历史错误信息", true, false);
+                if (!isSuppressWarnings) {
+                    ToastMessage.toast("历史错误信息", 2000, Color.red);
+                }
+            }
+
+//			ComponentUtil.appendResult(ta, null, false,true);
+//			ComponentUtil.appendResult(ta, ex.getMessage(), true);
+            if (!isSuppressWarnings) {
+                ToastMessage.toast(ex.getMessage(), 2000, Color.red);
+            }
+
 		}
 	}
 

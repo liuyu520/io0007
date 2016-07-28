@@ -473,7 +473,16 @@ public class TextCompUtil2 {
         urlEncodeM.addActionListener(dropListMenuActionListener);
         textPopupMenu.add(urlEncodeM);
 
-		/*JMenuItem notepadM = new JMenuItem("notepad 编辑文件");
+        JMenuItem queryString2Json = new JMenuItem(MenuUtil2.ACTION_QUERY_STRING2JSON);
+        queryString2Json.setActionCommand(MenuUtil2.ACTION_QUERY_STRING2JSON);
+        queryString2Json.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(queryString2Json);
+
+        JMenuItem json2QueryString = new JMenuItem(MenuUtil2.ACTION_JSON2QUERY_STRING);
+        json2QueryString.setActionCommand(MenuUtil2.ACTION_JSON2QUERY_STRING);
+        json2QueryString.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(json2QueryString);
+        /*JMenuItem notepadM = new JMenuItem("notepad 编辑文件");
 		notepadM.addActionListener(dropListMenuActionListener);
 		textPopupMenu.add(notepadM);*/
 
@@ -651,6 +660,11 @@ public class TextCompUtil2 {
                 MenuUtil2.urlDecode(this.ta);
             } else if (command.startsWith(MenuUtil2.ACTION_URL_ENCODE)) {// 退出应用程序
                 MenuUtil2.urlEncode(this.ta);
+            } else if (command.startsWith(MenuUtil2.ACTION_QUERY_STRING2JSON)) {
+                MenuUtil2.queryString2Json(this.ta, true);
+            } else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
+                //{"username":"whuang","age":23} -->username=whuang&age=23
+                MenuUtil2.json2queryString(this.ta);
             }
         }
 

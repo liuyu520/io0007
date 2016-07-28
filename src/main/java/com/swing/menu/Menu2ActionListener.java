@@ -4,9 +4,7 @@ import com.JSON_java.JSONObject;
 import com.JSON_java.XML;
 import com.common.util.ImageHWUtil;
 import com.common.util.SystemHWUtil;
-import com.common.util.WebServletUtil;
 import com.common.util.WindowUtil;
-import com.io.hw.json.HWJacksonUtils;
 import com.io.hw.json.JSONHWUtil;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
@@ -26,8 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
 /***
  * 文本域的右键菜单响应事件.
@@ -237,44 +233,11 @@ public class Menu2ActionListener implements ActionListener {
 			ComponentUtil.setClipboardImage(area2.getParent(),img);
 			ToastMessage.toast("复制图片到剪切板",3000);
 		}else if (command.startsWith(MenuUtil2.ACTION_QUERY_STRING2JSON)) {
-			String selectContent = area2.getSelectedText();
-			boolean isSelectContent=true;
-			if (ValueWidget.isNullOrEmpty(selectContent)) {
-				isSelectContent=false;
-				selectContent=area2.getText();
-//				return;
-			}
-			Map requestMap = new HashMap();
-            SystemHWUtil.setArgumentMap(requestMap, selectContent, true, null, null, false);
-            String jsonResult=HWJacksonUtils.getJsonP(requestMap);
-            if(!ValueWidget.isNullOrEmpty(jsonResult)){
-            	if(isSelectContent){
-            		WindowUtil.setSysClipboardText(jsonResult);
-                	ToastMessage.toast("复制json到剪切板",2000);
-            	}else{
-            		area2.setText(jsonResult);
-            	}
-            	
-            }
-		}else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
+            MenuUtil2.queryString2Json(area2, false/*isSuppressWarnings*/);
+        }else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
 			//{"username":"whuang","age":23} -->username=whuang&age=23
-			String selectContent = area2.getSelectedText();
-			boolean isSelectContent=true;
-			if (ValueWidget.isNullOrEmpty(selectContent)) {
-				isSelectContent=false;
-				selectContent=area2.getText();
-			}
-			Map map=(Map) HWJacksonUtils.deSerialize(selectContent, Map.class);
-			String jsonResult=WebServletUtil.getRequestBodyFromMap(map);
-            if(!ValueWidget.isNullOrEmpty(jsonResult)){
-            	if(isSelectContent){
-	            	WindowUtil.setSysClipboardText(jsonResult);
-	            	ToastMessage.toast("复制query String到剪切板",2000);
-            	}else{
-            		area2.setText(jsonResult);
-            	}
-            }
-		}else if (command.equals(MenuUtil2.ACTION_IMAGE_COPY_SPECIFY_HEIGHT)) {//复制图片到剪切板
+            MenuUtil2.json2queryString(area2);
+        }else if (command.equals(MenuUtil2.ACTION_IMAGE_COPY_SPECIFY_HEIGHT)) {//复制图片到剪切板
 			String content=this.area2.getText();
 			if(ValueWidget.isNullOrEmpty(content)){
 				ToastMessage.toast("无内容,不会复制",2000,Color.red);
@@ -307,8 +270,8 @@ public class Menu2ActionListener implements ActionListener {
 			CustomDefaultDialog customDefaultDialog=new CustomDefaultDialog(selectContent,"显示HTML",true);
 			customDefaultDialog.setVisible(true);
 		}else if(command.equals("格式化json")){
-			JSONHWUtil.formatJson(area2, false, null);
-		}else if(command.equals(MenuUtil2.ACTION_TF_EDITABLE)){
+            JSONHWUtil.formatJson(area2, false, null, false);
+        }else if(command.equals(MenuUtil2.ACTION_TF_EDITABLE)){
 			area2.setEditable(true);
 			area2.setEnabled(true);
 			area2.requestFocus();
