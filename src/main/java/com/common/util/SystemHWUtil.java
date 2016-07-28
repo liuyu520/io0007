@@ -4762,7 +4762,7 @@ public final class SystemHWUtil {
 		return list;
 	}
 
-    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode) {
+    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode, boolean quoteEscape) {
         String args[] = oneRequestArg.split(divideString);
 		for (int i = 0; i < args.length; i++) {
 			String string = args[i];
@@ -4773,7 +4773,7 @@ public final class SystemHWUtil {
 						strs[1] = strs[1].trim();
 					}
 				}
-                if (null != strs[1]) {
+                if (quoteEscape && null != strs[1]) {
                     strs[1] = strs[1].replace("\"", "\\\"");
                 }
                 try {
@@ -4796,12 +4796,12 @@ public final class SystemHWUtil {
 
 	}
 
-    public static void setArgumentMap(Map requestMap, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode) {
-        setArgumentMap(requestMap, "&", oneRequestArg, isTrimBank, oldEncoding, newEncoding, urlDecode);
+    public static void setArgumentMap(Map requestMap, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode, boolean quoteEscape) {
+        setArgumentMap(requestMap, "&", oneRequestArg, isTrimBank, oldEncoding, newEncoding, urlDecode, quoteEscape);
     }
 
-    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, boolean urlDecode) {
-        setArgumentMap(requestMap, divideString, oneRequestArg, isTrimBank, null, null, urlDecode);
+    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, boolean urlDecode, boolean quoteEscape) {
+        setArgumentMap(requestMap, divideString, oneRequestArg, isTrimBank, null, null, urlDecode, quoteEscape);
     }
 
 	/***

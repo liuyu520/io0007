@@ -493,7 +493,7 @@
 //				return;
         }
         Map requestMap = new HashMap();
-        SystemHWUtil.setArgumentMap(requestMap, selectContent, true, null, null, false);
+        SystemHWUtil.setArgumentMap(requestMap, selectContent, true, null, null, false, true);
         String jsonResult = HWJacksonUtils.getJsonP(requestMap);
 
         if (!ValueWidget.isNullOrEmpty(jsonResult)) {
