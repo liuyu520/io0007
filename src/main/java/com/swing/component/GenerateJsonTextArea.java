@@ -21,8 +21,8 @@ public class GenerateJsonTextArea extends AssistPopupTextArea {
 	@Override
 	protected void initlize() {
 		super.initlize();
-		TextCompUtil2.dropListMenu(this);
-		placeHolder(TextCompUtil2.PLACEHOLDER_DOUBLE_SHIFT);
+        TextCompUtil2.dropListMenu(this, false);
+        placeHolder(TextCompUtil2.PLACEHOLDER_DOUBLE_SHIFT);
 	}
 	
 }

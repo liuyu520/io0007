@@ -422,7 +422,7 @@ public class TextCompUtil2 {
 	 *
 	 * @param e
 	 */
-	private static void popupMenu(JTextComponent inputTextArea, KeyEvent e) {
+    private static void popupMenu(JTextComponent inputTextArea, KeyEvent e, boolean isSimple) {
 //		System.out.println("双击Shift");
 		JPopupMenu textPopupMenu = new JPopupMenu();
 		textPopupMenu.setLabel("打开文件");
@@ -430,31 +430,33 @@ public class TextCompUtil2 {
 		textPopupMenu.setBackground(Color.GREEN);
 		GenerateJsonActionListener dropListMenuActionListener = new GenerateJsonActionListener(
 				inputTextArea);
-		JMenuItem openFolderM = new JMenuItem("获取json");
-		openFolderM.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(openFolderM);
+        if (!isSimple) {
+            JMenuItem openFolderM = new JMenuItem("获取json");
+            openFolderM.addActionListener(dropListMenuActionListener);
+            textPopupMenu.add(openFolderM);
 
-		JMenuItem generateMD5M = new JMenuItem(MenuUtil2.ACTION_CREATE_MD5);
-		generateMD5M.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(generateMD5M);
+            JMenuItem generateMD5M = new JMenuItem(MenuUtil2.ACTION_CREATE_MD5);
+            generateMD5M.addActionListener(dropListMenuActionListener);
+            textPopupMenu.add(generateMD5M);
 
-		JMenuItem deMD5M = new JMenuItem(MenuUtil2.ACTION_MD5_DECODE);
-		deMD5M.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(deMD5M);
+            JMenuItem deMD5M = new JMenuItem(MenuUtil2.ACTION_MD5_DECODE);
+            deMD5M.addActionListener(dropListMenuActionListener);
+            textPopupMenu.add(deMD5M);
 
-		JMenuItem browserFileM = new JMenuItem(MenuUtil2.ACTION_STR_BROWSER);
-		browserFileM.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(browserFileM);
+            JMenuItem browserFileM = new JMenuItem(MenuUtil2.ACTION_STR_BROWSER);
+            browserFileM.addActionListener(dropListMenuActionListener);
+            textPopupMenu.add(browserFileM);
 
-        //最大化窗口之后编辑
-        JMenuItem editM = new JMenuItem(MenuUtil2.ACTION_STR_EDIT);
-		editM.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(editM);
+            //最大化窗口之后编辑
+            JMenuItem editM = new JMenuItem(MenuUtil2.ACTION_STR_EDIT);
+            editM.addActionListener(dropListMenuActionListener);
+            textPopupMenu.add(editM);
 
-		//去掉双引号
-		JMenuItem deleteTwoQuoteM = new JMenuItem(MenuUtil2.ACTION_DELETE_TWO_QUOTE);
-		deleteTwoQuoteM.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(deleteTwoQuoteM);
+            //去掉双引号
+            JMenuItem deleteTwoQuoteM = new JMenuItem(MenuUtil2.ACTION_DELETE_TWO_QUOTE);
+            deleteTwoQuoteM.addActionListener(dropListMenuActionListener);
+            textPopupMenu.add(deleteTwoQuoteM);
+        }
 
         //删除后黏贴
         JMenuItem pasteAfterClearM = new JMenuItem(MenuUtil2.ACTION_STR_PASTE_AFTER_DELETE);
@@ -481,8 +483,8 @@ public class TextCompUtil2 {
 				point.y + 2);// 下移一点
 	}
 
-	public static void dropListMenu(final JTextComponent inputTextArea) {
-		inputTextArea.addKeyListener(new KeyListener() {
+    public static void dropListMenu(final JTextComponent inputTextArea, final boolean isSimple) {
+        inputTextArea.addKeyListener(new KeyListener() {
 			private long lastTimeMillSencond;
 
 			@Override
@@ -503,8 +505,8 @@ public class TextCompUtil2 {
 						long delta=currentTime
 								- lastTimeMillSencond;
 						if (MenuUtil2.isDoubleClick(delta)) {//双击Shift
-							popupMenu(inputTextArea, e);
-							lastTimeMillSencond = 0;
+                            popupMenu(inputTextArea, e, isSimple);
+                            lastTimeMillSencond = 0;
 						} else {
 							lastTimeMillSencond = System.currentTimeMillis();
 						}
