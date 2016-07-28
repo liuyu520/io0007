@@ -25,8 +25,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -180,32 +178,12 @@ public class Menu2ActionListener implements ActionListener {
 			content = content.replace("\\r\\n", SystemHWUtil.EMPTY);
 			area2.setText(content);
 		}else if (command.startsWith(MenuUtil2.ACTION_URL_ENCODE)) {// 退出应用程序
-			String content=area2.getText();
-			if(ValueWidget.isNullOrEmpty(content)){
-				return;
-			}
-			String result;
-			try {
-				String encodedStr = URLEncoder.encode(content, SystemHWUtil.CHARSET_UTF);//TODO 编码是写死了
-				area2.setText(encodedStr);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			
-		}else if (command.startsWith(MenuUtil2.ACTION_URL_DECODE)) {// 退出应用程序
-			String content=area2.getText();
-			if(ValueWidget.isNullOrEmpty(content)){
-				return;
-			}
-			String result;
-			try {
-				result = URLDecoder.decode(content, SystemHWUtil.CHARSET_UTF);//TODO 编码是写死了
-				area2.setText(result);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			
-		}else if (command.startsWith(MenuUtil2.ACTION_XML2JSON)) {// 退出应用程序
+            MenuUtil2.urlEncode(area2);
+
+        }else if (command.startsWith(MenuUtil2.ACTION_URL_DECODE)) {// 退出应用程序
+            MenuUtil2.urlDecode(area2);
+
+        }else if (command.startsWith(MenuUtil2.ACTION_XML2JSON)) {// 退出应用程序
 			String content=area2.getText();
 			if(ValueWidget.isNullOrEmpty(content)){
 				return;

@@ -1,15 +1,21 @@
  package com.swing.menu;
 
+ import com.common.util.SystemHWUtil;
  import com.common.util.WindowUtil;
  import com.string.widget.util.ValueWidget;
  import com.swing.component.TextCompUtil2;
 
  import javax.swing.*;
+ import javax.swing.event.MouseInputAdapter;
  import javax.swing.event.MouseInputListener;
  import javax.swing.text.JTextComponent;
+ import java.awt.event.ActionListener;
  import java.awt.event.MouseEvent;
+ import java.io.UnsupportedEncodingException;
+ import java.net.URLDecoder;
+ import java.net.URLEncoder;
 
-public class MenuUtil2
+ public class MenuUtil2
 {
     public static final String ACTION_STR_OPEN               = "open";
     /***
@@ -37,6 +43,7 @@ public class MenuUtil2
     public static final String ACTION_IMAGE_COPY_SPECIFY_WIDTH_HEIGHT               = "copy image Specify widthAndHeight";
     public static final String ACTION_STR_COPY_ALL           = "copy all";
     public static final String ACTION_STR_PASTE              = "paste";
+    public static final String ACTION_STR_PASTE_AFTER_DELETE = "删除后黏贴";
     /***
      * 把剪切板中的文本黏贴到表格的单元格中
      */
@@ -389,4 +396,85 @@ public class MenuUtil2
     	return (delta<300&&delta>100);
     }
 
+    /***
+     * 设置弹出菜单
+     * @param qrResultLabel
+     */
+    public static void setImagePopupMenu(JComponent qrResultLabel, final ActionListener myMenuListener) {
+        //final QRCodeMenuActionListener myMenuListener=new QRCodeMenuActionListener(this);
+        qrResultLabel.addMouseListener(new MouseInputAdapter() {
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                //                super.mousePressed(e);
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    JPopupMenu textMenu = new JPopupMenu();
+                    JMenuItem cleanUpM = new JMenuItem(MenuUtil2.ACTION_STR_CLEANUP);
+                    JMenuItem copy22M = new JMenuItem(
+                            MenuUtil2.ACTION_IMAGE_COPY);
+                    JMenuItem paste22M = new JMenuItem(
+                            MenuUtil2.ACTION_IMAGE_PASTE);
+                    JMenuItem enlargeM = new JMenuItem(
+                            MenuUtil2.ACTION_ENLARGE);
+                    JMenuItem reduceM = new JMenuItem(
+                            MenuUtil2.ACTION_REDUCE);
+//                    JMenuItem pasteM = new JMenuItem(MenuUtil2.ACTION_STR_PASTE);
+
+                    JMenuItem exportM = new JMenuItem(
+                            MenuUtil2.ACTION_STR_EXPORT);
+                    JMenuItem readQRCodeM = new JMenuItem(
+                            MenuUtil2.ACTION_READ_QR_CODE);
+
+                    JMenuItem openBrowserM = new JMenuItem(
+                            MenuUtil2.ACTION_STR_OPEN_BROWSER);
+                    copy22M.addActionListener(myMenuListener);
+                    cleanUpM.addActionListener(myMenuListener);
+                    exportM.addActionListener(myMenuListener);
+                    enlargeM.addActionListener(myMenuListener);
+                    reduceM.addActionListener(myMenuListener);
+                    paste22M.addActionListener(myMenuListener);
+                    readQRCodeM.addActionListener(myMenuListener);
+                    openBrowserM.addActionListener(myMenuListener);
+                    textMenu.add(cleanUpM);
+                    textMenu.add(copy22M);
+                    textMenu.add(paste22M);
+//                    exportM.add(pasteM);
+                    textMenu.add(exportM);
+                    textMenu.add(enlargeM);
+                    textMenu.add(reduceM);
+                    textMenu.add(readQRCodeM);
+                    textMenu.add(openBrowserM);
+                    textMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+
+        });
+
+    }
+
+    public static void urlDecode(JTextComponent area2) {
+        String content = area2.getText();
+        if (ValueWidget.isNullOrEmpty(content)) {
+            return;
+        }
+        try {
+            String result = URLDecoder.decode(content, SystemHWUtil.CHARSET_UTF);//TODO 编码是写死了
+            area2.setText(result);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void urlEncode(JTextComponent area2) {
+        String content = area2.getText();
+        if (ValueWidget.isNullOrEmpty(content)) {
+            return;
+        }
+        try {
+            String encodedStr = URLEncoder.encode(content, SystemHWUtil.CHARSET_UTF);//TODO 编码是写死了
+            area2.setText(encodedStr);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
 }

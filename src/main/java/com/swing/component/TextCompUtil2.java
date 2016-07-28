@@ -445,8 +445,9 @@ public class TextCompUtil2 {
 		JMenuItem browserFileM = new JMenuItem(MenuUtil2.ACTION_STR_BROWSER);
 		browserFileM.addActionListener(dropListMenuActionListener);
 		textPopupMenu.add(browserFileM);
-		
-		JMenuItem editM = new JMenuItem(MenuUtil2.ACTION_STR_EDIT);
+
+        //最大化窗口之后编辑
+        JMenuItem editM = new JMenuItem(MenuUtil2.ACTION_STR_EDIT);
 		editM.addActionListener(dropListMenuActionListener);
 		textPopupMenu.add(editM);
 
@@ -454,6 +455,21 @@ public class TextCompUtil2 {
 		JMenuItem deleteTwoQuoteM = new JMenuItem(MenuUtil2.ACTION_DELETE_TWO_QUOTE);
 		deleteTwoQuoteM.addActionListener(dropListMenuActionListener);
 		textPopupMenu.add(deleteTwoQuoteM);
+
+        //删除后黏贴
+        JMenuItem pasteAfterClearM = new JMenuItem(MenuUtil2.ACTION_STR_PASTE_AFTER_DELETE);
+        pasteAfterClearM.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(pasteAfterClearM);
+
+        JMenuItem urlDecodeM = new JMenuItem(
+                MenuUtil2.ACTION_URL_DECODE);
+        urlDecodeM.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(urlDecodeM);
+
+        JMenuItem urlEncodeM = new JMenuItem(
+                MenuUtil2.ACTION_URL_ENCODE);
+        urlEncodeM.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(urlEncodeM);
 
 		/*JMenuItem notepadM = new JMenuItem("notepad 编辑文件");
 		notepadM.addActionListener(dropListMenuActionListener);
@@ -622,8 +638,19 @@ public class TextCompUtil2 {
 					content= RegexUtil.deleteTwoQuote(content);
 					this.ta.setText(content);
 				}
-			}
-		}
+            } else if (command.equals(MenuUtil2.ACTION_STR_PASTE_AFTER_DELETE)) {//删除后黏贴
+                String content = WindowUtil.getSysClipboardText();
+                if (ValueWidget.isNullOrEmpty(content)) {
+                    return;
+                }
+                this.ta.setText(content);
+                this.ta.requestFocus();
+            } else if (command.startsWith(MenuUtil2.ACTION_URL_DECODE)) {// 退出应用程序
+                MenuUtil2.urlDecode(this.ta);
+            } else if (command.startsWith(MenuUtil2.ACTION_URL_ENCODE)) {// 退出应用程序
+                MenuUtil2.urlEncode(this.ta);
+            }
+        }
 
 	}
 }
