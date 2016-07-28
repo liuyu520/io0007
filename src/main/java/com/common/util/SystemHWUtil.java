@@ -1526,8 +1526,8 @@ public final class SystemHWUtil {
 	 * @param dataHex
 	 *            :hex bit string
 	 * @param privateKeyStr
-	 * @param charSet
-	 * @return
+     * @param algorithm
+     * @return
 	 * @throws UnsupportedEncodingException
 	 * @throws Exception
 	 */
@@ -4773,7 +4773,10 @@ public final class SystemHWUtil {
 						strs[1] = strs[1].trim();
 					}
 				}
-				try {
+                if (null != strs[1]) {
+                    strs[1] = strs[1].replace("\"", "\\\"");
+                }
+                try {
 					if (ValueWidget.isNullOrEmpty(oldEncoding)
 							|| ValueWidget.isNullOrEmpty(newEncoding)) {
                         if (urlDecode) {
