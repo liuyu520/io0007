@@ -233,7 +233,7 @@ public class Menu2ActionListener implements ActionListener {
 			ComponentUtil.setClipboardImage(area2.getParent(),img);
 			ToastMessage.toast("复制图片到剪切板",3000);
 		}else if (command.startsWith(MenuUtil2.ACTION_QUERY_STRING2JSON)) {
-            MenuUtil2.queryString2Json(area2, false/*isSuppressWarnings*/);
+            MenuUtil2.queryString2Json(area2, false/*isSuppressWarnings*/, true/*isFurther*/);
         }else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
 			//{"username":"whuang","age":23} -->username=whuang&age=23
             MenuUtil2.json2queryString(area2);

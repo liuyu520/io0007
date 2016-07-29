@@ -484,7 +484,7 @@
         }
     }
 
-    public static void queryString2Json(JTextComponent area2, boolean isSuppressWarnings) {
+    public static void queryString2Json(JTextComponent area2, boolean isSuppressWarnings, boolean isFurther) {
         String selectContent = area2.getSelectedText();
         boolean isSelectContent = true;
         if (ValueWidget.isNullOrEmpty(selectContent)) {
@@ -502,7 +502,7 @@
                 ToastMessage.toast("复制json到剪切板", 2000);
             } else {
                 area2.setText(jsonResult);
-                JSONHWUtil.formatJson(area2, true, null, isSuppressWarnings);
+                JSONHWUtil.formatJson(area2, isFurther/*isFurther*/, null, isSuppressWarnings);
             }
 
         }

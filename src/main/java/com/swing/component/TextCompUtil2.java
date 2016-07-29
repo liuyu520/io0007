@@ -661,7 +661,7 @@ public class TextCompUtil2 {
             } else if (command.startsWith(MenuUtil2.ACTION_URL_ENCODE)) {// 退出应用程序
                 MenuUtil2.urlEncode(this.ta);
             } else if (command.startsWith(MenuUtil2.ACTION_QUERY_STRING2JSON)) {
-                MenuUtil2.queryString2Json(this.ta, true);
+                MenuUtil2.queryString2Json(this.ta, true, false/*isFurther*/);
             } else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
                 //{"username":"whuang","age":23} -->username=whuang&age=23
                 MenuUtil2.json2queryString(this.ta);
