@@ -9,6 +9,7 @@ import com.swing.component.inf.IPlaceHolder;
 import com.swing.dialog.inf.DialogInterface;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.messagebox.GUIUtil23;
+import com.time.util.TimeHWUtil;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -19,10 +20,7 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -698,5 +696,27 @@ public final class DialogUtil {
 		dialog.launchFrame();
 	}
 
+    /***
+     * 追加内容到日志
+     * @param content
+     */
+    public static void appendStr2LogFile(final String content, final File logFile2, final boolean isCloseOutput) {
+        if (!ValueWidget.isNullOrEmpty(content)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        FileUtils.appendStr2File(logFile2, TimeHWUtil.getCurrentFormattedTime() + SystemHWUtil.CRLF, SystemHWUtil.CHARSET_UTF, false);
+                        FileUtils.appendStr2File(logFile2, content + SystemHWUtil.CRLF, SystemHWUtil.CHARSET_UTF, isCloseOutput);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
+        }
+    }
 }
 	

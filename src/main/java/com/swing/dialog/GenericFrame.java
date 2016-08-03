@@ -3,10 +3,8 @@ package com.swing.dialog;
 import com.common.MyTask;
 import com.common.dict.Constant2;
 import com.common.util.SystemHWUtil;
-import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
 import com.swing.component.ComponentUtil;
-import com.time.util.TimeHWUtil;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
@@ -15,8 +13,6 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
@@ -270,26 +266,12 @@ public class GenericFrame extends AbstractFrame {
 	public void appendStr2LogFile(final String content){
 		appendStr2LogFile(content, true);
 	}
-	/***
-	 * 追加内容到日志
-	 * @param content
-	 */
-	public void appendStr2LogFile(final String content,final boolean isCloseOutput ){
-		if(!ValueWidget.isNullOrEmpty(content)){
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						FileUtils.appendStr2File(logFile2, TimeHWUtil.getCurrentFormattedTime()+SystemHWUtil.CRLF, SystemHWUtil.CHARSET_UTF, false);
-						FileUtils.appendStr2File(logFile2, content+SystemHWUtil.CRLF, SystemHWUtil.CHARSET_UTF, isCloseOutput);
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					
-				}
-			}).start();
-		}
-	}
+
+    /***
+     * 追加内容到日志
+     * @param content
+     */
+    public void appendStr2LogFile(final String content, final boolean isCloseOutput) {
+        DialogUtil.appendStr2LogFile(content, logFile2, isCloseOutput);
+    }
 }
