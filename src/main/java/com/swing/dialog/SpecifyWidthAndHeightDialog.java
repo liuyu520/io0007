@@ -179,8 +179,8 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
         widthTextField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void removeUpdate(DocumentEvent e) {
-                String widthStr = widthTextField.getText();
-                updateWidth(widthStr);
+//                String widthStr = widthTextField.getText();
+//                updateWidth(widthStr);
             }
 
             @Override
@@ -195,11 +195,14 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
                 updateWidth(widthStr);
             }
         });
+
+        bindEnterEvent(widthTextField);
+
         heightTextField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void removeUpdate(DocumentEvent e) {
-                String widthStr = heightTextField.getText();
-                updateHeight(widthStr);
+//                String widthStr = heightTextField.getText();
+//                updateHeight(widthStr);
             }
 
             @Override
@@ -214,6 +217,20 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
                 updateHeight(widthStr);
             }
         });
+        bindEnterEvent(heightTextField);
+    }
+
+    private void bindEnterEvent(final JTextComponent widthTextField) {
+        if (widthTextField instanceof JTextField) {
+            JTextField widthTF = (JTextField) widthTextField;
+            widthTF.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String widthStr = widthTextField.getText();
+                    updateWidth(widthStr);
+                }
+            });
+        }
     }
 
     private void updateWidth(String widthStr) {

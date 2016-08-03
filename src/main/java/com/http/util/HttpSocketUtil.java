@@ -5,6 +5,7 @@ import com.common.util.SystemHWUtil;
 import com.http.bean.HttpRequestBean;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
+import com.string.widget.util.XSSUtil;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 
@@ -1403,8 +1404,8 @@ public class HttpSocketUtil {
 		return postData.toString().substring(0, postData.length()-1);
 	}
 	/***
-	 * 发送POST请求
-	 * @param parametersMap
+     * 打开网页发送POST请求
+     * @param parametersMap
 	 * @return
 	 */
 	public static String getPostForm(Map<String,String> parametersMap,String action,String charset){
@@ -1424,7 +1425,10 @@ public class HttpSocketUtil {
 		html.append("<form style=\"display: block;\" action=\""+action+"\" method=\"POST\">").append(SystemHWUtil.CRLF);
 		for(String key:parametersMap.keySet()){
 			String val=parametersMap.get(key);
-			html.append("\t<label>" + key + ":</label> <input style=\"width: 600px\" name=\"" + key + "\" value=\"" + val + "\" ><br>").append(SystemHWUtil.CRLF);
+            if (!ValueWidget.isNullOrEmpty(val)) {
+                val = XSSUtil.cleanXSS(val);
+            }
+            html.append("\t<label>" + key + ":</label> <input style=\"width: 600px\" name=\"" + key + "\" value=\"" + val + "\" ><br>").append(SystemHWUtil.CRLF);
 		}
 		html.append("\t<input type=\"submit\" value=\"提交\" ><br>").append(SystemHWUtil.CRLF);
 		html.append("</form>"+SystemHWUtil.CRLF

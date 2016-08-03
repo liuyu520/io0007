@@ -1,4 +1,4 @@
-package com.jn.copy;
+package com.swing.component;
 
 
 import javax.swing.*;
@@ -16,7 +16,7 @@ public class StripedProgressBarUI extends BasicProgressBarUI {
     private final boolean slope;
     com.apple.laf.AquaProgressBarUI a;
 
-    protected StripedProgressBarUI(boolean dir, boolean slope) {
+    public StripedProgressBarUI(boolean dir, boolean slope) {
         super();
         this.dir = dir;
         this.slope = slope;
