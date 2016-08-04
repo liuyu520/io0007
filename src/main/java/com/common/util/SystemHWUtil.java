@@ -4446,7 +4446,14 @@ public final class SystemHWUtil {
 		return obj;
 	}
 
-	/***
+    public static boolean isContainObject(List list, String propertyName,
+                                          String propertyValue) throws SecurityException,
+            IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException {
+        return SystemHWUtil.isContainObject(list, propertyName, propertyValue, false/*isDelete*/);
+    }
+
+    /***
 	 * 判断 list 中是否已经存在该对象
 	 * 
 	 * @param list
@@ -4459,19 +4466,39 @@ public final class SystemHWUtil {
 	 * @throws IllegalAccessException
 	 */
 	public static boolean isContainObject(List list, String propertyName,
-			String propertyValue) throws SecurityException,
-			IllegalArgumentException, NoSuchFieldException,
+                                          String propertyValue, boolean isDelete) throws SecurityException,
+            IllegalArgumentException, NoSuchFieldException,
 			IllegalAccessException {
 		if (ValueWidget.isNullOrEmpty(list)) {
 			return false;
 		}
 		for (int i = 0; i < list.size(); i++) {
 			Object obj = list.get(i);
-			String propertyValue2 = (String) ReflectHWUtils.getObjectValue(obj,
-					propertyName);
-			if (propertyValue.equals(propertyValue2)) {
-				return true;
-			}
+            Object valObj = ReflectHWUtils.getObjectValue(obj,
+                    propertyName);
+            if ((valObj instanceof Integer) || (valObj instanceof Long)) {
+                int valInt;
+                if (valObj instanceof Integer) {
+                    valInt = (Integer) valObj;
+                } else {
+                    valInt = ((Long) valObj).intValue();
+                }
+
+                if (valInt == new Integer(propertyValue).intValue()) {
+                    if (isDelete) {
+                        list.remove(obj);
+                    }
+                    return true;
+                }
+            } else {
+                String propertyValue2 = (String) valObj;
+                if (propertyValue.equals(propertyValue2)) {
+                    if (isDelete) {
+                        list.remove(obj);
+                    }
+                    return true;
+                }
+            }
 		}
 		return false;
 	}
