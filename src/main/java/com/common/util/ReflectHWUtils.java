@@ -872,7 +872,48 @@ public class ReflectHWUtils {
 			Object val=entry.getValue();
 		}*/
 		return obj;
-	}
+    }
+
+    /***
+     * convert entity to Map
+     * @param obj
+     * @param excludeProperties
+     * @param excludeZero : 是否过滤zero
+     * @return
+     * @throws SecurityException
+     * @throws NoSuchFieldException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     */
+    public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        Map map = new HashMap();
+        List<Field> fieldsList = ReflectHWUtils.getAllFieldList(obj.getClass());
+        for (int i = 0; i < fieldsList.size(); i++) {
+            Field f = fieldsList.get(i);
+
+            if (SystemHWUtil.isContains(excludeProperties, f.getName())) {
+                continue;
+            }
+            Object propertyValue = ReflectHWUtils.getObjectValue(obj, f);
+            if (excludeZero) {
+                if (propertyValue instanceof Integer) {
+                    int ii = (Integer) propertyValue;
+                    if (ii == 0) {
+                        continue;
+                    }
+                } else if (propertyValue instanceof Long) {
+                    int ii = ((Long) propertyValue).intValue();
+                    if (ii == 0) {
+                        continue;
+                    }
+                }
+            }
+            if (!ValueWidget.isNullOrEmpty(propertyValue)) {
+                map.put(f.getName(), propertyValue);
+            }
+        }
+        return map;
+    }
 	/***
 	 * 从List中删除指定的对象
 	 * @param list

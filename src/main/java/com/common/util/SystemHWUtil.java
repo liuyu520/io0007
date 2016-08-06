@@ -3774,7 +3774,10 @@ public final class SystemHWUtil {
 		int length2=strArray.length;
 		for (int ii=0;ii<length2;ii++ ) {
 			String i =strArray[ii];
-			if (i == j||(i!=null&&i.equals(j)) ) {
+            if (i != null) {
+                i = i.trim();
+            }
+            if (i == j||(i!=null&&i.equals(j)) ) {
 				index = ii;
 				break;
 			}
