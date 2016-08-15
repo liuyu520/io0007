@@ -560,12 +560,17 @@ public final class DialogUtil {
 	
 	public static void dragResponse(List<File> list, Component component) {
 		String filePath=list.get(0).getAbsolutePath();
-		if(component instanceof  JTextComponent){
-			JTextComponent text=(JTextComponent)component;
-			//把文本框的内容设置为拖拽文件的全路径
-			text.setText(filePath);
-		}
-		
+        if (null != filePath) {
+            filePath = filePath.trim();
+        }
+        if (!ValueWidget.isNullOrEmpty(filePath)) {
+            if (component instanceof JTextComponent) {
+                JTextComponent text = (JTextComponent) component;
+                //把文本框的内容设置为拖拽文件的全路径
+                text.setText(filePath);
+            }
+        }
+
 	}
 
     /***
