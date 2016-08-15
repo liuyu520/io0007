@@ -188,7 +188,9 @@
                 MenuUtil2.ACTION_TF_EDITABLE);
         JMenuItem trimM = new JMenuItem(
                 MenuUtil2.ACTION_STR_TRIM);
-        
+
+        JMenuItem deleteGlobalBlankM = new JMenuItem("删除全局空格");
+
         JMenuItem upperCaseM = new JMenuItem(
                 MenuUtil2.ACTION_STR2UPPER_CASE);
         
@@ -256,6 +258,7 @@
         deleteCRLFM.addActionListener(myMenuListener);
         editableM.addActionListener(myMenuListener);
         trimM.addActionListener(myMenuListener);
+        deleteGlobalBlankM.addActionListener(myMenuListener);
         
         upperCaseM.addActionListener(myMenuListener);
         lowerCaseM.addActionListener(myMenuListener);
@@ -298,6 +301,7 @@
         textMenu.add(deleteCRLFM);
         textMenu.add(editableM);
         textMenu.add(trimM);
+        textMenu.add(deleteGlobalBlankM);
         textMenu.add(upperCaseM);
         textMenu.add(lowerCaseM);
         textMenu.add(quotes_escapeM);

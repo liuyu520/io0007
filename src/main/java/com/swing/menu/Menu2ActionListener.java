@@ -125,8 +125,14 @@ public class Menu2ActionListener implements ActionListener {
 				text=text.trim();
 				area2.setText(text.trim());
 			}
-		}else if (command.equals(MenuUtil2.ACTION_STR2UPPER_CASE)) {
-			String text = area2.getText();
+        } else if (command.equals("删除全局空格")) {
+            String text = area2.getText();
+            if (text != null) {
+                text = text.replace(" ", SystemHWUtil.EMPTY).replace("\t", SystemHWUtil.EMPTY);
+                area2.setText(text);
+            }
+        } else if (command.equals(MenuUtil2.ACTION_STR2UPPER_CASE)) {
+            String text = area2.getText();
 			if(text!=null){
 				text=text.toUpperCase();
 				area2.setText(text);

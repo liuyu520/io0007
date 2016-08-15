@@ -18,6 +18,7 @@ public class RadioButtonPanel extends JPanel {
         //默认选中"包含"单选按钮
         includeRadio.setSelected(true);
         this.ignoreRadio = new JRadioButton("忽略");
+        this.ignoreRadio.setToolTipText("请求时不会传递该参数");
         ButtonGroup btnGroup = new ButtonGroup();
         btnGroup.add(includeRadio);
         btnGroup.add(ignoreRadio);
