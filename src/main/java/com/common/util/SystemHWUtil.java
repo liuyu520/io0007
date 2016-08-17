@@ -3996,7 +3996,10 @@ public final class SystemHWUtil {
 	 * @return true:1,true ; false:0,false
 	 */
 	public static boolean parse33(String input) {
-		boolean result = false;
+        if (input == null) {
+            return false;
+        }
+        boolean result = false;
 		if (input.equals("0") || input.equals("1")) {
 			int resultint = Integer.parseInt(input);
 			result = (resultint == 1);
