@@ -128,6 +128,7 @@ public class Menu2ActionListener implements ActionListener {
         } else if (command.equals("删除全局空格")) {
             String text = area2.getText();
             if (text != null) {
+                //也可以使用 RegexUtil public static String filterBlank(String input) {
                 text = text.replace(" ", SystemHWUtil.EMPTY).replace("\t", SystemHWUtil.EMPTY);
                 area2.setText(text);
             }
