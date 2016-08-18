@@ -115,6 +115,10 @@ public class RequestInfoBean implements Serializable {
      * 请求的url
      */
     private String url;
+    /***
+     * 别名<br >用于搜索
+     */
+    private String alias;
 
     public String getPreRequestId() {
         return preRequestId;
@@ -348,6 +352,14 @@ public class RequestInfoBean implements Serializable {
 
     public void setCustomRequestContentType(String customRequestContentType) {
         this.customRequestContentType = customRequestContentType;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     public TreeMap<String, Object> addParameter(String key, Object val) {
