@@ -1,21 +1,16 @@
 package com.encrypt;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import java.io.ByteArrayOutputStream;
-import java.security.Key;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
+import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.crypto.Cipher;
 
 /**
  * 流程分析： 
@@ -155,19 +150,8 @@ public class RSAUtils {
         int inputLen = encryptedData.length;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int offSet = 0;
-        byte[] cache;
         int i = 0;
-        // 对数据分段解密
-        while (inputLen - offSet > 0) {
-            if (inputLen - offSet > MAX_DECRYPT_BLOCK) {
-                cache = cipher.doFinal(encryptedData, offSet, MAX_DECRYPT_BLOCK);
-            } else {
-                cache = cipher.doFinal(encryptedData, offSet, inputLen - offSet);
-            }
-            out.write(cache, 0, cache.length);
-            i++;
-            offSet = i * MAX_DECRYPT_BLOCK;
-        }
+        decrypteFragment(encryptedData, cipher, inputLen, out, offSet, i);
         byte[] decryptedData = out.toByteArray();
         out.close();
         
@@ -202,7 +186,15 @@ public class RSAUtils {
         int offSet = 0;
         byte[] cache;
         int i = 0;
-        // 对数据分段解密
+        decrypteFragment(encryptedData, cipher, inputLen, out, offSet, i);
+
+        byte[] decryptedData = out.toByteArray();
+        out.close();
+        return decryptedData;
+    }
+
+    public static void decrypteFragment(byte[] encryptedData, Cipher cipher, int inputLen, ByteArrayOutputStream out, int offSet, int i) throws IllegalBlockSizeException, BadPaddingException {
+        byte[] cache;// 对数据分段解密
         while (inputLen - offSet > 0) {
             if (inputLen - offSet > MAX_DECRYPT_BLOCK) {
                 cache = cipher.doFinal(encryptedData, offSet, MAX_DECRYPT_BLOCK);
@@ -213,9 +205,6 @@ public class RSAUtils {
             i++;
             offSet = i * MAX_DECRYPT_BLOCK;
         }
-        byte[] decryptedData = out.toByteArray();
-        out.close();
-        return decryptedData;
     }
 
     /**
