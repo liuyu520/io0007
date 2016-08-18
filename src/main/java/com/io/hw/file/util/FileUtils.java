@@ -1289,27 +1289,41 @@ public final class FileUtils {
 		bytes = new byte[(int) length2];
 
 		long length_tmp = length2;
-		while ((readSize = ins.read(bytes)) != SystemHWUtil.NEGATIVE_ONE/*-1*/) {
-			length_tmp -= readSize;
-
-			outs.write(bytes, 0, readSize);
-			if (length_tmp == 0) {
-				break;
-			}
-			// 非常重要，千万不能去掉!!!
-			if (length_tmp < SystemHWUtil.BUFF_SIZE/* 4096 */) {
-				bytes = new byte[(int) length_tmp];
-			}
-		}
-		outs.flush();
-		if (isCloseOutputStream) {
+        readBytesFromInputStream(ins, outs, bytes, length_tmp);
+        outs.flush();
+        if (isCloseOutputStream) {
 			outs.close();
 		}
 		return outs;
 	}
 
-	/***
-	 * haven't close inputstream.
+    /***
+     * 读取指定个数的字节<br >
+     *     啊啊啊
+     * @param ins
+     * @param outs
+     * @param bytes
+     * @param length_tmp
+     * @throws IOException
+     */
+    public static void readBytesFromInputStream(InputStream ins, OutputStream outs, byte[] bytes, long length_tmp) throws IOException {
+        int readSize;
+        while ((readSize = ins.read(bytes)) != SystemHWUtil.NEGATIVE_ONE/*-1*/) {
+            length_tmp -= readSize;
+
+            outs.write(bytes, 0, readSize);
+            if (length_tmp == 0) {
+                break;
+            }
+            // 非常重要，千万不能去掉!!!
+            if (length_tmp < SystemHWUtil.BUFF_SIZE/* 4096 */) {
+                bytes = new byte[(int) length_tmp];
+            }
+        }
+    }
+
+    /***
+     * haven't close inputstream.
 	 * 
 	 * @param fileObj
 	 * @param outs
@@ -2148,8 +2162,8 @@ public final class FileUtils {
 			// }
 			return;
 		}
-		int readSize;
-		byte[] bytes = null;
+//		int readSize;
+        byte[] bytes = null;
 		if (length2 >= SystemHWUtil.BUFF_SIZE) {
 			bytes = new byte[SystemHWUtil.BUFF_SIZE];
 		} else {
@@ -2157,18 +2171,8 @@ public final class FileUtils {
 		}
 
 		long length_tmp = length2;
-		while ((readSize = fin.read(bytes)) != SystemHWUtil.NEGATIVE_ONE) {
-			length_tmp -= readSize;
-			fout.write(bytes, 0, readSize);
-			if (length_tmp == 0) {
-				break;
-			}
-			// 非常重要，千万不能删除
-			if (length_tmp < SystemHWUtil.BUFF_SIZE) {
-				bytes = new byte[(int) length_tmp];
-			}
-		}
-		fout.flush();
+        readBytesFromInputStream(fin, fout, bytes, length_tmp);
+        fout.flush();
 		if (isCloseOutputStream) {
 			fout.close();
 		}

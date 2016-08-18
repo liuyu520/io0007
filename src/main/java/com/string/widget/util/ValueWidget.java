@@ -618,23 +618,7 @@ public class ValueWidget extends RegexUtil{
 		return sb.toString();
 	}
 
-	/***
-	 * replaceAll,忽略大小写<br>
-	 * 方式三
-	 * @param input
-	 * @param regex
-	 * @param replacement
-	 * @return
-	 */
-	public static String replaceAll3(String input, String regex, String replacement) {
-		if(ValueWidget.isNullOrEmpty(input)){
-			return input;
-		}
-		Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(input);
-		String result = m.replaceAll(replacement);
-		return result;
-	}
+
 //	@Test
 
 	/***

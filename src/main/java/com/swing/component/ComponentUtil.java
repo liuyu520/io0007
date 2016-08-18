@@ -26,10 +26,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -536,29 +533,24 @@ public final class ComponentUtil {
 	}
 
 	public static InputStream closeInputStream(InputStream in, FileOutputStream target) {
-		if (in != null) {
-			try {
-				in.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-				GUIUtil23.errorDialog(e);
-			}
-			in = null;
-		}
-		if (target != null) {
-			try {
-				target.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-				GUIUtil23.errorDialog(e);
-			}
-			target = null;
-		}
-		return in;
+        closeStream(in);
+        closeStream(target);
+        return in;
 	}
 
-	/***
-	 * 更新进度条上得进度数字
+    public static void closeStream(Closeable target) {
+        if (target != null) {
+            try {
+                target.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                GUIUtil23.errorDialog(e);
+            }
+        }
+    }
+
+    /***
+     * 更新进度条上得进度数字
 	 * 
 	 * @param copyProgressBar
 	 * @param progressSize
