@@ -702,10 +702,30 @@ public final class FileUtils {
 
 	}
 
-	public static String getFullContent2(File file, String charset)
+    /***
+     * 编码方式为:"UTF-8"
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    public static String getFullContent2(File file) throws IOException {
+        return getFullContent2(file, null);
+    }
+
+    /***
+     *
+     * @param file
+     * @param charset
+     * @return
+     * @throws IOException
+     */
+    public static String getFullContent2(File file, String charset)
 			throws IOException {
-		return getFullContent2(file, charset, true);
-	}
+        if (ValueWidget.isNullOrEmpty(charset)) {
+            charset = SystemHWUtil.CHARSET_UTF;
+        }
+        return getFullContent2(file, charset, true/*isCloseStream*/);
+    }
 
 	public static String getFullContent2(File file, String charset, boolean isCloseStream)
             throws IOException {
