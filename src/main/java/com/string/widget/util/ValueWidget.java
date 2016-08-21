@@ -1061,7 +1061,18 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 	}
 
 	/***
-	 * 方式一
+     * 替换list中的指定元素
+     * @param content
+     * @param index
+     * @param list
+     */
+    public static void replaceElement(String content, int index, List<String> list) {
+        list.add(index, content);
+        list.remove(index + 1);
+    }
+
+    /***
+     * 方式一
 	 */
 	public void test_replaceAll33() {
 		String input = "I like Java,jAva is very easy and jaVa is so popular.";

@@ -950,4 +950,56 @@ public final class WebServletUtil {
     public static boolean isShouldURLEncode(String value) {
         return !ValueWidget.isNullOrEmpty(value) && value.contains("&");
     }
+
+    /***
+     * 全局替换
+     * @param realPath2
+     * @return
+     */
+    public static String escapePath(String realPath2) {
+        return realPath2.replace("\\", "\\\\");
+    }
+
+    public static String getFullUrl(HttpServletRequest request, String relativePath, String finalFileName) {
+        String fullUrl;
+        String prefixPath = request.getRequestURL().toString().replaceAll(request.getServletPath(), "");
+        if (!prefixPath.endsWith("/") && (!relativePath.startsWith("/"))) {
+            prefixPath = prefixPath + "/";
+        }
+        if (relativePath.endsWith("/")) {
+            relativePath = relativePath + finalFileName;//upload/image/20150329170823_2122015-03-23_01-42-03.jpg
+        }
+        fullUrl = prefixPath + relativePath;
+        return fullUrl;
+    }
+
+    /***
+     * @param request
+     * @param relativePath
+     * @param finalFileName
+     * @return
+     */
+    public static String getRelativeUrl(HttpServletRequest request, String relativePath, String finalFileName) {
+        String rootPath = request.getContextPath();
+        if (!rootPath.endsWith("/")) {
+            rootPath = rootPath + "/";
+        }
+        if (relativePath.endsWith("/")) {
+            relativePath = getRelativePath(relativePath, finalFileName);
+        }
+        return rootPath + relativePath;
+    }
+
+    public static String getRelativePath(String relativePath, String finalFileName) {
+        if (!relativePath.endsWith("/")) {
+            relativePath = relativePath + "/";
+        }
+        if (relativePath.endsWith("/")) {
+            relativePath = relativePath + finalFileName;//upload/image/20150329170823_2122015-03-23_01-42-03.jpg
+        }
+        return relativePath;
+    }
+
+
+
 }
