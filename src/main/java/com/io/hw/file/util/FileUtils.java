@@ -851,7 +851,12 @@ public final class FileUtils {
 	{
 		return getFullContent4(in, SystemHWUtil.CURR_ENCODING);
 	}
-	/***
+
+    public static String getFullContent2(InputStream in, String charset) throws IOException {
+        return getFullContent2(in, charset, true);
+    }
+
+    /***
 	 * 先读取出来字节数组，然后在包装成为字符串;效率不高，因为有拷贝操作（System.arraycopy）
 	 * 
 	 * @param in

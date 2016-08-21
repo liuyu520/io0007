@@ -252,6 +252,9 @@ public class Constant2 {
      * stub/
      */
     public static final String stub_folder = stub_folder_no_Slash + Constant2.Slash;
+    /***
+     * .json
+     */
     public static final String stub_file_Suffix = ".json";
 	/***
 	 * 用户名不存在
