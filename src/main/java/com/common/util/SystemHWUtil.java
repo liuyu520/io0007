@@ -117,7 +117,11 @@ public final class SystemHWUtil {
 	 * 应答(response)中的Content-Type:json,GBK编码
 	 */
 	public static final String RESPONSE_CONTENTTYPE_JSON_GBK = "application/json;charset=GBK";
-	/***
+    /**
+     * 微软 excel的content type
+     */
+    public static final String RESPONSE_CONTENTTYPE_MS_EXCEL = "application/vnd.ms-excel";
+    /***
 	 * 应答(response)中的Content-Type:二进制文件,例如
 	 */
 	public static final String RESPONSE_CONTENTTYPE_BINARY = "application/octet-stream";

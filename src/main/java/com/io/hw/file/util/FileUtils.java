@@ -715,7 +715,7 @@ public final class FileUtils {
     /***
      *
      * @param file
-     * @param charset
+     * @param charset : 默认为UTF-8
      * @return
      * @throws IOException
      */
@@ -747,8 +747,8 @@ public final class FileUtils {
 	 * @param in
 	 *            : 输入流，会关闭
 	 * @param charset
-	 *            : 字符编码
-	 * @return
+     *            : 字符编码<br>默认为<code>SystemHWUtil.CURR_ENCODING</code>
+     * @return
 	 * @throws IOException
 	 */
 	public static StringBuffer getFullContent3(InputStream in, String charset)
@@ -817,8 +817,8 @@ public final class FileUtils {
 	 * 无损读取.推荐!
 	 * 
 	 * @param file
-	 * @param charset
-	 * @return
+     * @param charset : SystemHWUtil.CURR_ENCODING
+     * @return
 	 * @throws IOException
 	 */
 	public static StringBuffer getFullContent3(File file) throws IOException{
@@ -843,8 +843,8 @@ public final class FileUtils {
 	 * 
 	 * @param in
 	 *            : 会关闭
-	 * @param charset
-	 * @return
+     * @param charset : 默认为SystemHWUtil.CURR_ENCODING
+     * @return
 	 * @throws IOException
 	 */
 	public static String getFullContent4(InputStream in, String charset)
@@ -863,8 +863,8 @@ public final class FileUtils {
 	 * 
 	 * @param in
 	 *            : 会关闭
-	 * @param charset
-	 * @return
+     * @param charset : SystemHWUtil.CURR_ENCODING
+     * @return
 	 * @throws IOException
 	 */
 	public static String getFullContent4(InputStream in) throws IOException
@@ -872,8 +872,28 @@ public final class FileUtils {
 		return getFullContent4(in, SystemHWUtil.CURR_ENCODING);
 	}
 
+    /***
+     *
+     * @param in
+     * @param charset
+     * @return
+     * @throws IOException
+     */
     public static String getFullContent2(InputStream in, String charset) throws IOException {
+        if (ValueWidget.isNullOrEmpty(charset)) {
+            charset = SystemHWUtil.CHARSET_UTF;
+        }
         return getFullContent2(in, charset, true);
+    }
+
+    /***
+     * 默认编码:UTF-8
+     * @param in
+     * @return
+     * @throws IOException
+     */
+    public static String getFullContent2(InputStream in) throws IOException {
+        return getFullContent2(in, SystemHWUtil.CHARSET_UTF);
     }
 
     /***
