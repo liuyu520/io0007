@@ -259,6 +259,42 @@ public class TextCompUtil2 {
 			}
 		});
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, getDefaultModifier()/*"control D"*/), "cleanUp");
+
+        tc.addKeyListener(new KeyListener() {
+            private long lastTimeMillSencond;
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (EventHWUtil.isJustCtrlDown(e)) {
+                    if (lastTimeMillSencond == 0) {
+                        lastTimeMillSencond = System.currentTimeMillis();
+                    } else {
+                        long currentTime = System.currentTimeMillis();
+                        if (MenuUtil2.isDoubleClick(currentTime - lastTimeMillSencond)) {
+                            System.out.println("双击Ctrl");
+                            String content = WindowUtil.getSysClipboardText();
+                            if (ValueWidget.isNullOrEmpty(content)) {
+                                return;
+                            }
+                            tc.setText(content);
+                            tc.requestFocus();
+                            lastTimeMillSencond = 0;
+                        } else {
+                            lastTimeMillSencond = System.currentTimeMillis();
+                        }
+                    }
+                }
+            }
+        });
+
     }
 
     /**
