@@ -433,18 +433,23 @@ public class TableUtil3 {
 			key=String.valueOf(keyObj);
 		}
     	Object valueAtObj=parameterTable_1.getValueAt(rowIndex, columnIndex);
-    	if(valueAtObj instanceof JScrollPane){
-    		JScrollPane keyScrollPane=(JScrollPane)valueAtObj;
-    		JTextArea keyTA=(JTextArea)keyScrollPane.getViewport().getComponent(0);
-    		keyTA.setText(key);
-		} else if (valueAtObj instanceof JTextComponent) {
-			JTextComponent jTextComponent = (JTextComponent) valueAtObj;
-			jTextComponent.setText(key);
-		}else{
-			parameterTable_1.setValueAt(keyObj, rowIndex, columnIndex);
-    	}
-		
+        setTableCellVal(parameterTable_1, rowIndex, columnIndex, keyObj, key, valueAtObj);
+
     }
+
+    public static void setTableCellVal(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj, String key, Object valueAtObj) {
+        if (valueAtObj instanceof JScrollPane) {
+            JScrollPane keyScrollPane = (JScrollPane) valueAtObj;
+            JTextArea keyTA = (JTextArea) keyScrollPane.getViewport().getComponent(0);
+            keyTA.setText(key);
+        } else if (valueAtObj instanceof JTextComponent) {
+            JTextComponent jTextComponent = (JTextComponent) valueAtObj;
+            jTextComponent.setText(key);
+        } else {
+            parameterTable_1.setValueAt(keyObj, rowIndex, columnIndex);
+        }
+    }
+
     /***
      * 清空单元格<br>
      * @param parameterTable_1
@@ -453,16 +458,7 @@ public class TableUtil3 {
      */
     private static void cleanTableValue(JTable parameterTable_1,int rowIndex,int columnIndex){
     	Object valueAtObj=parameterTable_1.getValueAt(rowIndex, columnIndex);
-    	if(valueAtObj instanceof JScrollPane){
-    		JScrollPane keyScrollPane=(JScrollPane)valueAtObj;
-    		JTextArea keyTA=(JTextArea)keyScrollPane.getViewport().getComponent(0);
-    		keyTA.setText(SystemHWUtil.EMPTY);
-		} else if (valueAtObj instanceof JTextComponent) {
-			JTextComponent jTextComponent = (JTextComponent) valueAtObj;
-			jTextComponent.setText(SystemHWUtil.EMPTY);
-		}else{
-			parameterTable_1.setValueAt(null, rowIndex, columnIndex);
-    	}
+        setTableCellVal(parameterTable_1, rowIndex, columnIndex, null, SystemHWUtil.EMPTY, valueAtObj);
     }
     /***
      * 清空表格数据<br>
