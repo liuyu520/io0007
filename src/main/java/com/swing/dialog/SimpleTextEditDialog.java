@@ -1,5 +1,7 @@
 package com.swing.dialog;
 
+import com.swing.component.AssistPopupTextField;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
@@ -19,9 +21,14 @@ public class SimpleTextEditDialog extends GenericDialog {
      * Create the dialog.
      */
     public SimpleTextEditDialog(final JTextComponent targetTF) {
-        parent = targetTF.getParent();
+        if (null != targetTF) {
+            parent = targetTF.getParent();
+            this.targetTF = targetTF;
+        } else {
+            this.targetTF = new AssistPopupTextField();
+        }
+
         setModal(true);
-        this.targetTF = targetTF;
         setTitle("编辑");
         setLoc(450, 300);
         getContentPane().setLayout(new BorderLayout());
