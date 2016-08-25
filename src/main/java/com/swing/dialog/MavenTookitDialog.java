@@ -248,14 +248,17 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
                     @Override
                     public void run() {
                         button_1.setEnabled(false);
+                        textArea.setEditable(false);
                         resultTextArea.setText(cmd);
                         try {
                             CMDUtil.getResult4cmd(cmd);
                             button_1.setEnabled(true);
+                            textArea.setEditable(true);
                             ToastMessage.toast("安装完成!", 2000);
                         } catch (IOException e1) {
                             e1.printStackTrace();
                             button_1.setEnabled(true);
+                            textArea.setEditable(true);
                             ToastMessage.toast(e1.getMessage(), 2000, Color.red);
                         }
                     }
