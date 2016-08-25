@@ -30,7 +30,7 @@ public class CMDUtil {
         return p;
     }
 
-    public static BufferedReader cmdCmdreReader(String command,String charset)
+    public static BufferedReader cmdCmdreReader(String command, String charset) throws IOException
     {
     	if(ValueWidget.isNullOrEmpty(charset)){
     		charset=SystemHWUtil.CURR_ENCODING;
@@ -53,6 +53,7 @@ public class CMDUtil {
         catch (IOException e)
         {
             e.printStackTrace();
+            throw e;
         }
         return reader;
     }
