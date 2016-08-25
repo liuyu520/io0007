@@ -1,5 +1,8 @@
 package com.io.hw.json;
 
+import com.string.widget.util.ValueWidget;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +40,10 @@ public class Element {
      * 父节点,<br />如果是根节点,则该成员变量为null
      */
     private Element parent;
+    /***
+     * key 就是Element的"name"属性值
+     */
+    private Map<String, Element> childrenMap = new HashMap<String, Element>();
 
     public String getName() {
         return name;
@@ -52,6 +59,13 @@ public class Element {
             this.startTag = "<" + this.name + ">";
             this.endTag = "</" + this.name + ">";
         }
+    }
+
+    public void addChildToMap(Element element) {
+        if (null == element || ValueWidget.isNullOrEmpty(element.getName())) {
+            return;
+        }
+        this.childrenMap.put(element.getName(), element);
     }
 
     public Map<String, Object> getAttributes() {
@@ -115,5 +129,9 @@ public class Element {
     public boolean isRoot() {
         //如果是根节点,则parent为null
         return (this.parent == null);
+    }
+
+    public Map<String, Element> getChildrenMap() {
+        return childrenMap;
     }
 }
