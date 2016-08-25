@@ -8,6 +8,7 @@ public class PomDependency {
     private String artifactId;
     private String version;
     private String type = "jar";
+    private String packaging = "jar";
 
     public String getGroupId() {
         return groupId;
@@ -39,5 +40,23 @@ public class PomDependency {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getPackaging() {
+        return packaging;
+    }
+
+    public void setPackaging(String packaging) {
+        this.packaging = packaging;
+    }
+
+    @Override
+    public String toString() {
+        return "PomDependency{" +
+                "groupId='" + groupId + '\'' +
+                ", artifactId='" + artifactId + '\'' +
+                ", version='" + version + '\'' +
+                ", type='" + type + '\'' +
+                '}';
     }
 }

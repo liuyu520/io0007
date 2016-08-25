@@ -409,12 +409,17 @@ public class XmlYunmaUtil {
     }
 
     public static PomDependency getPomDependency(String xml) {
+        PomDependency pomDependency = new PomDependency();
         Element root = getElement(xml, 0, null);
-        System.out.println(root.getChildrenMap());
-        System.out.println(root.getChildren());
-        List<Element> list = root.getChildren();
+        pomDependency.setGroupId(root.getChildByName("groupId").getTextNode());
+        pomDependency.setArtifactId(root.getChildByName("artifactId").getTextNode());
+        pomDependency.setVersion(root.getChildByName("version").getTextNode());
+        pomDependency.setType(root.getChildByName("type").getTextNode());
+        pomDependency.setPackaging(root.getChildByName("packaging").getTextNode());
+//        System.out.println(root.getChildrenMap());
+//        System.out.println(root.getChildren());
 
-        return null;
+        return pomDependency;
     }
 
     /***

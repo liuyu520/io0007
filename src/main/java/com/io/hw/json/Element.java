@@ -88,10 +88,6 @@ public class Element {
         return isTextNode;
     }
 
-    public void setTextNode(boolean isTextNode) {
-        this.isTextNode = isTextNode;
-    }
-
     @Override
     public String toString() {
         return "Element [" + (isTextNode ? "value" : "name") + "=" + name + ", attributes=" + attributes
@@ -133,5 +129,30 @@ public class Element {
 
     public Map<String, Element> getChildrenMap() {
         return childrenMap;
+    }
+
+    public Element getChildByName(String name) {
+        return this.childrenMap.get(name);
+    }
+
+    /***
+     * 如果不是文本节点,则返回null
+     * @return
+     */
+    public String getTextNode() {
+        if (ValueWidget.isNullOrEmpty(children)) {
+            return null;
+        } else {
+            Element child = children.get(0);
+            if (child.isTextNode()) {
+                return child.getName();
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public void setTextNode(boolean isTextNode) {
+        this.isTextNode = isTextNode;
     }
 }
