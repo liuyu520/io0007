@@ -1,6 +1,8 @@
 package com.swing.dialog;
 
 import com.cmd.dos.hw.util.CMDUtil;
+import com.common.bean.PomDependency;
+import com.io.hw.json.XmlYunmaUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
@@ -8,13 +10,17 @@ import com.swing.component.GenerateJsonTextField;
 import com.swing.dialog.toast.ToastMessage;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 
-public class MavenTookitDialog extends GenericDialog {
+public class MavenTookitDialog extends GenericDialog implements ItemListener {
 
     public static final String MAVEN_INSTALL_JAR_CMD = "mvn install:install-file  -Dfile=%s  -DgroupId=%s  -DartifactId=%s -Dversion=%s -Dpackaging=%s";
     private static final long serialVersionUID = -3076948674378465960L;
@@ -25,12 +31,15 @@ public class MavenTookitDialog extends GenericDialog {
     private final AssistPopupTextField packagingTextField_1;
     private AssistPopupTextField textField_1;
     private AssistPopupTextArea resultTextArea;
+    private boolean isXml = false;
+    private JRadioButton rdbtnPom;
+    private JRadioButton groupIdRadio;
 
     /**
      * Launch the application.
      */
-    /*public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
+   /*public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					MavenTookitDialog frame = new MavenTookitDialog();
@@ -50,7 +59,7 @@ public class MavenTookitDialog extends GenericDialog {
         setTitle("安装本地jar");
         setModal(true);
 //		setBounds(100, 100, 450, 300);
-        setLoc(450, 300);
+        setLoc(550, 500);
         JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -70,7 +79,7 @@ public class MavenTookitDialog extends GenericDialog {
         contentPane.add(label, gbc_label);
 
         jarTextField = new GenerateJsonTextField();
-        drag(jarTextField);
+        drag(label, jarTextField);
         GridBagConstraints gbc_textField = new GridBagConstraints();
         gbc_textField.insets = new Insets(0, 0, 5, 0);
         gbc_textField.fill = GridBagConstraints.HORIZONTAL;
@@ -79,13 +88,18 @@ public class MavenTookitDialog extends GenericDialog {
         contentPane.add(jarTextField, gbc_textField);
         jarTextField.setColumns(10);
 
-        JLabel lblNewLabel = new JLabel("groupId");
+        ButtonGroup btnGroup = new ButtonGroup();
+//        JLabel lblNewLabel = new JLabel("groupId");
+        groupIdRadio = new JRadioButton("groupId");
+        groupIdRadio.setSelected(true);
+        groupIdRadio.addItemListener(this);
+        btnGroup.add(groupIdRadio);
         GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
         gbc_lblNewLabel.anchor = GridBagConstraints.WEST;
         gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
         gbc_lblNewLabel.gridx = 0;
         gbc_lblNewLabel.gridy = 1;
-        contentPane.add(lblNewLabel, gbc_lblNewLabel);
+        contentPane.add(groupIdRadio, gbc_lblNewLabel);
 
         groupIdTextField_1 = new AssistPopupTextField();
         GridBagConstraints gbc_groupIdTextField_1 = new GridBagConstraints();
@@ -163,18 +177,30 @@ public class MavenTookitDialog extends GenericDialog {
 		gbc_textField_1.gridy = 5;
 		contentPane.add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);*/
+
+        rdbtnPom = new JRadioButton("pom");
+        rdbtnPom.addItemListener(this);
+        btnGroup.add(rdbtnPom);
+        GridBagConstraints gbc_rdbtnPom = new GridBagConstraints();
+        gbc_rdbtnPom.insets = new Insets(0, 0, 5, 5);
+        gbc_rdbtnPom.gridx = 0;
+        gbc_rdbtnPom.gridy = 5;
+        contentPane.add(rdbtnPom, gbc_rdbtnPom);
         
         JScrollPane scrollPane = new JScrollPane();
         GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-        gbc_scrollPane.gridwidth = 2;
         gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
         gbc_scrollPane.fill = GridBagConstraints.BOTH;
-        gbc_scrollPane.gridx = 0;
+        gbc_scrollPane.gridx = 1;
         gbc_scrollPane.gridy = 5;
         contentPane.add(scrollPane, gbc_scrollPane);
-        
-        JTextArea textArea = new JTextArea();
+
+        final JTextArea textArea = new JTextArea();
         scrollPane.setViewportView(textArea);
+        Border border1 = BorderFactory.createEtchedBorder(Color.white,
+                new Color(148, 145, 140));
+        TitledBorder openFileTitle = new TitledBorder(border1, "pom xml格式");
+        scrollPane.setBorder(openFileTitle);
 
         JPanel panel = new JPanel();
         GridBagConstraints gbc_panel = new GridBagConstraints();
@@ -188,27 +214,47 @@ public class MavenTookitDialog extends GenericDialog {
         JButton button_1 = new JButton("安装");
         button_1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (!DialogUtil.verifyTFAndExist(jarTextField, "jar 文件")) {
-                    return;
-                }
+                String groupId;
+                String artifactId;
+                String version;
+                String packaging;
                 String jarPath = jarTextField.getText();
                 jarPath = jarPath.replace("\\", "/");
-                if (!DialogUtil.verifyTFEmpty(groupIdTextField_1, "groupId")) {
-                    return;
+                if (isXml) {
+                    String xml = textArea.getText();
+                    PomDependency pomDependency = XmlYunmaUtil.getPomDependency(xml);
+                    System.out.println(pomDependency);
+                    groupId = pomDependency.getGroupId();
+                    artifactId = pomDependency.getArtifactId();
+                    version = pomDependency.getVersion();
+                    packaging = pomDependency.getType();
+                    if (ValueWidget.isNullOrEmpty(packaging)) {
+                        packaging = pomDependency.getPackaging();
+                    }
+                } else {
+                    if (!DialogUtil.verifyTFAndExist(jarTextField, "jar 文件")) {
+                        return;
+                    }
+
+                    if (!DialogUtil.verifyTFEmpty(groupIdTextField_1, "groupId")) {
+                        return;
+                    }
+                    if (!DialogUtil.verifyTFEmpty(artifactIdTextField_1, "artifactId")) {
+                        return;
+                    }
+                    if (!DialogUtil.verifyTFEmpty(versionTextField_1, "version")) {
+                        return;
+                    }
+                    if (!DialogUtil.verifyTFEmpty(packagingTextField_1, "packaging")) {
+                        return;
+                    }
+                    groupId = groupIdTextField_1.getText();
+                    artifactId = artifactIdTextField_1.getText();
+                    version = versionTextField_1.getText();
+                    packaging = packagingTextField_1.getText();
                 }
-                if (!DialogUtil.verifyTFEmpty(artifactIdTextField_1, "artifactId")) {
-                    return;
-                }
-                if (!DialogUtil.verifyTFEmpty(versionTextField_1, "version")) {
-                    return;
-                }
-                if (!DialogUtil.verifyTFEmpty(packagingTextField_1, "packaging")) {
-                    return;
-                }
-                String groupId = groupIdTextField_1.getText();
-                String artifactId = artifactIdTextField_1.getText();
-                String version = versionTextField_1.getText();
-                String packaging = packagingTextField_1.getText();
+
+
                 if (ValueWidget.isNullOrEmpty(packaging)) {
                     packaging = "jar";
                 }
@@ -235,8 +281,22 @@ public class MavenTookitDialog extends GenericDialog {
         contentPane.add(panel_1, gbc_panel_1);
         panel_1.setLayout(new BorderLayout(0, 0));
         resultTextArea = new AssistPopupTextArea();
+        resultTextArea.placeHolder("执行的命令");
         JScrollPane js = new JScrollPane(resultTextArea);
         panel_1.add(js);
     }
 
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        Object source = e.getSource();
+        if (e.getStateChange() == ItemEvent.SELECTED && source instanceof JRadioButton) {
+            JRadioButton selectedRadio = (JRadioButton) source;
+            if (selectedRadio == groupIdRadio) {
+                isXml = false;
+            } else {
+                isXml = true;
+            }
+            System.out.println("isXml:" + isXml);
+        }
+    }
 }

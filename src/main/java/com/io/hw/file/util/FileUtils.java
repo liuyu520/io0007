@@ -779,7 +779,10 @@ public final class FileUtils {
 	 */
 	public static StringBuffer getFullContent3(Reader inReader,boolean isCloseReader)
 			throws IOException {
-		StringBuffer sbuffer = new StringBuffer();
+        if (null == inReader) {
+            return null;
+        }
+        StringBuffer sbuffer = new StringBuffer();
 		char[] ch = new char[SystemHWUtil.BUFF_SIZE_1024];
 		int readCount = 0;
 		while ((readCount = inReader.read(ch)) != -1) {

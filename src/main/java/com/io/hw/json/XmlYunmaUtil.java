@@ -414,8 +414,12 @@ public class XmlYunmaUtil {
         pomDependency.setGroupId(root.getChildByName("groupId").getTextNode());
         pomDependency.setArtifactId(root.getChildByName("artifactId").getTextNode());
         pomDependency.setVersion(root.getChildByName("version").getTextNode());
-        pomDependency.setType(root.getChildByName("type").getTextNode());
-        pomDependency.setPackaging(root.getChildByName("packaging").getTextNode());
+        if (!ValueWidget.isNullOrEmpty(root.getChildByName("type"))) {
+            pomDependency.setType(root.getChildByName("type").getTextNode());
+        }
+        if (!ValueWidget.isNullOrEmpty(root.getChildByName("packaging"))) {
+            pomDependency.setPackaging(root.getChildByName("packaging").getTextNode());
+        }
 //        System.out.println(root.getChildrenMap());
 //        System.out.println(root.getChildren());
 

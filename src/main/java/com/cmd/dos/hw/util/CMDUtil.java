@@ -117,8 +117,12 @@ public class CMDUtil {
 			charset=SystemHWUtil.CURR_ENCODING;
 		}
 		BufferedReader reader =CMDUtil.cmdCmdreReader(cmd,charset);
-		return FileUtils.getFullContent3(reader).toString();
-	}
+        StringBuffer stringBuf = FileUtils.getFullContent3(reader);
+        if (null == stringBuf) {
+            return null;
+        }
+        return stringBuf.toString();
+    }
 	public static void main(String[] args) {
 //		String filePath="e:\\test\\a.txt";
 		String filePath="e:\\Java\\jdk\\jdk-6u27-windows-x64.exe";
