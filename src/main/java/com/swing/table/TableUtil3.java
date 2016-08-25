@@ -446,7 +446,9 @@ public class TableUtil3 {
             JTextComponent jTextComponent = (JTextComponent) valueAtObj;
             jTextComponent.setText(key);
         } else {
-            parameterTable_1.setValueAt(keyObj, rowIndex, columnIndex);
+            if (null != keyObj) {
+                parameterTable_1.setValueAt(keyObj, rowIndex, columnIndex);
+            }
         }
     }
 
