@@ -32,7 +32,12 @@ public class UndoTextArea extends JTextArea {
 	private Document doc = getDocument();
 	private StringBuffer stringbuf = null;
     private FindTxtResultBean findTxtResultBean;
-	public UndoTextArea(String text) {
+    /***
+     * 父组件
+     */
+    private JComponent parentPanelOrFrame;
+
+    public UndoTextArea(String text) {
 		super(text);
 		initlize();
 	}
@@ -128,5 +133,13 @@ public class UndoTextArea extends JTextArea {
 	protected JTextComponent dealSave(JTextComponent textComponent){
 		return textComponent;
 	}
+
+    public JComponent getParentPanelOrFrame() {
+        return parentPanelOrFrame;
+    }
+
+    public void setParentPanelOrFrame(JComponent parentPanelOrFrame) {
+        this.parentPanelOrFrame = parentPanelOrFrame;
+    }
 
 }

@@ -30,6 +30,10 @@ public class UndoTextPane extends JTextPane {
 	private Document doc = getDocument();
 	private StringBuffer stringbuf = null;
     private FindTxtResultBean findTxtResultBean;
+    /***
+     * 父组件
+     */
+    private JComponent parentPanelOrFrame;
     public UndoTextPane() {
         super();
         initlize();
@@ -159,5 +163,13 @@ public class UndoTextPane extends JTextPane {
 
     public void setFindTxtResultBean(FindTxtResultBean findTxtResultBean) {
         this.findTxtResultBean = findTxtResultBean;
+    }
+
+    public JComponent getParentPanelOrFrame() {
+        return parentPanelOrFrame;
+    }
+
+    public void setParentPanelOrFrame(JComponent parentPanelOrFrame) {
+        this.parentPanelOrFrame = parentPanelOrFrame;
     }
 }

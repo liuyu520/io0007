@@ -33,6 +33,10 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 	private UndoManager undo = new UndoManager();
 	private Document doc = getDocument();
 	private FindTxtResultBean findTxtResultBean;
+    /***
+     * 父组件
+     */
+    private JComponent parentPanelOrFrame;
 
 	public UndoTextField(String text, boolean needSearch) {
 		super(text);
@@ -144,4 +148,12 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 			return text;
 		}
 	}
+
+    public JComponent getParentPanelOrFrame() {
+        return parentPanelOrFrame;
+    }
+
+    public void setParentPanelOrFrame(JComponent parentPanelOrFrame) {
+        this.parentPanelOrFrame = parentPanelOrFrame;
+    }
 }
