@@ -36,22 +36,6 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
     private JRadioButton groupIdRadio;
 
     /**
-     * Launch the application.
-     */
-   /*public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MavenTookitDialog frame = new MavenTookitDialog();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}*/
-
-    /**
      * Create the frame.
      */
     public MavenTookitDialog() {
@@ -160,15 +144,15 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
         gbc_packagingTextField_1.gridy = 4;
         contentPane.add(packagingTextField_1, gbc_packagingTextField_1);
         packagingTextField_1.setColumns(10);
-		
+
 		/*JLabel label_1 = new JLabel("预留");
-		GridBagConstraints gbc_label_1 = new GridBagConstraints();
+        GridBagConstraints gbc_label_1 = new GridBagConstraints();
 		gbc_label_1.anchor = GridBagConstraints.WEST;
 		gbc_label_1.insets = new Insets(0, 0, 5, 5);
 		gbc_label_1.gridx = 0;
 		gbc_label_1.gridy = 5;
 		contentPane.add(label_1, gbc_label_1);
-		
+
 		textField_1 = new JTextField();
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
 		gbc_textField_1.insets = new Insets(0, 0, 5, 0);
@@ -186,7 +170,7 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
         gbc_rdbtnPom.gridx = 0;
         gbc_rdbtnPom.gridy = 5;
         contentPane.add(rdbtnPom, gbc_rdbtnPom);
-        
+
         JScrollPane scrollPane = new JScrollPane();
         GridBagConstraints gbc_scrollPane = new GridBagConstraints();
         gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
@@ -211,7 +195,7 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
         gbc_panel.gridy = 6;
         contentPane.add(panel, gbc_panel);
 
-        JButton button_1 = new JButton("安装");
+        final JButton button_1 = new JButton("安装");
         button_1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String groupId;
@@ -258,15 +242,23 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
                 if (ValueWidget.isNullOrEmpty(packaging)) {
                     packaging = "jar";
                 }
-                String cmd = String.format(MAVEN_INSTALL_JAR_CMD, jarPath, groupId, artifactId, version, packaging);
-//				System.out.println(cmd);
-                resultTextArea.setText(cmd);
-                try {
-                    CMDUtil.getResult4cmd(cmd);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                    ToastMessage.toast(e1.getMessage(), 2000, Color.red);
-                }
+                final String cmd = String.format(MAVEN_INSTALL_JAR_CMD, jarPath, groupId, artifactId, version, packaging);
+                System.out.println(cmd);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        button_1.setEnabled(false);
+                        resultTextArea.setText(cmd);
+                        try {
+                            CMDUtil.getResult4cmd(cmd);
+                            button_1.setEnabled(true);
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                            button_1.setEnabled(true);
+                            ToastMessage.toast(e1.getMessage(), 2000, Color.red);
+                        }
+                    }
+                }).start();
 
             }
         });
@@ -284,6 +276,22 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
         resultTextArea.placeHolder("执行的命令");
         JScrollPane js = new JScrollPane(resultTextArea);
         panel_1.add(js);
+    }
+
+    /**
+     * Launch the application.
+     */
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    MavenTookitDialog frame = new MavenTookitDialog();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
