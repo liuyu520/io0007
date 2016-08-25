@@ -252,6 +252,7 @@ public class MavenTookitDialog extends GenericDialog implements ItemListener {
                         try {
                             CMDUtil.getResult4cmd(cmd);
                             button_1.setEnabled(true);
+                            ToastMessage.toast("安装完成!", 2000);
                         } catch (IOException e1) {
                             e1.printStackTrace();
                             button_1.setEnabled(true);
