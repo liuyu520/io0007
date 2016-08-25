@@ -2,7 +2,6 @@ package com.io.hw.json;
 
 import com.common.bean.PomDependency;
 import com.common.bean.StubRange;
-import com.common.util.OAUtil;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
@@ -34,7 +33,7 @@ public class XmlYunmaUtil {
         StringBuffer sbing = null;
         while (i < totalLength) {
             char c = xmlContent.charAt(i);
-            if (!OAUtil.isWordChar(c)) {
+            if (!ValueWidget.isWordChar(c)) {
                 i++;
                 if (!ValueWidget.isNullOrEmpty(sbing)) {
 //					return sbing.toString();
@@ -69,7 +68,7 @@ public class XmlYunmaUtil {
                     isQuote = true;
                 }
             }
-//			if(OAUtil.isBlank(c)||OAUtil.isWordChar(c)){//如果是汉字,有问题
+//			if(ValueWidget.isBlank(c)||ValueWidget.isWordChar(c)){//如果是汉字,有问题
             if (c != '>' && c != '<' || (i > 1 && (c == '<' || c == '>') && xmlContent.charAt(i - 1) == '"')/*"<div 不算开始标签*/
                     || (isQuote && (c == '<' || c == '>'))) {
                 i++;
@@ -97,7 +96,7 @@ public class XmlYunmaUtil {
         boolean continue2 = false;
         while (i < totalLength) {
             char c = xmlContent.charAt(i);
-            if (OAUtil.isBlank(c) && continue2 == false) {
+            if (ValueWidget.isBlank(c) && continue2 == false) {
                 i++;
                 if (!ValueWidget.isNullOrEmpty(sbing)) {
 //					return sbing.toString();
@@ -145,7 +144,7 @@ public class XmlYunmaUtil {
         int i = pos;
         while (i < totalLength) {
             char c = input.charAt(i);
-            if (OAUtil.isBlank(c)) {
+            if (ValueWidget.isBlank(c)) {
                 i++;
                 continue;
             }
@@ -169,7 +168,7 @@ public class XmlYunmaUtil {
         int i = pos;
         while (i < totalLength) {
             char c = input.charAt(i);
-            if (OAUtil.isBlank(c)) {
+            if (ValueWidget.isBlank(c)) {
                 i++;
                 continue;
             }
@@ -194,7 +193,7 @@ public class XmlYunmaUtil {
         index = pos;
         while (index < totalLength) {
             char c = xmlContent.charAt(index);
-            if (OAUtil.isBlank(c)) {//忽略空格
+            if (ValueWidget.isBlank(c)) {//忽略空格
                 index++;
                 continue;
             }
@@ -214,7 +213,7 @@ public class XmlYunmaUtil {
         Map<String, Object> attributes = new HashMap<String, Object>();
         while (index < totalLength) {
             char c = xmlContent.charAt(index);
-            if (OAUtil.isBlank(c)) {//忽略空格
+            if (ValueWidget.isBlank(c)) {//忽略空格
                 index++;
                 continue;
             }
