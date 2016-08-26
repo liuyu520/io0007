@@ -239,10 +239,15 @@ public class TextCompUtil2 {
             private static final long serialVersionUID = -3548620001691220571L;
 
             public void actionPerformed(ActionEvent evt) {
-//                JTextComponent tf=(JTextComponent)evt.getSource();
+                JTextComponent tf = (JTextComponent) evt.getSource();
                 System.out.println("Command_enter");
-                if (!ValueWidget.isNullOrEmpty(actionCallbackMap)) {
-                    ActionCallback actionCallback = actionCallbackMap.get("Command_enter");
+                Map<String, ActionCallback> actionCallbackMap1 = getActionCallbackMap(tf);
+                if (actionCallbackMap1 == null) {
+                    actionCallbackMap1 = actionCallbackMap;
+                }
+
+                if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                    ActionCallback actionCallback = actionCallbackMap1.get("Command_enter");
                     if (null != actionCallback) {
                         actionCallback.actionPerformed(evt);
                     }
@@ -257,10 +262,14 @@ public class TextCompUtil2 {
             private static final long serialVersionUID = -3548620001691220571L;
 
             public void actionPerformed(ActionEvent evt) {
-//                JTextComponent tf=(JTextComponent)evt.getSource();
+                JTextComponent tf = (JTextComponent) evt.getSource();
                 System.out.println("Ctrl_enter");
-                if (!ValueWidget.isNullOrEmpty(actionCallbackMap)) {
-                    ActionCallback actionCallback = actionCallbackMap.get("Ctrl_enter");
+                Map<String, ActionCallback> actionCallbackMap1 = getActionCallbackMap(tf);
+                if (actionCallbackMap1 == null) {
+                    actionCallbackMap1 = actionCallbackMap;
+                }
+                if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                    ActionCallback actionCallback = actionCallbackMap1.get("Ctrl_enter");
                     if (null != actionCallback) {
                         actionCallback.actionPerformed(evt);
                     }
@@ -658,13 +667,17 @@ public class TextCompUtil2 {
 		return null;
 	}
 
-	public static GenericDialog getScreenshotDialog(JTextComponent area2){
-		  Class clazz=area2.getClass();
+    public static GenericDialog getScreenshotDialog(JTextComponent area2) {
+        return (GenericDialog) getReflectGetMethod(area2, "getScreenshotDialog");
+    }
+
+    public static Object getReflectGetMethod(JTextComponent area2, String methodName) {
+        Class clazz=area2.getClass();
 		  Object obj=null;
 		    Method m;
 			try {
-				m = clazz.getMethod("getScreenshotDialog", new Class[]{});
-				m.setAccessible(true);
+                m = clazz.getMethod(methodName, new Class[]{});
+                m.setAccessible(true);
 			    obj=m.invoke(area2, null);
 			} catch (NoSuchMethodException e) {
 				e.printStackTrace();
@@ -677,8 +690,13 @@ public class TextCompUtil2 {
 			} catch (InvocationTargetException e) {
 				e.printStackTrace();
 			}
-			return (GenericDialog)obj;
-	  }
+        return obj;
+    }
+
+
+    public static Map<String, ActionCallback> getActionCallbackMap(JTextComponent area2) {
+        return (Map<String, ActionCallback>) getReflectGetMethod(area2, "getActionCallbackMap");
+    }
 
 	static class GenerateJsonActionListener implements ActionListener {
 		private JTextComponent ta;
