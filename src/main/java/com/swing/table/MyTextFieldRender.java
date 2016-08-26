@@ -1,18 +1,21 @@
 package com.swing.table;
 
-import java.awt.Component;
-
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
-
+import com.swing.callback.ActionCallback;
 import com.swing.component.AssistPopupTextArea;
+
+import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.util.Map;
 
 
 public class MyTextFieldRender implements TableCellRenderer {
-
+    private Map<String, ActionCallback> actionCallbackMap;
     public MyTextFieldRender() {
+    }
+
+    public MyTextFieldRender(Map<String, ActionCallback> actionCallbackMap) {
+        this.actionCallbackMap = actionCallbackMap;
     }
 
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row,
@@ -23,8 +26,8 @@ public class MyTextFieldRender implements TableCellRenderer {
     		if(val2 instanceof JComponent){
     			return (JComponent) val2;
     		}else{
-    			return new JScrollPane(new AssistPopupTextArea((String)value));
-    		}
+                return new JScrollPane(new AssistPopupTextArea((String) value, this.actionCallbackMap));
+            }
     	}
         return (Component) value;
     }

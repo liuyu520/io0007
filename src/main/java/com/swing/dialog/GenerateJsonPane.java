@@ -256,12 +256,12 @@ public class GenerateJsonPane extends GenericDialog {
 		.setCellRenderer(new MyButtonRender());
     	
     	parameterTable_1.getColumnModel().getColumn(0)
-		.setCellEditor(new MyTextFieldEditor());
-    	parameterTable_1.getColumnModel().getColumn(0)
+                .setCellEditor(new MyTextFieldEditor(null));
+        parameterTable_1.getColumnModel().getColumn(0)
 		.setCellRenderer(new MyButtonRender());
     	parameterTable_1.getColumnModel().getColumn(1)
-		.setCellEditor(new MyTextFieldEditor());
-    	parameterTable_1.getColumnModel().getColumn(1)
+                .setCellEditor(new MyTextFieldEditor(null));
+        parameterTable_1.getColumnModel().getColumn(1)
 		.setCellRenderer(new MyButtonRender());
 //        final MouseInputListener mouseInputListener = getMouseInputListener(parameterTable_1,RequestPanel.this,null);
 //        parameterTable_1.addMouseListener(mouseInputListener);

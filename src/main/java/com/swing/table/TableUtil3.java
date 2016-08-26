@@ -262,9 +262,9 @@ public class TableUtil3 {
 
             JTextArea valTA = null;
             if (parameterIncludeBean == null) {
-                valTA = new GenerateJsonTextArea();
+                valTA = new GenerateJsonTextArea(actionCallbackMap);
             } else {
-                valTA = new GenerateJsonTextArea(parameterIncludeBean.getValue());
+                valTA = new GenerateJsonTextArea(parameterIncludeBean.getValue(), actionCallbackMap);
             }
 
             valTA.setBackground(clor);

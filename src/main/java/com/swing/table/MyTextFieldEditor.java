@@ -1,14 +1,11 @@
 package com.swing.table;
 
-import java.awt.Component;
-
-import javax.swing.DefaultCellEditor;
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-
+import com.swing.callback.ActionCallback;
 import com.swing.component.AssistPopupTextArea;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Map;
 
 public class MyTextFieldEditor extends DefaultCellEditor {
     /**
@@ -17,15 +14,22 @@ public class MyTextFieldEditor extends DefaultCellEditor {
     private static final long serialVersionUID = -6546334664166791132L;
 
     private JComponent obj = null;
+    private Map<String, ActionCallback> actionCallbackMap;
 
-    public MyTextFieldEditor() {
+    public MyTextFieldEditor(Map<String, ActionCallback> actionCallbackMap) {
         // DefautlCellEditor有此构造器，需要传入一个，但这个不会使用到，直接new一个即可。
         super(new JTextField());
 
         // 设置点击几次激活编辑。
         this.setClickCountToStart(1);
+        if (null != actionCallbackMap) {
+            this.actionCallbackMap = actionCallbackMap;
+        }
     }
 
+    public MyTextFieldEditor() {
+        this((Map<String, ActionCallback>) null);
+    }
    
     /**
      * 这里重写父类的编辑方法，返回一个JPanel对象即可（也可以直接返回一个Button对象，但是那样会填充满整个单元格）
@@ -41,8 +45,8 @@ public class MyTextFieldEditor extends DefaultCellEditor {
     		if(val2 instanceof JComponent){
     			return (JComponent) val2;
     		}else{
-    			obj =new JScrollPane(new AssistPopupTextArea((String)value));
-    		}
+                obj = new JScrollPane(new AssistPopupTextArea((String) value, this.actionCallbackMap));
+            }
     	}
         return obj;
 

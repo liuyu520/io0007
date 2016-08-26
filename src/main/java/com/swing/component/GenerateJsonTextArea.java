@@ -17,6 +17,9 @@ public class GenerateJsonTextArea extends AssistPopupTextArea {
 		super();
 	}
 
+    public GenerateJsonTextArea(Map<String, ActionCallback> actionCallbackMap) {
+        super(actionCallbackMap);
+    }
 
 	public GenerateJsonTextArea(String text) {
 		super(text);
