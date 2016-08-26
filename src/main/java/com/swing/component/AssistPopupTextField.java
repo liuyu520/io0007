@@ -1,8 +1,10 @@
 package com.swing.component;
 
+import com.swing.callback.ActionCallback;
 import com.swing.menu.MenuUtil2;
 
 import javax.swing.*;
+import java.util.Map;
 
 /***
  * 增加了右键菜单功能和自动补全功能
@@ -42,16 +44,25 @@ public class AssistPopupTextField extends UndoTextField {
 	@Override
 	protected void initlize(boolean needSearch) {
 		super.initlize(needSearch);
-		textPopupMenu = new JPopupMenu();
-		MenuUtil2.addPopupMenuItem(this, textPopupMenu);
-		override4Extend(textPopupMenu);
-		MenuUtil2.setPopupMenu(this, textPopupMenu);
-		ComponentUtil.assistantTF(this);
+        custom();
+    }
 
-	}
+    @Override
+    protected void initlize(boolean needSearch, Map<String, ActionCallback> actionCallbackMap) {
+        super.initlize(needSearch, actionCallbackMap);
+        custom();
+    }
 
-	/***
-	 * 用于子类覆写
+    private void custom() {
+        textPopupMenu = new JPopupMenu();
+        MenuUtil2.addPopupMenuItem(this, textPopupMenu);
+        override4Extend(textPopupMenu);
+        MenuUtil2.setPopupMenu(this, textPopupMenu);
+        ComponentUtil.assistantTF(this);
+    }
+
+    /***
+     * 用于子类覆写
 	 * 
 	 * @param textPopupMenu
 	 */

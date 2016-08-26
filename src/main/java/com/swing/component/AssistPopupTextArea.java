@@ -37,17 +37,27 @@ public class AssistPopupTextArea extends PlaceHolderTextArea {
 	@Override
 	protected void initlize() {
 		super.initlize();
-		textPopupMenu=new JPopupMenu();
-		MenuUtil2.addPopupMenuItem(this, textPopupMenu);
-		override4Extend(textPopupMenu);
-		textPopupMenu=MenuUtil2.setPopupMenu(this,textPopupMenu);
-		//added by huangweii @2015-09-30
-		setLineWrap(true);
-		setWrapStyleWord(true);
-	}
+        custom2();
+    }
 
-	public JPopupMenu getTextPopupMenu() {
-		return textPopupMenu;
+    @Override
+    protected void initlize(Map<String, ActionCallback> actionCallbackMap) {
+        super.initlize(actionCallbackMap);
+        custom2();
+    }
+
+    private void custom2() {
+        textPopupMenu = new JPopupMenu();
+        MenuUtil2.addPopupMenuItem(this, textPopupMenu);
+        override4Extend(textPopupMenu);
+        textPopupMenu = MenuUtil2.setPopupMenu(this, textPopupMenu);
+        //added by huangweii @2015-09-30
+        setLineWrap(true);
+        setWrapStyleWord(true);
+    }
+
+    public JPopupMenu getTextPopupMenu() {
+        return textPopupMenu;
 	}
 	/***
 	 * 用于子类覆写
