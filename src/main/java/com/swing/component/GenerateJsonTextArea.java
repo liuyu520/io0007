@@ -35,5 +35,12 @@ public class GenerateJsonTextArea extends AssistPopupTextArea {
         TextCompUtil2.dropListMenu(this, false);
         placeHolder(TextCompUtil2.PLACEHOLDER_DOUBLE_SHIFT);
 	}
-	
+
+    @Override
+    protected void initlize(Map<String, ActionCallback> actionCallbackMap) {
+        super.initlize(actionCallbackMap);
+        TextCompUtil2.dropListMenu(this, false);
+        placeHolder(TextCompUtil2.PLACEHOLDER_DOUBLE_SHIFT);
+    }
+
 }
