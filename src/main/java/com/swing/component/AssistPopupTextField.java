@@ -16,6 +16,10 @@ public class AssistPopupTextField extends UndoTextField {
 
 	private static final long serialVersionUID = -5051794705721682199L;
 	protected JPopupMenu textPopupMenu;
+    /**
+     * 防止方法custom2执行两遍
+     */
+    private boolean hasCustom = false;
 
 	public AssistPopupTextField(boolean needSearch) {
 		super(needSearch);
@@ -54,11 +58,14 @@ public class AssistPopupTextField extends UndoTextField {
     }
 
     private void custom() {
-        textPopupMenu = new JPopupMenu();
-        MenuUtil2.addPopupMenuItem(this, textPopupMenu);
-        override4Extend(textPopupMenu);
-        MenuUtil2.setPopupMenu(this, textPopupMenu);
-        ComponentUtil.assistantTF(this);
+        if (!hasCustom) {
+            hasCustom = true;
+            textPopupMenu = new JPopupMenu();
+            MenuUtil2.addPopupMenuItem(this, textPopupMenu);
+            override4Extend(textPopupMenu);
+            MenuUtil2.setPopupMenu(this, textPopupMenu);
+            ComponentUtil.assistantTF(this);
+        }
     }
 
     /***

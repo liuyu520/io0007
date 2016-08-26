@@ -14,6 +14,10 @@ import java.util.Map;
 public class AssistPopupTextArea extends PlaceHolderTextArea {
 	private static final long serialVersionUID = -3651671537628886719L;
 	protected JPopupMenu textPopupMenu;
+    /**
+     * 防止方法custom2执行两遍
+     */
+    private boolean hasCustom = false;
 
     public AssistPopupTextArea(Map<String, ActionCallback> actionCallbackMap) {
         super(actionCallbackMap);
@@ -47,13 +51,16 @@ public class AssistPopupTextArea extends PlaceHolderTextArea {
     }
 
     private void custom2() {
-        textPopupMenu = new JPopupMenu();
-        MenuUtil2.addPopupMenuItem(this, textPopupMenu);
-        override4Extend(textPopupMenu);
-        textPopupMenu = MenuUtil2.setPopupMenu(this, textPopupMenu);
-        //added by huangweii @2015-09-30
-        setLineWrap(true);
-        setWrapStyleWord(true);
+        if (!hasCustom) {
+            hasCustom = true;
+            textPopupMenu = new JPopupMenu();
+            MenuUtil2.addPopupMenuItem(this, textPopupMenu);
+            override4Extend(textPopupMenu);
+            textPopupMenu = MenuUtil2.setPopupMenu(this, textPopupMenu);
+            //added by huangweii @2015-09-30
+            setLineWrap(true);
+            setWrapStyleWord(true);
+        }
     }
 
     public JPopupMenu getTextPopupMenu() {
