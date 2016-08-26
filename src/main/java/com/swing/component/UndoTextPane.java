@@ -2,6 +2,7 @@ package com.swing.component;
 
 import com.common.bean.FindTxtResultBean;
 import com.common.util.SystemHWUtil;
+import com.swing.callback.ActionCallback;
 import com.swing.dialog.GenericDialog;
 
 import javax.swing.*;
@@ -11,6 +12,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.util.Map;
 
 /***
  * 按Ctrl+R 使文本框只读
@@ -99,17 +101,21 @@ public class UndoTextPane extends JTextPane {
 //
 //	}
 
-	protected void initlize() {
-		doc.addUndoableEditListener(new UndoableEditListener() {
+    protected void initlize(Map<String, ActionCallback> actionCallbackMap) {
+        doc.addUndoableEditListener(new UndoableEditListener() {
 			public void undoableEditHappened(UndoableEditEvent e) {
 				undo.addEdit(e.getEdit());
 			}
 		});
 //		addActionMap();
-		TextCompUtil2.addActionMap(this, undo);
-	}
+        TextCompUtil2.addActionMap(this, undo, actionCallbackMap);
+    }
 
-	/***
+    protected void initlize() {
+        this.initlize((Map<String, ActionCallback>) null);
+    }
+
+    /***
 	 * 可以被子类覆写
 	 * @param textComponent
 	 * @return

@@ -8,6 +8,7 @@ import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.ActionCallback;
 import com.swing.dialog.*;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
@@ -26,6 +27,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+
 /***
  * 
  * @author huangweii
@@ -113,12 +116,13 @@ public class TextCompUtil2 {
             e.printStackTrace();
         }
 	}
-	public static void addActionMap(final JTextComponent tc,final UndoManager undo) {
-		addActionMap(tc, undo, true);
-	}
 
-	public static void addActionMap(final JTextComponent tc, final UndoManager undo, boolean needSearch) {
-		tc.getActionMap().put("Undo", new AbstractAction("Undo11") {
+    public static void addActionMap(final JTextComponent tc, final UndoManager undo, final Map<String, ActionCallback> actionCallbackMap) {
+        addActionMap(tc, undo, true, actionCallbackMap);
+    }
+
+    public static void addActionMap(final JTextComponent tc, final UndoManager undo, boolean needSearch, final Map<String, ActionCallback> actionCallbackMap) {
+        tc.getActionMap().put("Undo", new AbstractAction("Undo11") {
 			private static final long serialVersionUID = 2434402629308759912L;
 			public void actionPerformed(ActionEvent evt) {
 				try {
@@ -228,10 +232,46 @@ public class TextCompUtil2 {
 				}
 			}
 		});
+        //on Mac ,this would be command key
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_E, getDefaultModifier()/*"control E"*/), "Editable");
 
-		if (needSearch) {
-			//按Ctrl+F 搜索文本
+        tc.getActionMap().put("Command_enter", new AbstractAction("Command_enter111") {
+            private static final long serialVersionUID = -3548620001691220571L;
+
+            public void actionPerformed(ActionEvent evt) {
+//                JTextComponent tf=(JTextComponent)evt.getSource();
+                System.out.println("Command_enter");
+                if (!ValueWidget.isNullOrEmpty(actionCallbackMap)) {
+                    ActionCallback actionCallback = actionCallbackMap.get("Command_enter");
+                    if (null != actionCallback) {
+                        actionCallback.actionPerformed(evt);
+                    }
+                }
+
+            }
+        });
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, getDefaultModifier()/*"control E"*/), "Command_enter");
+
+
+        tc.getActionMap().put("Ctrl_enter", new AbstractAction("Ctrl_enter111") {
+            private static final long serialVersionUID = -3548620001691220571L;
+
+            public void actionPerformed(ActionEvent evt) {
+//                JTextComponent tf=(JTextComponent)evt.getSource();
+                System.out.println("Ctrl_enter");
+                if (!ValueWidget.isNullOrEmpty(actionCallbackMap)) {
+                    ActionCallback actionCallback = actionCallbackMap.get("Ctrl_enter");
+                    if (null != actionCallback) {
+                        actionCallback.actionPerformed(evt);
+                    }
+                }
+            }
+        });
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "Ctrl_enter");
+
+
+        if (needSearch) {
+            //按Ctrl+F 搜索文本
 			//需要区分对待,因为有的文本框不需要Ctrl+F 快捷键
 			tc.getActionMap().put("search", searchAction);
             tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, getDefaultModifier() /*"control F"*/), "search");
@@ -299,7 +339,8 @@ public class TextCompUtil2 {
 
     /**
      * Returns the default modifier key for a system.  For example, on Windows
-     * this would be the CTRL key (<code>InputEvent.CTRL_MASK</code>).
+     * this would be the CTRL key (<code>InputEvent.CTRL_MASK</code>).<br>
+     *     on Mac ,this would be command key
      *
      * @return The default modifier key.
      */

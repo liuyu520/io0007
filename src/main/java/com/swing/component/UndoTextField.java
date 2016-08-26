@@ -2,6 +2,7 @@ package com.swing.component;
 
 import com.common.bean.FindTxtResultBean;
 import com.common.util.SystemHWUtil;
+import com.swing.callback.ActionCallback;
 import com.swing.component.inf.IPlaceHolder;
 import com.swing.dialog.GenericDialog;
 
@@ -12,6 +13,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.util.Map;
 
 /***
  * 按Ctrl+R 使文本框只读
@@ -43,15 +45,19 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 		initlize(needSearch);
 	}
 
-	public UndoTextField(boolean needSearch) {
-		super();
-		initlize(needSearch);
+    public UndoTextField(boolean needSearch, Map<String, ActionCallback> actionCallbackMap) {
+        super();
+        initlize(needSearch, actionCallbackMap);
 
 	}
 
-	public UndoTextField() {
-		this(true);
-	}
+    public UndoTextField(boolean needSearch) {
+        this(needSearch, (Map<String, ActionCallback>) null);
+    }
+
+    public UndoTextField() {
+        this(true, (Map<String, ActionCallback>) null);
+    }
 
 	public UndoTextField(int size, boolean needSearch) {
 		super(size);
@@ -90,17 +96,21 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 		undo.discardAllEdits();
 	}
 
-	protected void initlize(boolean needSearch) {
-		doc.addUndoableEditListener(new UndoableEditListener() {
+    protected void initlize(boolean needSearch, Map<String, ActionCallback> actionCallbackMap) {
+        doc.addUndoableEditListener(new UndoableEditListener() {
 			public void undoableEditHappened(UndoableEditEvent e) {
 				undo.addEdit(e.getEdit());
 			}
 		});
 //		addActionMap();
-		TextCompUtil2.addActionMap(this, undo, needSearch);
-	}
+        TextCompUtil2.addActionMap(this, undo, needSearch, actionCallbackMap);
+    }
 
-	/***
+    protected void initlize(boolean needSearch) {
+        this.initlize(needSearch, (Map<String, ActionCallback>) null);
+    }
+
+    /***
 	 * 可以被子类覆写
 	 * @param textComponent
 	 * @return
