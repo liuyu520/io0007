@@ -1,8 +1,10 @@
 package com.swing.component;
 
+import com.swing.callback.ActionCallback;
 import com.swing.menu.MenuUtil2;
 
 import javax.swing.*;
+import java.util.Map;
 
 /***
  * 增加了右键菜单功能
@@ -12,15 +14,25 @@ import javax.swing.*;
 public class AssistPopupTextArea extends PlaceHolderTextArea {
 	private static final long serialVersionUID = -3651671537628886719L;
 	protected JPopupMenu textPopupMenu;
-	public AssistPopupTextArea() {
-		super();
-	}
-	public AssistPopupTextArea(int rows, int columns) {
+
+    public AssistPopupTextArea(Map<String, ActionCallback> actionCallbackMap) {
+        super(actionCallbackMap);
+    }
+
+    public AssistPopupTextArea() {
+        super();
+    }
+
+    public AssistPopupTextArea(int rows, int columns) {
 		super(rows, columns);
 	}
 	public AssistPopupTextArea(String text) {
-		super(text);
-	}
+        this(text, (Map<String, ActionCallback>) null);
+    }
+
+    public AssistPopupTextArea(String text, Map<String, ActionCallback> actionCallbackMap) {
+        super(text, actionCallbackMap);
+    }
 
 	@Override
 	protected void initlize() {

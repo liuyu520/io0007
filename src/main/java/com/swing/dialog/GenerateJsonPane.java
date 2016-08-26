@@ -5,6 +5,7 @@ import com.common.util.WindowUtil;
 import com.io.hw.awt.color.CustomColor;
 import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.ActionCallback;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.ComponentUtil;
 import com.swing.component.GenerateJsonTextArea;
@@ -104,8 +105,8 @@ public class GenerateJsonPane extends GenericDialog {
 		addBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addParameter(null);
-			}
+                addParameter(null, (Map<String, ActionCallback>) null);
+            }
 		});
 		panel_1.add(addBtn);
 
@@ -132,8 +133,8 @@ public class GenerateJsonPane extends GenericDialog {
 			public void actionPerformed(ActionEvent e) {
 				String text = WindowUtil.getSysClipboardText();
 				if (!ValueWidget.isNullOrEmpty(text)) {
-					addParameter(text);
-				}
+                    addParameter(text, (Map<String, ActionCallback>) null);
+                }
 			}
 
 		});
@@ -230,8 +231,8 @@ public class GenerateJsonPane extends GenericDialog {
             if(text.startsWith("{")&&text.endsWith("}")){
 				System.out.println("是json");
 				Map map=(Map) HWJacksonUtils.deSerialize(text, Map.class);
-				TableUtil3.setTableData3(parameterTable_1, map,false, true, columnNames);
-				rendTable();
+                TableUtil3.setTableData3(parameterTable_1, map, false, true, columnNames, (Map<String, ActionCallback>) null);
+                rendTable();
 			}
 		}
 	}
@@ -244,8 +245,8 @@ public class GenerateJsonPane extends GenericDialog {
 	/***
      * 表格增加一行
      */
-    private void addParameter(String key) {
-    	TableUtil3.addParameter(this.parameterTable_1, key,false,true);
+    private void addParameter(String key, Map<String, ActionCallback> actionCallbackMap) {
+        TableUtil3.addParameter(this.parameterTable_1, key, false, true, actionCallbackMap);
     }
     
 	private void rendTable(){

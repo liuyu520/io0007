@@ -1,7 +1,10 @@
 package com.swing.component;
 
 import com.common.util.SystemHWUtil;
+import com.swing.callback.ActionCallback;
 import com.swing.component.inf.IPlaceHolder;
+
+import java.util.Map;
 
 /**
  * Created by Administrator on 2016/1/10.
@@ -14,6 +17,10 @@ public class PlaceHolderTextArea extends UndoTextArea implements IPlaceHolder {
 //        initlize();//不需要,否则就会重复执行initlize 方法
     }
 
+    public PlaceHolderTextArea(String text, Map<String, ActionCallback> actionCallbackMap) {
+        super(text, actionCallbackMap);
+    }
+
     public PlaceHolderTextArea() {
         super();
 //        initlize();
@@ -24,6 +31,10 @@ public class PlaceHolderTextArea extends UndoTextArea implements IPlaceHolder {
         super(rows, columns);
 //        initlize();
 
+    }
+
+    public PlaceHolderTextArea(Map<String, ActionCallback> actionCallbackMap) {
+        super(actionCallbackMap);
     }
 
     /***

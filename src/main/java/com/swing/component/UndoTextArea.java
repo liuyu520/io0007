@@ -44,9 +44,14 @@ public class UndoTextArea extends JTextArea {
     private Map<String, ActionCallback> actionCallbackMap;
 
     public UndoTextArea(String text) {
-		super(text);
-		initlize();
-	}
+        super(text);
+        initlize();
+    }
+
+    public UndoTextArea(String text, Map<String, ActionCallback> actionCallbackMap) {
+        super(text);
+        initlize(actionCallbackMap);
+    }
 
     public UndoTextArea(Map<String, ActionCallback> actionCallbackMap) {
         super();

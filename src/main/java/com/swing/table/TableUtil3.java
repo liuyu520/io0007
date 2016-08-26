@@ -8,6 +8,7 @@ import com.common.util.SystemHWUtil;
 import com.io.hw.awt.color.CustomColor;
 import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.ActionCallback;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.GenerateJsonTextArea;
 import com.swing.component.RadioButtonPanel;
@@ -221,27 +222,28 @@ public class TableUtil3 {
     /***
      * 表格增加一行
      */
-    public static void addParameter(JTable parameterTable_1,String key,boolean hasTextField,boolean isTF_table_cell) {
+    public static void addParameter(JTable parameterTable_1, String key, boolean hasTextField, boolean isTF_table_cell, Map<String, ActionCallback> actionCallbackMap) {
 //        System.out.println("增加一行");
         List<ParameterIncludeBean> parameterIncludeBeans = getParameterIncludeBeans(key);
-        addParameter(parameterTable_1, hasTextField, isTF_table_cell, parameterIncludeBeans);
+        addParameter(parameterTable_1, hasTextField, isTF_table_cell, parameterIncludeBeans, actionCallbackMap);
     }
 
-    public static void addParameter(JTable parameterTable_1, boolean hasTextField, boolean isTF_table_cell, List<ParameterIncludeBean> parameterIncludeBeans) {
+    public static void addParameter(JTable parameterTable_1, boolean hasTextField, boolean isTF_table_cell, List<ParameterIncludeBean> parameterIncludeBeans, Map<String, ActionCallback> actionCallbackMap) {
         DefaultTableModel tableModel = (DefaultTableModel) parameterTable_1.getModel();
         if (ValueWidget.isNullOrEmpty(parameterIncludeBeans)) {
-            addTableRow(hasTextField, isTF_table_cell, tableModel, null);
+            addTableRow(hasTextField, isTF_table_cell, tableModel, null, actionCallbackMap);
         } else {
             int size = parameterIncludeBeans.size();
             for (int i = 0; i < size; i++) {
                 ParameterIncludeBean parameterIncludeBean = parameterIncludeBeans.get(i);
-                addTableRow(hasTextField, isTF_table_cell, tableModel, parameterIncludeBean);
+                addTableRow(hasTextField, isTF_table_cell, tableModel, parameterIncludeBean, actionCallbackMap);
             }
         }
 
     }
 
-    public static void addTableRow(boolean hasTextField, boolean isTF_table_cell, DefaultTableModel tableModel, ParameterIncludeBean parameterIncludeBean) {
+    public static void addTableRow(boolean hasTextField, boolean isTF_table_cell, DefaultTableModel tableModel, ParameterIncludeBean parameterIncludeBean
+            , Map<String, ActionCallback> actionCallbackMap) {
         Object[] rowData = null;
         RadioButtonPanel panel = new RadioButtonPanel();
         panel.init(hasTextField);
@@ -250,9 +252,9 @@ public class TableUtil3 {
             Color clor = CustomColor.getMoreLightColor();
             JTextArea keyTA = null;
             if (parameterIncludeBean == null) {
-                keyTA = new AssistPopupTextArea();
+                keyTA = new AssistPopupTextArea(actionCallbackMap);
             } else {
-                keyTA = new AssistPopupTextArea(parameterIncludeBean.getKey());
+                keyTA = new AssistPopupTextArea(parameterIncludeBean.getKey(), actionCallbackMap);
             }
 
             keyTA.setBackground(clor);
@@ -327,7 +329,7 @@ public class TableUtil3 {
         return map;
    }
 
-    public static void setTableData3(JTable parameterTable_1,Map requestMap,boolean hasTextField,boolean isTF_table_cell,String[]columnNames) {
+    public static void setTableData3(JTable parameterTable_1, Map requestMap, boolean hasTextField, boolean isTF_table_cell, String[] columnNames, final Map<String, ActionCallback> actionCallbackMap) {
         int length = requestMap.size();
         if (length > 0) {
             Object[][] datas = new Object[length][];
@@ -341,8 +343,8 @@ public class TableUtil3 {
                 Color backColor=CustomColor.getMoreLightColor();
 //		    		objs[2]="c"+i;
                 if(isTF_table_cell){
-                	JTextArea keyTA=new AssistPopupTextArea(String.valueOf(obj));
-                	keyTA.setBackground(backColor);
+                    JTextArea keyTA = new AssistPopupTextArea(String.valueOf(obj), actionCallbackMap);
+                    keyTA.setBackground(backColor);
                 	objs[0] = new JScrollPane(keyTA);
                 }else{
                 	objs[0] =obj;
@@ -359,8 +361,8 @@ public class TableUtil3 {
                 	}else{
                 		valString=String.valueOf(val);
                 	}
-                	JTextArea valTA=new GenerateJsonTextArea(valString);
-                	valTA.setBackground(backColor);
+                    JTextArea valTA = new GenerateJsonTextArea(valString, actionCallbackMap);
+                    valTA.setBackground(backColor);
                 	objs[1] = new JScrollPane(valTA);
                 }else{
                 	objs[1] = val;

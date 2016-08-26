@@ -1,5 +1,9 @@
 package com.swing.component;
 
+import com.swing.callback.ActionCallback;
+
+import java.util.Map;
+
 /***
  * 继承 AssistPopupTextArea<br>
  * 有两个菜单:获取json<br>
@@ -16,7 +20,11 @@ public class GenerateJsonTextArea extends AssistPopupTextArea {
 
 	public GenerateJsonTextArea(String text) {
 		super(text);
-	}
+    }
+
+    public GenerateJsonTextArea(String text, Map<String, ActionCallback> actionCallbackMap) {
+        super(text, actionCallbackMap);
+    }
 
 	@Override
 	protected void initlize() {
