@@ -39,6 +39,10 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
      * 父组件
      */
     private JComponent parentPanelOrFrame;
+    /***
+     * key:"Command_enter","Ctrl_enter"
+     */
+    private Map<String, ActionCallback> actionCallbackMap;
 
 	public UndoTextField(String text, boolean needSearch) {
 		super(text);
@@ -165,5 +169,13 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 
     public void setParentPanelOrFrame(JComponent parentPanelOrFrame) {
         this.parentPanelOrFrame = parentPanelOrFrame;
+    }
+
+    public Map<String, ActionCallback> getActionCallbackMap() {
+        return actionCallbackMap;
+    }
+
+    public void setActionCallbackMap(Map<String, ActionCallback> actionCallbackMap) {
+        this.actionCallbackMap = actionCallbackMap;
     }
 }

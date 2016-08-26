@@ -36,6 +36,10 @@ public class UndoTextPane extends JTextPane {
      * 父组件
      */
     private JComponent parentPanelOrFrame;
+    /***
+     * key:"Command_enter","Ctrl_enter"
+     */
+    private Map<String, ActionCallback> actionCallbackMap;
     public UndoTextPane() {
         super();
         initlize();
@@ -177,5 +181,13 @@ public class UndoTextPane extends JTextPane {
 
     public void setParentPanelOrFrame(JComponent parentPanelOrFrame) {
         this.parentPanelOrFrame = parentPanelOrFrame;
+    }
+
+    public Map<String, ActionCallback> getActionCallbackMap() {
+        return actionCallbackMap;
+    }
+
+    public void setActionCallbackMap(Map<String, ActionCallback> actionCallbackMap) {
+        this.actionCallbackMap = actionCallbackMap;
     }
 }
