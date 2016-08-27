@@ -17,6 +17,8 @@ import java.util.Map;
  * 按Ctrl+R 使文本框只读
  * <br>按Ctrl+E 使文本框可编辑
  * <br>按Ctrl+D 清空文本框
+ * <br>Command+enter
+ * <br>Ctrl+enter
  * @author huangweii
  * 2015年11月4日
  */
@@ -142,6 +144,12 @@ public class UndoTextArea extends JTextArea {
     }
 
     protected void initlize() {
+        /*doc.addUndoableEditListener(new UndoableEditListener() {
+            public void undoableEditHappened(UndoableEditEvent e) {
+                undo.addEdit(e.getEdit());
+            }
+        });
+        TextCompUtil2.addActionMap(this, undo, null);*/
         this.initlize(null);
     }
 

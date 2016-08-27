@@ -1,6 +1,6 @@
 package com.common.util;
 
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -66,26 +66,9 @@ public final class WindowUtil
      * @param list
      * @return
      */
-    public static List<Object> getMinusSet(List oldList, List list)
+    public static List getMinusSet(List oldList, List list)
     {
-        List selectedList = null;
-        if (oldList != null)
-        {
-            selectedList = new ArrayList<Object>();
-            int leng = oldList.size();
-            if (leng != 0)
-            {
-                for (int i = 0; i < leng; i++)
-                {
-                    Object obj = oldList.get(i);
-                    if (!contains(list, obj))
-                    {
-                        selectedList.add(obj);
-                    }
-                }
-            }
-        }
-        return selectedList;
+        return getMinusSetStr(oldList, list);
     }
 
     public static List<File> getMinusSetFile(List oldList, List list)
@@ -110,7 +93,7 @@ public final class WindowUtil
         return selectedList;
     }
 
-    public static List<String> getMinusSetStr(List oldList, List list)
+    public static List getMinusSetStr(List oldList, List list)
     {
         List selectedList = null;
         if (oldList != null)

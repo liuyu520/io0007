@@ -15,7 +15,8 @@ public class AssistPopupTextArea extends PlaceHolderTextArea {
 	private static final long serialVersionUID = -3651671537628886719L;
 	protected JPopupMenu textPopupMenu;
     /**
-     * 防止方法custom2执行两遍
+     * 防止方法custom2执行两遍<br >
+     *     是否已经执行过方法custom2()
      */
     private boolean hasCustom = false;
 
@@ -58,7 +59,7 @@ public class AssistPopupTextArea extends PlaceHolderTextArea {
             override4Extend(textPopupMenu);
             textPopupMenu = MenuUtil2.setPopupMenu(this, textPopupMenu);
             //added by huangweii @2015-09-30
-            setLineWrap(true);
+            setLineWrap(true);//设置文本域自动换行
             setWrapStyleWord(true);
         }
     }

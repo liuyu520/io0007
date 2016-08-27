@@ -336,15 +336,7 @@ public class JSONObject {
 // Shave off trailing zeros and decimal point, if possible.
 
         String string = Double.toString(d);
-        if (string.indexOf('.') > 0 && string.indexOf('e') < 0
-                && string.indexOf('E') < 0) {
-            while (string.endsWith("0")) {
-                string = string.substring(0, string.length() - 1);
-            }
-            if (string.endsWith(".")) {
-                string = string.substring(0, string.length() - 1);
-            }
-        }
+        string = shaveOff(string);
         return string;
     }
 
@@ -408,6 +400,11 @@ public class JSONObject {
 // Shave off trailing zeros and decimal point, if possible.
 
         String string = number.toString();
+        string = shaveOff(string);
+        return string;
+    }
+
+    public static String shaveOff(String string) {
         if (string.indexOf('.') > 0 && string.indexOf('e') < 0
                 && string.indexOf('E') < 0) {
             while (string.endsWith("0")) {

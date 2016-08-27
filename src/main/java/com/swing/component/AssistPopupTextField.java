@@ -18,6 +18,7 @@ public class AssistPopupTextField extends UndoTextField {
 	protected JPopupMenu textPopupMenu;
     /**
      * 防止方法custom2执行两遍
+     * <br >是否已经执行过方法custom2()
      */
     private boolean hasCustom = false;
 
@@ -64,7 +65,7 @@ public class AssistPopupTextField extends UndoTextField {
             MenuUtil2.addPopupMenuItem(this, textPopupMenu);
             override4Extend(textPopupMenu);
             MenuUtil2.setPopupMenu(this, textPopupMenu);
-            ComponentUtil.assistantTF(this);
+            ComponentUtil.assistantTF(this);//增加自动补全
         }
     }
 

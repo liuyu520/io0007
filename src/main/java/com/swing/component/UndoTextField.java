@@ -106,7 +106,6 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 				undo.addEdit(e.getEdit());
 			}
 		});
-//		addActionMap();
         TextCompUtil2.addActionMap(this, undo, needSearch, actionCallbackMap);
     }
 
