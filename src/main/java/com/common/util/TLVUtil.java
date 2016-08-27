@@ -1,14 +1,14 @@
 package com.common.util;
 
+import com.common.dict.Constant2;
+import com.string.widget.util.ValueWidget;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import com.common.dict.Constant2;
-import com.string.widget.util.ValueWidget;
 
 /***
  * 解析TLV(非标准)
@@ -148,8 +148,11 @@ public class TLVUtil {
 			int lengthLen = byteLenPre
 					^ (Constant2.TLV_LENGTH_LIMIT_BYTE);
 			byte[]realLengBytes=new byte[lengthLen];
-			ins.read(realLengBytes);//真正的长度的字节
-			long sumLeng;
+            int realLength = ins.read(realLengBytes);//真正的长度的字节
+            if (realLength == -1 || (realLength != lengthLen)) {
+                System.out.println("parseTLVLength realLengBytes 不一致");
+            }
+            long sumLeng;
 			//真正的长度
 			sumLeng = Long.parseLong(SystemHWUtil.toHexString(realLengBytes),16);
 			return sumLeng;

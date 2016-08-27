@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+import com.common.util.SystemHWUtil;
+
 import java.io.StringWriter;
 
 /**
@@ -73,6 +75,6 @@ public class JSONStringer extends JSONWriter {
      * @return The JSON text.
      */
     public String toString() {
-        return this.mode == 'd' ? this.writer.toString() : null;
+        return this.mode == 'd' ? this.writer.toString() : SystemHWUtil.EMPTY;
     }
 }

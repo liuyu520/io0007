@@ -620,7 +620,8 @@ public final class SystemHWUtil {
 						isr.close();
 						osw.close();
 						fout.close();
-						isr=null;
+                        fin.close();
+                        isr=null;
 						osw=null;
 						fout = null;
 					}
@@ -4099,9 +4100,9 @@ public final class SystemHWUtil {
 		byte[] first3Bytes = new byte[3];
 		try {
 			boolean checked = false;
-			BufferedInputStream bis = new BufferedInputStream(
-					new FileInputStream(sourceFile));
-			bis.mark(0);
+            InputStream inputStream = new FileInputStream(sourceFile);
+            BufferedInputStream bis = new BufferedInputStream(inputStream);
+            bis.mark(0);
 			int read = bis.read(first3Bytes, 0, 3);
 			if (read == -1) {
 				return charset; // 文件编码为 ANSI
@@ -4152,7 +4153,8 @@ public final class SystemHWUtil {
 				}
 			}
 			bis.close();
-		} catch (Exception e) {
+            inputStream.close();
+        } catch (Exception e) {
 			e.printStackTrace();
 		}
 		return charset;

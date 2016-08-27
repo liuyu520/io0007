@@ -24,6 +24,8 @@ package com.JSON_java;
  SOFTWARE.
  */
 
+import com.common.util.SystemHWUtil;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -1623,7 +1625,8 @@ public class JSONObject {
         try {
             return this.toString(0);
         } catch (Exception e) {
-            return null;
+            e.printStackTrace();
+            return SystemHWUtil.EMPTY;
         }
     }
 
