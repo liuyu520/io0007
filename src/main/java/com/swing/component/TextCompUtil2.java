@@ -121,6 +121,13 @@ public class TextCompUtil2 {
         addActionMap(tc, undo, true, actionCallbackMap);
     }
 
+    /***
+     *
+     * @param tc
+     * @param undo
+     * @param needSearch
+     * @param actionCallbackMap :key,"Command_enter","Ctrl_enter","alt_enter"
+     */
     public static void addActionMap(final JTextComponent tc, final UndoManager undo, boolean needSearch, final Map<String, ActionCallback> actionCallbackMap) {
         tc.getActionMap().put("Undo", new AbstractAction("Undo11") {
 			private static final long serialVersionUID = 2434402629308759912L;
@@ -260,7 +267,6 @@ public class TextCompUtil2 {
 
         tc.getActionMap().put("Ctrl_enter", new AbstractAction("Ctrl_enter111") {
             private static final long serialVersionUID = -3548620001691220571L;
-
             public void actionPerformed(ActionEvent evt) {
                 JTextComponent tf = (JTextComponent) evt.getSource();
                 System.out.println("Ctrl_enter");
@@ -279,6 +285,28 @@ public class TextCompUtil2 {
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "Ctrl_enter");
 
 
+        tc.getActionMap().put("alt_enter", new AbstractAction("alt_enter111") {
+            private static final long serialVersionUID = -3548620001691220571L;
+
+            public void actionPerformed(ActionEvent evt) {
+                JTextComponent tf = (JTextComponent) evt.getSource();
+                System.out.println("alt_enter");
+                Map<String, ActionCallback> actionCallbackMap1 = getActionCallbackMap(tf);
+                if (actionCallbackMap1 == null) {
+                    actionCallbackMap1 = actionCallbackMap;
+                }
+                if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                    ActionCallback actionCallback = actionCallbackMap1.get("alt_enter");
+                    if (null != actionCallback) {
+                        actionCallback.actionPerformed(evt);
+                    }
+                }
+            }
+        });
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK), "alt_enter");
+
+        
+        
         if (needSearch) {
             //按Ctrl+F 搜索文本
 			//需要区分对待,因为有的文本框不需要Ctrl+F 快捷键

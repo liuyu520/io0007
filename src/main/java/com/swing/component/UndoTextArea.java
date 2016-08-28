@@ -41,7 +41,7 @@ public class UndoTextArea extends JTextArea {
      */
     private JComponent parentPanelOrFrame;
     /***
-     * key:"Command_enter","Ctrl_enter"
+     * key:"Command_enter","Ctrl_enter","alt_enter"
      */
     private Map<String, ActionCallback> actionCallbackMap;
 
