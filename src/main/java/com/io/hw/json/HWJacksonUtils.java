@@ -25,7 +25,8 @@ public class HWJacksonUtils {
 			mapper = new ObjectMapper();
 		}
 		mapper.setSerializationInclusion(Inclusion.NON_NULL);
-		return mapper;
+        mapper.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
 	}
 	/***
 	 * 用于jsonp调用
