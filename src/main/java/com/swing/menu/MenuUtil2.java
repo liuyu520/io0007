@@ -343,7 +343,7 @@
         }
         field2.addMouseListener(new MouseInputListener()
         {
-            private java.util.Timer timer = new java.util.Timer();
+            private java.util.Timer timer;
             @Override
             public void mouseMoved(MouseEvent e)
             {
@@ -379,9 +379,9 @@
                         timer.schedule(new java.util.TimerTask() {
                             @Override
                             public void run() {
-                                textMenu.show(e.getComponent(), e.getX(), e.getY());
+                                textMenu.show(e.getComponent(), e.getX() + 10, e.getY());
                             }
-                        }, 250);
+                        }, 300);
                     }
 //                	addPopupMenuItem(field2,textMenu);
 //
