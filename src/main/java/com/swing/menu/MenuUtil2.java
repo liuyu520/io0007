@@ -343,6 +343,7 @@
         }
         field2.addMouseListener(new MouseInputListener()
         {
+            private java.util.Timer timer = new java.util.Timer();
             @Override
             public void mouseMoved(MouseEvent e)
             {
@@ -356,13 +357,34 @@
             }
 
             @Override
-            public void mouseReleased(MouseEvent e)
+            public void mouseReleased(final MouseEvent e)
             {
                 //                super.mousePressed(e);
-                if (e.getButton() == MouseEvent.BUTTON3)
+//                System.out.println("click:"+e.getClickCount());
+                if (e.getButton() == MouseEvent.BUTTON3)//右键
                 {
+                    if (e.getClickCount() > 1) {//右键双击
+                        if (null != timer) {
+                            timer.cancel();
+                            timer = null;
+                        }
+                        if (!ValueWidget.isNullOrEmpty(field2.getText())) {
+                            WindowUtil.setSysClipboardText(field2.getText());
+                            ToastMessage.toast("已复制到剪切板", 2000);
+                        }
+                    } else {//启动定时器
+                        if (null == timer) {
+                            timer = new java.util.Timer();
+                        }
+                        timer.schedule(new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                textMenu.show(e.getComponent(), e.getX(), e.getY());
+                            }
+                        }, 250);
+                    }
 //                	addPopupMenuItem(field2,textMenu);
-                    textMenu.show(e.getComponent(), e.getX(), e.getY());
+//
                 }else if (e.getButton() == MouseEvent.BUTTON2){//鼠标中键
                 	//按下鼠标中键,把剪切板内容黏贴到文本框中
                 	String text=WindowUtil.getSysClipboardText();
