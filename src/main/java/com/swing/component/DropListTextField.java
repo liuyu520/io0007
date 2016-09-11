@@ -1,5 +1,6 @@
 package com.swing.component;
 
+import com.swing.callback.ActionCallback;
 import com.swing.event.EventHWUtil;
 import com.swing.menu.DropListMenuActionListener;
 import com.swing.menu.MenuUtil2;
@@ -9,6 +10,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.List;
+import java.util.Map;
 /***
  * 双击Shift 弹出下拉菜单,选中则会填入该文本框
  * <br> 继承AssistPopupTextField
@@ -34,6 +36,17 @@ public abstract class DropListTextField extends AssistPopupTextField {
 	@Override
 	protected void initlize(boolean needSearch) {
 		super.initlize(needSearch);
+        dropListMenu();
+    }
+    /*@Override
+	protected void initlize(boolean needSearch, Map<String, ActionCallback> actionCallbackMap) {
+		super.initlize(needSearch,actionCallbackMap);
+		dropListMenu();
+	}*/
+
+    @Override
+    protected void initlize(boolean needSearch, Map<String, ActionCallback> actionCallbackMap) {
+        super.initlize(needSearch, actionCallbackMap);
 		dropListMenu();
 	}
 
