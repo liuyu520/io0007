@@ -1656,9 +1656,9 @@ public final class FileUtils {
 	}
 
 	/***
-	 * 
-	 * @param folder
-	 *            : directory
+	 *
+     * @param folderObj
+     *            : directory
 	 */
 	public static void open_directory(Object folderObj) {
 		if (ValueWidget.isNullOrEmpty(folderObj)) {
@@ -1681,9 +1681,16 @@ public final class FileUtils {
 			runtime = Runtime.getRuntime();
 			if (SystemHWUtil.isWindows) {
 				runtime.exec("cmd /c start explorer " + file.getAbsolutePath());
-			} else {
-				runtime.exec("nautilus " + file.getAbsolutePath());
-
+            } else if (SystemHWUtil.isMacOSX) {//苹果电脑,比如MacBook
+                String cmdPrefix;
+                if (file.isDirectory()) {
+                    cmdPrefix = "open ";
+                } else {
+                    cmdPrefix = "open -R ";
+                }
+                runtime.exec(cmdPrefix + file.getAbsolutePath());
+            } else {
+                runtime.exec("nautilus " + file.getAbsolutePath());
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -1695,9 +1702,9 @@ public final class FileUtils {
 	}
 
 	/***
-	 * 
-	 * @param filePath
-	 *            : only regular file
+	 *
+     * @param folderObj
+     *            : only regular file
 	 */
 	public static boolean open_file(Object folderObj) {
 		if (ValueWidget.isNullOrEmpty(folderObj)) {
