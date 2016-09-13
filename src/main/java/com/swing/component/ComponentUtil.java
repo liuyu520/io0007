@@ -1,10 +1,7 @@
 package com.swing.component;
 
 import com.common.dict.Constant2;
-import com.common.util.ImageHWUtil;
-import com.common.util.SystemHWUtil;
-import com.common.util.TypeUtil;
-import com.common.util.WindowUtil;
+import com.common.util.*;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
 import com.swing.dialog.toast.ToastMessage;
@@ -600,8 +597,24 @@ public final class ComponentUtil {
 			Object obj22=trans.getTransferData(DataFlavor.imageFlavor);
 			if(!ValueWidget.isNullOrEmpty(obj22)){
 				if(obj22 instanceof BufferedImage){
-				image=(BufferedImage)obj22;
-				}
+                    image = (BufferedImage) obj22;
+                } else if (obj22 instanceof sun.awt.image.MultiResolutionCachedImage) {//兼容mac os
+                    sun.awt.image.MultiResolutionCachedImage cachedImage = (sun.awt.image.MultiResolutionCachedImage) obj22;
+                    if (null == cachedImage) {
+                        return null;
+                    }
+                    sun.awt.image.ToolkitImage toolkitImage = (sun.awt.image.ToolkitImage) cachedImage.getScaledInstance(cachedImage.getWidth(null), cachedImage.getHeight(null), Image.SCALE_SMOOTH);
+                    if (null == toolkitImage) {
+                        return null;
+                    }
+                    java.awt.image.FilteredImageSource filteredImageSource = (java.awt.image.FilteredImageSource) ReflectHWUtils.getObjectValue(toolkitImage, "source");
+                    if (null == filteredImageSource) {
+                        return null;
+                    }
+                    sun.awt.image.OffScreenImageSource imageSource = (sun.awt.image.OffScreenImageSource) ReflectHWUtils.getObjectValue(filteredImageSource, "src");
+                    image = (BufferedImage) ReflectHWUtils.getObjectValue(imageSource, "image");
+//					System.out.println(imageSource);
+                }
 			}
 			}
 		} catch (UnsupportedFlavorException e1) {
@@ -612,7 +625,16 @@ public final class ComponentUtil {
 			GUIUtil23.errorDialog(e1);
 		}
 //		}
-		
+        catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
 		
 		/*try {
 			Map map=(Map)ReflectHWUtils.getObjectValue(clipboardTrans, "flavorsToData");
