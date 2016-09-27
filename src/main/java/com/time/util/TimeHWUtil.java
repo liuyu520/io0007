@@ -818,6 +818,11 @@ public class TimeHWUtil {
         return getDeltaDate(endTime, date2).getDay();
     }
 
+    public static String format(Calendar c) {
+        Date d = c.getTime();
+        return formatDateTime(d);
+    }
+
 	public void test_002(){
 		String now="2014-02-25";
 		String endTime="2014-01-25";

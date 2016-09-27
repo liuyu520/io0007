@@ -26,6 +26,11 @@ public class ResponseResult {
     private AutoTestPanel autoTestPanel;
     private MemoAssistPopupTextArea resultTextPane;*/
     private String requestContentType = null;
+    /***
+     * 接口调用时间<br>
+     * 单位:毫秒
+     */
+    private long delta;
 
     public ResponseResult(RequestInfoBean requestInfoBean/*, JTextArea respTextArea_9, AutoTestPanel autoTestPanel, MemoAssistPopupTextArea resultTextPane*/) {
         this.requestInfoBean = requestInfoBean;
@@ -122,12 +127,14 @@ public class ResponseResult {
             //        	headers.put("Accept-Encoding", requestInfoBean.getCharset());
             //SystemHWUtil.CONTENTTYPE_JSON+";charset="+requestInfoBean.getCharset()
             //request result(byte[]) ;sessionId;contentType;response code
-
+            long start = System.currentTimeMillis();//接口调用的开始时刻
             //真正发送请求
             resultArr = HttpSocketUtil.httpRequest(url, requestInfoBean.isSsl(),
                     forcePost, requestMethod, postData, requestContentType,
                     requestInfoBean.getRequestCookie(), null, false/*isWrite2file */, null, requestCharset/*newEncoding*/,
                     85000, 85000);
+            long end = System.currentTimeMillis();
+            setDelta(end - start);//接口调用时间
             Integer respCode = (Integer) resultArr[3];
             resCode = respCode.intValue();
 
@@ -208,4 +215,13 @@ public class ResponseResult {
     public void setResponseJsonMap(Map<String, String> responseJsonMap) {
         this.responseJsonMap = responseJsonMap;
     }
+
+    public long getDelta() {
+        return delta;
+    }
+
+    public void setDelta(long delta) {
+        this.delta = delta;
+    }
+    
 }
