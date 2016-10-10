@@ -556,17 +556,23 @@
         }
     }
 
-    public static void searchPopupMenu(JFrame frame, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, JMenuItem cancelM, Point point) {
+    public static void searchPopupMenu(JFrame frame, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, JMenuItem cancelM, Point point, int delta) {
         if (null != cancelM) {
             cancelM.addActionListener(searchPopupMenuListener);
             textPopupMenu.add(cancelM);
         }
 
-        textPopupMenu.show(frame, point.x + 10,
-                point.y + 75);// 下移一点
+        int y = point.y + 75;// 下移一点
+        if (delta > 0) {
+            y = y - delta;
+        }
+        textPopupMenu.show(frame, point.x + 10, y);
+    }
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, List<Integer> tabIndexList, JTextComponent tc) {
+        searchResultList(frame, tabbedPane_2, tabIndexList, tc, SystemHWUtil.NEGATIVE_ONE);
     }
 
-    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, List<Integer> tabIndexList, JTextComponent tc) {
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, List<Integer> tabIndexList, JTextComponent tc, int delta) {
         JPopupMenu textPopupMenu = new JPopupMenu();
         textPopupMenu.setForeground(Color.red);
         textPopupMenu.setBackground(Color.blue);
@@ -581,11 +587,19 @@
         Point point = tabbedPane_2.getLocation();
         point.y = point.y + 20;
 //        JMenuItem cancelM = new JMenuItem("取消");
-        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, null, point);
+        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, null, point, delta);
     }
 
 
-    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, JTextComponent tc) {
+    /***
+     * 生成搜索结果下拉菜单<br>与下面的方式重载,99%的代码是相同的,只有倒数第二个参数类型不同.
+     * @param frame
+     * @param tabbedPane_2
+     * @param searchResult
+     * @param tc
+     * @param delta
+     */
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, JComponent tc, int delta) {
         JPopupMenu textPopupMenu = new JPopupMenu();
         textPopupMenu.setForeground(Color.red);
         textPopupMenu.setBackground(Color.blue);
@@ -594,14 +608,36 @@
         boolean needSelected = true;
         for (Iterator<Integer> it = searchResult.iterator(); it.hasNext(); ) {
             int select = it.next();
-
             needSelected = addSearchPopupMenu(tabbedPane_2, textPopupMenu, searchPopupMenuListener, needSelected, select);
         }
         JMenuItem cancelM = new JMenuItem("取消");
         Point point = tc.getLocation();
-        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, cancelM, point);
+        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, cancelM, point, delta);
     }
 
+    /***
+     * 生成搜索结果下拉菜单<br><br>与上面的方式重载,99%的代码是相同的,只有倒数第二个参数类型不同.
+     * @param frame
+     * @param tabbedPane_2
+     * @param searchResult
+     * @param tc
+     * @param delta
+     */
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, Container tc, int delta) {
+        JPopupMenu textPopupMenu = new JPopupMenu();
+        textPopupMenu.setForeground(Color.red);
+        textPopupMenu.setBackground(Color.blue);
+        textPopupMenu.setOpaque(false);//透明度
+        SearchPopupMenuListener searchPopupMenuListener = new SearchPopupMenuListener(tabbedPane_2);
+        boolean needSelected = true;
+        for (Iterator<Integer> it = searchResult.iterator(); it.hasNext(); ) {
+            int select = it.next();
+            needSelected = addSearchPopupMenu(tabbedPane_2, textPopupMenu, searchPopupMenuListener, needSelected, select);
+        }
+        JMenuItem cancelM = new JMenuItem("取消");
+        Point point = tc.getLocation();
+        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, cancelM, point, delta);
+    }
     public static boolean addSearchPopupMenu(JTabbedPane tabbedPane_2, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, boolean needSelected, int select) {
         Component comp = tabbedPane_2.getComponentAt(select);
         if (comp instanceof MyNamePanel) {

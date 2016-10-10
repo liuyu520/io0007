@@ -5,6 +5,7 @@ import com.io.hw.awt.color.CustomColor;
 import com.string.widget.util.ValueWidget;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.ComponentUtil;
+import com.swing.component.MyNamePanel;
 import com.swing.dialog.callback.Callback2;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
@@ -21,7 +22,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Map;
 
-public class UnicodePanel extends GenericPanel {
+public class UnicodePanel extends MyNamePanel {
 
     public static final String please_input = "<请输入内容>";
     private static final long serialVersionUID = -2037999428860954218L;
@@ -279,5 +280,20 @@ public class UnicodePanel extends GenericPanel {
 
     public AssistPopupTextArea getInputTextArea() {
         return inputTextArea;
+    }
+
+    @Override
+    public String getRequestName() {
+        return this.action;
+    }
+
+    @Override
+    public String getAlias() {
+        return null;
+    }
+
+    @Override
+    public String getActionName() {
+        return null;
     }
 }

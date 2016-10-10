@@ -1,8 +1,8 @@
 package com.swing.component;
 
-import javax.swing.*;
+import com.swing.dialog.GenericPanel;
 
-public abstract class MyNamePanel extends JPanel {
+public abstract class MyNamePanel extends GenericPanel {
     public abstract String getRequestName();
 
     public abstract String getAlias();
