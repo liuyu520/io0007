@@ -172,7 +172,7 @@ public class TextCompUtil2 {
 			}
 
 		});
-		tc.getInputMap().put(KeyStroke.getKeyStroke("control C"), "Copy");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, getDefaultModifier()), "Copy");
 
 		tc.getActionMap().put("Cut", new AbstractAction("Cut") {
 
