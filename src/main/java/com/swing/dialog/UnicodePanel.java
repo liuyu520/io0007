@@ -48,6 +48,7 @@ public class UnicodePanel extends GenericPanel {
     private JToggleButton toggleButton_1;
     private JSplitPane splitPane;
     private int screenHeight;
+    private JTabbedPane tabbedPane;
     /**
      * Launch the application.
      */
@@ -67,10 +68,11 @@ public class UnicodePanel extends GenericPanel {
     /**
      * Create the frame.
      */
-    public UnicodePanel(final String action, final Map<String, Callback2> callbackMap, final int screenHeight) {
+    public UnicodePanel(final String action, final Map<String, Callback2> callbackMap, final int screenHeight, JTabbedPane tabbedPane) {
         this.callbackMap = callbackMap;
         this.action = action;
         this.screenHeight = screenHeight;
+        this.tabbedPane = tabbedPane;
 //		fullScreen2(this);
 //		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		setBounds(100, 100, 450, 300);
@@ -266,6 +268,7 @@ public class UnicodePanel extends GenericPanel {
         } else {
             result = callback.callback(inputTextArea.getText2(), encoding);
         }
+        tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), encoding.toString());
         callback.callback(inputTextArea.getText2(), encoding);
         if (!ValueWidget.isNullOrEmpty(result)) {
             resultTextArea.setText(result);
