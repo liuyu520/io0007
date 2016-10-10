@@ -590,7 +590,9 @@
         searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, null, point, delta);
     }
 
-
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, JComponent tc) {
+        searchResultList(frame, tabbedPane_2, searchResult, tc, SystemHWUtil.NEGATIVE_ONE);
+    }
     /***
      * 生成搜索结果下拉菜单<br>与下面的方式重载,99%的代码是相同的,只有倒数第二个参数类型不同.
      * @param frame
