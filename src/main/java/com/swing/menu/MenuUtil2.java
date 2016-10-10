@@ -5,6 +5,7 @@
  import com.common.util.WindowUtil;
  import com.io.hw.json.HWJacksonUtils;
  import com.io.hw.json.JSONHWUtil;
+ import com.string.widget.util.RegexUtil;
  import com.string.widget.util.ValueWidget;
  import com.swing.component.MyNamePanel;
  import com.swing.component.TextCompUtil2;
@@ -623,6 +624,40 @@
         }
         return needSelected;
     }
-    
+
+
+    public static Set<Integer> searchAction(String keyWord, JTabbedPane tabbedPane_2) {
+        int size = tabbedPane_2.getTabCount();
+        if (size == 0) {
+            return null;
+        }
+        Set<Integer> searchResult = new HashSet<Integer>();
+        for (int i = 0; i < size; i++) {
+            if (RegexUtil.contain2(tabbedPane_2.getTitleAt(i), keyWord)) {
+                searchResult.add(i);
+            } else {
+                Component comp = tabbedPane_2.getComponentAt(i);
+                if (comp instanceof MyNamePanel) {
+                    MyNamePanel requestPanel = (MyNamePanel) comp;
+                    if (RegexUtil.contain2(requestPanel.getAlias(), keyWord)) {
+                        searchResult.add(i);
+                    }
+                }
+            }
+        }
+        if (ValueWidget.isNullOrEmpty(searchResult)) {
+            //通过接口名称搜索
+            for (int i = 0; i < size; i++) {
+                Component comp = tabbedPane_2.getComponentAt(i);
+                if (comp instanceof MyNamePanel) {
+                    MyNamePanel requestPanel = (MyNamePanel) comp;
+                    if (RegexUtil.contain2(requestPanel.getActionName(), keyWord)) {
+                        searchResult.add(i);
+                    }
+                }
+            }
+        }
+        return searchResult;
+    }
 
 }
