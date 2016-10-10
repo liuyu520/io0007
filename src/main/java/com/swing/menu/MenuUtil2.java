@@ -6,6 +6,7 @@
  import com.io.hw.json.HWJacksonUtils;
  import com.io.hw.json.JSONHWUtil;
  import com.string.widget.util.ValueWidget;
+ import com.swing.component.MyNamePanel;
  import com.swing.component.TextCompUtil2;
  import com.swing.dialog.toast.ToastMessage;
 
@@ -13,13 +14,14 @@
  import javax.swing.event.MouseInputAdapter;
  import javax.swing.event.MouseInputListener;
  import javax.swing.text.JTextComponent;
+ import java.awt.*;
  import java.awt.event.ActionListener;
  import java.awt.event.MouseEvent;
  import java.io.UnsupportedEncodingException;
  import java.net.URLDecoder;
  import java.net.URLEncoder;
- import java.util.HashMap;
- import java.util.Map;
+ import java.util.*;
+ import java.util.List;
 
  public class MenuUtil2
 {
@@ -553,5 +555,74 @@
         }
     }
 
+    public static void searchPopupMenu(JFrame frame, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, JMenuItem cancelM, Point point) {
+        if (null != cancelM) {
+            cancelM.addActionListener(searchPopupMenuListener);
+            textPopupMenu.add(cancelM);
+        }
+
+        textPopupMenu.show(frame, point.x + 10,
+                point.y + 75);// 下移一点
+    }
+
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, List<Integer> tabIndexList, JTextComponent tc) {
+        JPopupMenu textPopupMenu = new JPopupMenu();
+        textPopupMenu.setForeground(Color.red);
+        textPopupMenu.setBackground(Color.blue);
+        textPopupMenu.setOpaque(false);//透明度
+        SearchPopupMenuListener searchPopupMenuListener = new SearchPopupMenuListener(tabbedPane_2);
+        boolean needSelected = true;
+        for (int i = 0; i < tabIndexList.size(); i++) {
+            int select = tabIndexList.get(i);
+            needSelected = addSearchPopupMenu(tabbedPane_2, textPopupMenu, searchPopupMenuListener, needSelected, select);
+            textPopupMenu.addSeparator();
+        }
+        Point point = tabbedPane_2.getLocation();
+        point.y = point.y + 20;
+//        JMenuItem cancelM = new JMenuItem("取消");
+        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, null, point);
+    }
+
+
+    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, JTextComponent tc) {
+        JPopupMenu textPopupMenu = new JPopupMenu();
+        textPopupMenu.setForeground(Color.red);
+        textPopupMenu.setBackground(Color.blue);
+        textPopupMenu.setOpaque(false);//透明度
+        SearchPopupMenuListener searchPopupMenuListener = new SearchPopupMenuListener(tabbedPane_2);
+        boolean needSelected = true;
+        for (Iterator<Integer> it = searchResult.iterator(); it.hasNext(); ) {
+            int select = it.next();
+
+            needSelected = addSearchPopupMenu(tabbedPane_2, textPopupMenu, searchPopupMenuListener, needSelected, select);
+        }
+        JMenuItem cancelM = new JMenuItem("取消");
+        Point point = tc.getLocation();
+        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, cancelM, point);
+    }
+
+    public static boolean addSearchPopupMenu(JTabbedPane tabbedPane_2, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, boolean needSelected, int select) {
+        Component comp = tabbedPane_2.getComponentAt(select);
+        if (comp instanceof MyNamePanel) {
+            MyNamePanel requestPanel = (MyNamePanel) comp;
+            String requestName = requestPanel.getRequestName();
+            if (ValueWidget.isNullOrEmpty(requestName)) {
+                requestName = String.valueOf(select);
+            } else {
+                requestName = requestName + "(" + select + ")";
+            }
+            JMenuItem openFolderM = new JMenuItem(requestName);
+            openFolderM.setActionCommand(String.valueOf(select));
+            openFolderM.addActionListener(searchPopupMenuListener);
+            textPopupMenu.add(openFolderM);
+            if (needSelected) {
+                openFolderM.setSelected(true);
+                needSelected = false;
+            }
+//				textPopupMenu.addSeparator();
+        }
+        return needSelected;
+    }
+    
 
 }
