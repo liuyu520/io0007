@@ -149,4 +149,11 @@ public abstract class AbstractDialog extends JDialog implements DialogInterface 
 		return screensize.width;
 	}
 
+    public void show2() {
+        this.setVisible(true);
+    }
+
+    public void close2() {
+        this.dispose();
+    }
 }

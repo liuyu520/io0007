@@ -1,14 +1,15 @@
 package com.io.hw.awt.color;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Random;
 
 public class CustomColor {
-    public  static Color red_little=new Color(255,200,200);
-    public  static Color red_little_more=new Color(255,230,230);
-    public static Color red_middle=new Color(255,100,100);
-    public static Color blue_little_ocean=new Color(130,200,255);
-    public static Color blue_little_gray=new Color(200,200,255);
+    public final static Color red_little = new Color(255, 200, 200);
+    public final static Color green_little = new Color(150, 255, 150);
+    public final static Color red_little_more = new Color(255, 230, 230);
+    public final static Color red_middle = new Color(255, 100, 100);
+    public final static Color blue_little_ocean = new Color(130, 200, 255);
+    public final static Color blue_little_gray = new Color(200, 200, 255);
     
     
 	public static Color getColor(int r, int g, int b) {

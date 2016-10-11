@@ -3,6 +3,7 @@
  import com.common.util.SystemHWUtil;
  import com.common.util.WebServletUtil;
  import com.common.util.WindowUtil;
+ import com.io.hw.awt.color.CustomColor;
  import com.io.hw.json.HWJacksonUtils;
  import com.io.hw.json.JSONHWUtil;
  import com.string.widget.util.RegexUtil;
@@ -698,4 +699,18 @@
         return searchResult;
     }
 
+    /***
+     * 搜索成功的提示
+     * @param tc
+     */
+    public static void setBackgroundWhenSearch(final JTextComponent tc, final Color tfDefaultColor) {
+        tc.setBackground(CustomColor.green_little);
+        java.util.Timer timer = new java.util.Timer();
+        timer.schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                tc.setBackground(tfDefaultColor);
+            }
+        }, 2000);
+    }
 }
