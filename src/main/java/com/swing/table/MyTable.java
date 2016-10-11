@@ -27,3 +27,5 @@ public class MyTable extends JTable{
 		return data2;
 	}
 }
+
+//submit1
