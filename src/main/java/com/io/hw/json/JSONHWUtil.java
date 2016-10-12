@@ -137,7 +137,10 @@ public class JSONHWUtil {
 		//callback({"auth_code":"v39hXq"})
 		jsonResult = deleteCallback(jsonResult, "callback");
 		Map<String, String> resultMap = null;
-		Map obj = (Map) com.io.hw.json.JsonParser.parserRandomJsonFormat(jsonResult);
+        if (!jsonResult.trim().startsWith("{")) {
+            return null;
+        }
+        Map obj = (Map) com.io.hw.json.JsonParser.parserRandomJsonFormat(jsonResult);
 		if (ValueWidget.isNullOrEmpty(obj)) {
 			return null;
 		}
