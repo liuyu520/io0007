@@ -72,14 +72,35 @@ public class SearchInputDialog extends GenericDialog {
                 });
                 buttonPane.add(cancelButton);
         }
+        //优先搜索上次搜索的关键字
+        if (ValueWidget.isNullOrEmpty(keyword)) {
+            FindTxtResultBean findTxtResultBean = null;
+            try {
+                findTxtResultBean = (FindTxtResultBean) ReflectHWUtils.getObjectValue(SearchInputDialog.this.targetTF, Constant2.FINDTXTRESULTBEAN_FIELD);
+                if (null != findTxtResultBean) {
+                    keyword = findTxtResultBean.getKeyWord();
+                }
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+        }
         if (ValueWidget.isNullOrEmpty(keyword)) {
             keyword = WindowUtil.getSysClipboardText();
             if (!ValueWidget.isNullOrEmpty(keyword) && keyword.length() < 20) {//太长的字符串就忽略
                 textArea.setText(keyword);
+                textArea.requestFocus();
                 textArea.selectAll();
             }
         } else {
             textArea.setText(keyword);
+            textArea.requestFocus();
             textArea.selectAll();
         }
 
