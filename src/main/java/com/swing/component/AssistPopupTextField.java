@@ -1,9 +1,11 @@
 package com.swing.component;
 
 import com.swing.callback.ActionCallback;
+import com.swing.component.inf.IRightMenu;
 import com.swing.menu.MenuUtil2;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Map;
 
 /***
@@ -12,7 +14,7 @@ import java.util.Map;
  * @author huangwei
  * @since 2014-02-08
  */
-public class AssistPopupTextField extends UndoTextField {
+public class AssistPopupTextField extends UndoTextField implements IRightMenu {
 
 	private static final long serialVersionUID = -5051794705721682199L;
 	protected JPopupMenu textPopupMenu;
@@ -69,6 +71,12 @@ public class AssistPopupTextField extends UndoTextField {
         }
     }
 
+    @Override
+    public void showMenu() {
+        Point point = this.getLocation();
+        //see com/swing/menu/MenuUtil2.java 389行
+        textPopupMenu.show(this, point.x + 10, point.y);
+    }
     /***
      * 用于子类覆写
 	 * 

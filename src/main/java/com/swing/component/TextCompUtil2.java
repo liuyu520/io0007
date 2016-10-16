@@ -9,6 +9,7 @@ import com.common.util.WindowUtil;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.callback.ActionCallback;
+import com.swing.component.inf.IRightMenu;
 import com.swing.dialog.*;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
@@ -205,6 +206,22 @@ public class TextCompUtil2 {
 			}
 		});
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, getDefaultModifier()/*"control Y"*/), "Redo");
+
+        // right menu-- Ctrl + M
+        tc.getActionMap().put("RightMenu", new AbstractAction("RightMenu111") {
+            private static final long serialVersionUID = -3548620001691220571L;
+
+            public void actionPerformed(ActionEvent evt) {
+                System.out.println("RightMenu");
+                if (tc instanceof IRightMenu) {
+                    IRightMenu rightMenu = (IRightMenu) tc;
+                    rightMenu.showMenu();
+                }
+            }
+        });
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_M, getDefaultModifier()/*"control M"*/), "RightMenu");
+
+
 
 		/*tc.getActionMap().put("Save", new AbstractAction("save111") {
 			private static final long serialVersionUID = -3548620001691220571L;

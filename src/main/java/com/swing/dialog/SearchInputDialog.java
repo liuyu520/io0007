@@ -47,6 +47,7 @@ public class SearchInputDialog extends GenericDialog {
                     public void actionPerformed(ActionEvent e) {
                         String json = textArea.getText2();
                         if (ValueWidget.isNullOrEmpty(json)) {
+                            textArea.requestFocus();
                             GUIUtil23.alert("请输入关键字.");
                             return;
                         }

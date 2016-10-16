@@ -371,6 +371,8 @@
                         if (null != timer) {
                             timer.cancel();
                             timer = null;
+                        } else {
+                            return;//说明已经执行了textMenu.show(e.getComponent(), e.getX() + 10, e.getY());
                         }
                         if (!ValueWidget.isNullOrEmpty(field2.getText())) {
                             WindowUtil.setSysClipboardText(field2.getText());
@@ -383,6 +385,7 @@
                         timer.schedule(new java.util.TimerTask() {
                             @Override
                             public void run() {
+                                timer = null;
                                 textMenu.show(e.getComponent(), e.getX() + 10, e.getY());
                             }
                         }, 300);

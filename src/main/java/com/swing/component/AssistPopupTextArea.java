@@ -1,9 +1,11 @@
 package com.swing.component;
 
 import com.swing.callback.ActionCallback;
+import com.swing.component.inf.IRightMenu;
 import com.swing.menu.MenuUtil2;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Map;
 
 /***
@@ -11,8 +13,8 @@ import java.util.Map;
  * @author huangwei
  * @since 2014-02-08
  */
-public class AssistPopupTextArea extends PlaceHolderTextArea {
-	private static final long serialVersionUID = -3651671537628886719L;
+public class AssistPopupTextArea extends PlaceHolderTextArea implements IRightMenu {
+    private static final long serialVersionUID = -3651671537628886719L;
 	protected JPopupMenu textPopupMenu;
     /**
      * 防止方法custom2执行两遍<br >
@@ -67,7 +69,15 @@ public class AssistPopupTextArea extends PlaceHolderTextArea {
     public JPopupMenu getTextPopupMenu() {
         return textPopupMenu;
 	}
-	/***
+
+    @Override
+    public void showMenu() {
+        Point point = this.getLocation();
+        //see com/swing/menu/MenuUtil2.java 389行
+        textPopupMenu.show(this, point.x + 10, point.y);
+    }
+
+    /***
 	 * 用于子类覆写
 	 * @param textPopupMenu
 	 */
