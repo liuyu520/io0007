@@ -19,6 +19,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.MouseInputListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
@@ -97,8 +98,69 @@ public class GenerateJsonPane extends GenericDialog {
 		parameterTable_1 = new JTable();
 		panel_5.add(parameterTable_1);
 		parameterTable_1.setBackground(backgroundColor);
+        parameterTable_1.addMouseListener(new MouseInputListener() {
+                                              public int count;
+                                              private java.util.Timer timer;
 
-		JPanel panel_1 = new JPanel();
+                                              public void mouseClicked(MouseEvent e) {
+                                                  System.out.println("mouseClicked" + (count++));
+                                                  processEvent(e);
+
+                                              }
+
+                                              /***
+                                               * in order to trigger Left-click the event
+                                               */
+                                              public void mousePressed(MouseEvent e) {
+                                                  processEvent(e);// is necessary!!!
+//                System.out.println("mousePressed"+(count++));
+                                              }
+
+                                              public void mouseReleased(final MouseEvent e) {
+                                                  //
+                                                  final int rowCount = parameterTable_1.getSelectedRow();
+                                                  final int columnCount = parameterTable_1.getSelectedColumn();
+                                                  if (e.getButton() == MouseEvent.BUTTON2) {//鼠标中键
+                                                      TableUtil3.tableCellMidClick(e, parameterTable_1);
+
+                                                  }
+
+                /*else if (e.getButton() == MouseEvent.BUTTON1&& e.getClickCount()==1){
+                    System.out.println("左键");
+                	int modifiers = e.getModifiers();
+                	modifiers |= MouseEvent.FOCUS_EVENT_MASK;
+                	MouseEvent ne = new MouseEvent(e.getComponent(), e.getID(),
+							e.getWhen(), modifiers, e.getX(), e.getY(),
+							2, false);
+
+//                	processEvent(ne);
+//                	jTable.editCellAt(rowCount, columnCount,ne);
+//                	CellEditor cellEditor=jTable.getCellEditor(rowCount, columnCount);
+//                	cellEditor.shouldSelectCell(ne);
+                	jTable.dispatchEvent(ne);
+                }*/
+//                System.out.println("mouseReleased"+(count++));
+                                              }
+
+                                              public void mouseEntered(MouseEvent e) {
+                                                  processEvent(e);
+                                              }
+
+                                              public void mouseExited(MouseEvent e) {
+                                                  processEvent(e);
+                                              }
+
+                                              public void mouseDragged(MouseEvent e) {
+                                                  processEvent(e);
+                                              }
+
+                                              public void mouseMoved(MouseEvent e) {
+                                                  processEvent(e);
+                                              }
+
+                                          }
+        );
+        JPanel panel_1 = new JPanel();
 		panel_2.add(panel_1, BorderLayout.SOUTH);
 		panel_1.setBackground(backgroundColor);
 		JButton addBtn = new JButton("add");
@@ -153,16 +215,15 @@ public class GenerateJsonPane extends GenericDialog {
 		if (!ValueWidget.isNullOrEmpty(this.targetTF)) {
 			readJson(this.targetTF.getText());
 		}
-		MouseAdapter mouseAdapter = new MouseAdapter() {
-			@Override
+        /*MouseAdapter mouseAdapter = new MouseAdapter() {
+            @Override
 			public void mousePressed(MouseEvent e) {
 				int buttonType = e.getButton();
 				if (buttonType == MouseEvent.BUTTON2) {
-					System.out.println(222);
+					System.out.println("鼠标中键");
 					getDataAction();
 				}
 			}
-
 
 		};
 		contentPane.addMouseListener(mouseAdapter);
@@ -170,7 +231,8 @@ public class GenerateJsonPane extends GenericDialog {
 		panel_5.addMouseListener(mouseAdapter);
 		parameterTable_1.addMouseListener(mouseAdapter);
 		scrollPane.addMouseListener(mouseAdapter);
-		//没有生效
+		*/
+        //没有生效
 		contentPane.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {

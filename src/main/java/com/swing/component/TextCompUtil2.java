@@ -354,7 +354,8 @@ public class TextCompUtil2 {
 		});
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, getDefaultModifier()/*"control D"*/), "cleanUp");
 
-        tc.addKeyListener(new KeyListener() {
+        //双击Ctrl,触发黏贴
+        /*tc.addKeyListener(new KeyListener() {
             private long lastTimeMillSencond;
 
             @Override
@@ -387,7 +388,7 @@ public class TextCompUtil2 {
                     }
                 }
             }
-        });
+        });*/
 
     }
 

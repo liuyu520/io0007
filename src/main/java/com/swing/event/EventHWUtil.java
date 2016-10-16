@@ -1,5 +1,8 @@
 package com.swing.event;
 
+import com.common.util.SystemHWUtil;
+
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 public class EventHWUtil {
@@ -34,5 +37,18 @@ public class EventHWUtil {
                 && keyCode != KeyEvent.VK_AT/*@*/
                 && keyCode != KeyEvent.VK_2/*@*/
                 && keyCode == KeyEvent.VK_CONTROL;
+    }
+
+    /***
+     * 兼容mac os
+     * @param event
+     * @return
+     */
+    public static boolean isControlDown(InputEvent event) {
+        if (SystemHWUtil.isMacOSX) {
+            return event.isMetaDown();
+        } else {
+            return event.isControlDown();
+        }
     }
 }

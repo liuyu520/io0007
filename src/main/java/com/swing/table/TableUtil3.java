@@ -5,6 +5,7 @@ import com.common.bean.RequestInfoBean;
 import com.common.bean.ResponseResult;
 import com.common.bean.TableDataBean;
 import com.common.util.SystemHWUtil;
+import com.common.util.WindowUtil;
 import com.io.hw.awt.color.CustomColor;
 import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.ValueWidget;
@@ -21,6 +22,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -519,5 +521,19 @@ public class TableUtil3 {
             System.out.println("preRequestKey is null.servlet path:" + requestInfoBean.getActionPath());
         }
         return responseMapLogin.get(preRequestKey);
+    }
+
+    public static void tableCellMidClick(MouseEvent e, JTable jTable) {
+        //按下鼠标中键,把剪切板内容黏贴到文本框中
+        String text = WindowUtil.getSysClipboardText();
+        if (!ValueWidget.isNullOrEmpty(text)) {
+            int row = jTable.rowAtPoint(e.getPoint());
+            int col = jTable.columnAtPoint(e.getPoint());
+//                        System.out.println(row+":"+col);
+            Object selectedChk = jTable.getValueAt(row, col);
+//                        System.out.println("selectedChk:"+selectedChk);
+            TableUtil3.setTableCellVal(jTable, row, col, null, text, selectedChk);
+            jTable.updateUI();
+        }
     }
 }
