@@ -66,7 +66,8 @@ public class TextCompUtil2 {
 
 		public void actionPerformed(ActionEvent evt) {
 			JTextComponent tf = (JTextComponent) evt.getSource();
-			TextCompUtil2.copyImgAction(tf);
+            //截图,截屏
+            TextCompUtil2.copyImgAction(tf);
 		}
 	};
 
@@ -658,7 +659,11 @@ public class TextCompUtil2 {
 		});
 	}
 
-	public static void copyImgAction(JTextComponent area2) {
+    /***
+     * 截图,截屏
+     * @param area2
+     */
+    public static void copyImgAction(JTextComponent area2) {
 		HeightWidthBean heightWidthBean=new HeightWidthBean();
 		heightWidthBean.setHeight(area2.getHeight());//默认高度
 		heightWidthBean.setWidth(area2.getWidth());//默认宽度

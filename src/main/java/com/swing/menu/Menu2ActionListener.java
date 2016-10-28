@@ -292,7 +292,8 @@ public class Menu2ActionListener implements ActionListener {
 			SearchInputDialog searchInputDialog = new SearchInputDialog(area2,null);
 			searchInputDialog.setVisible(true);
 		}else if(command.equals(MenuUtil2.ACTION_IMAGE_COPY_SPECIFY_WIDTH_HEIGHT)){
-			TextCompUtil2.copyImgAction(area2);
+            //截图,截屏
+            TextCompUtil2.copyImgAction(area2);
 		}
 	}
 

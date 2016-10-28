@@ -21,6 +21,7 @@ import java.io.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+
 public class ImageHWUtil {
 	public static final String thumbnail="_thumbnail";
 	/***
@@ -722,8 +723,16 @@ public class ImageHWUtil {
 			if(specifiedWidth!=null&&specifiedWidth!=SystemHWUtil.NEGATIVE_ONE){//如果指定了高度
 				width=specifiedWidth;
 			}
-			BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-	        Graphics2D g2d = img.createGraphics();
+            BufferedImage img = new BufferedImage(width * 4, height * 4, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = img.createGraphics();
+            g2d.scale(4, 4);
+            /*g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+	        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+	        Ellipse2D.Double e = new Ellipse2D.Double(300D - DOT_SIZE,
+                    200D - DOT_SIZE, DOT_SIZE + DOT_SIZE, DOT_SIZE + DOT_SIZE);
+	        g2d.setColor(Color.YELLOW);
+	        g2d.fill(e);*/
 	        ta.printAll(g2d);
 	        g2d.dispose();
 	        if(!ValueWidget.isNullOrEmpty(destFile)){

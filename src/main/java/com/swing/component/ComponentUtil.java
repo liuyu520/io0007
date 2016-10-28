@@ -755,7 +755,13 @@ public final class ComponentUtil {
 		generateImageAndCopy(ta, specifiedHeight,-1);
 	}
 
-	public static void generateImageAndCopy(JTextComponent ta, Integer specifiedHeight,Integer specifiedWidth) {
+    /***
+     * 截图,截屏
+     * @param ta
+     * @param specifiedHeight
+     * @param specifiedWidth
+     */
+    public static void generateImageAndCopy(JTextComponent ta, Integer specifiedHeight,Integer specifiedWidth) {
 		BufferedImage img = ImageHWUtil.generateImage(ta, null, "jpg"/*picFormat*/,specifiedHeight,specifiedWidth);
 		if(ValueWidget.isNullOrEmpty(img)){
 			return;

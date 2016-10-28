@@ -2,10 +2,10 @@ package com.common.bean;
 
 import com.common.dict.Constant2;
 import com.common.util.WebServletUtil;
+import com.string.widget.util.ValueWidget;
 
 import java.io.Serializable;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /***
  * 一次具体的请求信息
@@ -119,6 +119,19 @@ public class RequestInfoBean implements Serializable {
      * 别名<br >用于搜索
      */
     private String alias;
+    /***
+     * 请求参数模板
+     */
+    private List<RequestParameterTemplate> requestParameterTemplates;
+    /***
+     * 请求参数历史记录,key是参数名称,比如username,password等
+     */
+    private Map<String, List> parametersHistory;
+    /***
+     * "前置请求id"下拉框中的数据 <br>
+     * 注意:不是从配置文件中读取的,而是计算出来的.
+     */
+    private Set<String> preRequestIds;
 
     public String getPreRequestId() {
         return preRequestId;
@@ -362,6 +375,55 @@ public class RequestInfoBean implements Serializable {
         this.alias = alias;
     }
 
+    public List<RequestParameterTemplate> getRequestParameterTemplates() {
+        return requestParameterTemplates;
+    }
+
+    public void setRequestParameterTemplates(List<RequestParameterTemplate> requestParameterTemplates) {
+        this.requestParameterTemplates = requestParameterTemplates;
+    }
+
+    public Map<String, List> getParametersHistory() {
+        return parametersHistory;
+    }
+
+    public void setParametersHistory(Map<String, List> parametersHistory) {
+        this.parametersHistory = parametersHistory;
+    }
+
+    public List getParametersHistory(String parameterName) {
+        if (ValueWidget.isNullOrEmpty(this.parametersHistory)) {
+            return null;
+        } else {
+            return this.parametersHistory.get(parameterName);
+        }
+    }
+
+    /***
+     * 添加参数的一条历史记录
+     * @param parameterName
+     * @param parameterVal
+     */
+    public void addParameterHistory(String parameterName, String parameterVal) {
+        if (null == this.parametersHistory) {
+            this.parametersHistory = new HashMap<String, List>();
+            addNewParameterHistory(parameterName, parameterVal, parametersHistory);
+        } else {
+            if (this.parametersHistory.containsKey(parameterName)) {
+                getParametersHistory(parameterName).add(parameterVal);
+            } else {
+                addNewParameterHistory(parameterName, parameterVal, parametersHistory);
+            }
+        }
+
+    }
+
+    public static void addNewParameterHistory(String parameterName, String parameterVal, Map<String, List> parametersHistory) {
+        List valList = new ArrayList();
+        valList.add(parameterVal);
+        parametersHistory.put(parameterName, valList);
+    }
+
     public TreeMap<String, Object> addParameter(String key, Object val) {
         if (null == this.requestParameters) {
             this.requestParameters = new TreeMap<String, Object>();
@@ -369,4 +431,13 @@ public class RequestInfoBean implements Serializable {
         this.requestParameters.put(key, val);
         return this.requestParameters;
     }
+
+    public Set<String> getPreRequestIds() {
+        return preRequestIds;
+    }
+
+    public void setPreRequestIds(Set<String> preRequestIds) {
+        this.preRequestIds = preRequestIds;
+    }
+    
 }
