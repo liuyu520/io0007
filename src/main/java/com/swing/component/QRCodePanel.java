@@ -1,6 +1,7 @@
 package com.swing.component;
 
 import com.common.MyTask;
+import com.common.bean.QRCodeInfoBean;
 import com.common.util.QRCodeUtil;
 import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
@@ -111,8 +112,9 @@ public class QRCodePanel extends GenericPanel {
 			}
 		}
 	};
+    private QRCodeInfoBean qrCodeInfoBean;
 
-	/**
+    /**
 	 * Launch the application.
 	 */
 	/*public static void main(String[] args) {
@@ -134,11 +136,11 @@ public class QRCodePanel extends GenericPanel {
 //		this.setIconImage(icon.getImage());
 //
 //	}
-
-	public QRCodePanel(GenericFrame frame) {
-		super();
+    public QRCodePanel(GenericFrame frame, QRCodeInfoBean qrCodeInfoBean) {
+        super();
 		this.frame = frame;
-		layoutPanel();
+        this.qrCodeInfoBean = qrCodeInfoBean;
+        layoutPanel();
 	}
 
 	/***
@@ -206,8 +208,8 @@ public class QRCodePanel extends GenericPanel {
 		panel.setLayout(gbl_panel);
 
 		inputQRTextArea = new AssistPopupTextArea();
-		inputQRTextArea.setText("Hello world");
-		inputQRTextArea.setWrapStyleWord(true);
+        inputQRTextArea.setText(qrCodeInfoBean.getInput());
+        inputQRTextArea.setWrapStyleWord(true);
 		inputQRTextArea.setLineWrap(true);
 
 		//黏贴时触发[生成二维码]按钮的单击事件
@@ -810,6 +812,7 @@ public class QRCodePanel extends GenericPanel {
 		generateQR(qrInput);
 //		if(isRefreshCombox){
 			this.frame.setCombox(PROP_KEY_QR_CODE_COMBOBOX, inputQRTextArea, qrComboBox,isRefreshCombox);
+        getQrCodeInfoBean().setInput(qrInput);
 //		}
 	}
 	/***
@@ -906,4 +909,13 @@ public class QRCodePanel extends GenericPanel {
 	public void appendResult(String message){
 		ComponentUtil.appendResult(resultArea, SystemHWUtil.CRLF+ message, true,false);
 	}
+
+    public QRCodeInfoBean getQrCodeInfoBean() {
+        return qrCodeInfoBean;
+    }
+
+    public void setQrCodeInfoBean(QRCodeInfoBean qrCodeInfoBean) {
+        this.qrCodeInfoBean = qrCodeInfoBean;
+    }
+
 }

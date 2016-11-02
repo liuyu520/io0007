@@ -100,7 +100,6 @@ public class GenerateJsonPane extends GenericDialog {
 		parameterTable_1.setBackground(backgroundColor);
         parameterTable_1.addMouseListener(new MouseInputListener() {
                                               public int count;
-                                              private java.util.Timer timer;
 
                                               public void mouseClicked(MouseEvent e) {
                                                   System.out.println("mouseClicked" + (count++));

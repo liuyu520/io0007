@@ -221,6 +221,13 @@ public class GenericFrame extends AbstractFrame {
         	return;
         }
         String roots=props.getProperty(prop_key);
+        roots = getComboBoxlist(comboBox, freshCombox, rootPath, roots);
+        if (!ValueWidget.isNullOrEmpty(roots)) {
+            props.setProperty(prop_key, roots);
+        }
+    }
+
+    public static String getComboBoxlist(JComboBox<String> comboBox, boolean freshCombox, String rootPath, String roots) {
         if(ValueWidget.isNullOrEmpty(roots)){
         	roots=rootPath;
         }else{
@@ -243,12 +250,10 @@ public class GenericFrame extends AbstractFrame {
         	}else{
         		urls_new=roots_old;
         	}
-        	
-        	roots=StringUtils.join(urls_new, Constant2.SHAREDPICDIVISION);
+
+            roots = StringUtils.join(urls_new, Constant2.SHAREDPICDIVISION);
         }
-        if(!ValueWidget.isNullOrEmpty(roots)){
-        	props.setProperty(prop_key, roots);
-        }
+        return roots;
     }
     /***
      * 关闭窗口之前执行的操作<br>
