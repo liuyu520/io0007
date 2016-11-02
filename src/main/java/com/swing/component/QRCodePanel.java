@@ -275,7 +275,8 @@ public class QRCodePanel extends GenericPanel {
 		panel.add(inputScroll, gbc_inputQRTextArea);
 
 		qrComboBox = new JComboBox<String>();
-		GridBagConstraints gbc_qrComboBox = new GridBagConstraints();
+        ComponentUtil.fillComboBox(qrComboBox, getQrCodeInfoBean().getList());
+        GridBagConstraints gbc_qrComboBox = new GridBagConstraints();
 		gbc_qrComboBox.gridwidth = 3;
 		gbc_qrComboBox.insets = new Insets(0, 0, 5, 0);
 		gbc_qrComboBox.fill = GridBagConstraints.HORIZONTAL;
@@ -654,9 +655,9 @@ public class QRCodePanel extends GenericPanel {
 
 	/***
 	 * 二维码输入格式：png，jpg
-	 * 
-	 * @param charset
-	 */
+	 *
+     * @param picFormat
+     */
 	public void updateStatusFormat(String picFormat) {
 		this.picFormat = picFormat;
 		statusLabel.setText(String.format(statusInfo, charset, picFormat));
@@ -810,11 +811,13 @@ public class QRCodePanel extends GenericPanel {
 	private void generateQRAction(boolean isRefreshCombox){
 		String qrInput = inputQRTextArea.getText();
 		generateQR(qrInput);
-//		if(isRefreshCombox){
 			this.frame.setCombox(PROP_KEY_QR_CODE_COMBOBOX, inputQRTextArea, qrComboBox,isRefreshCombox);
         getQrCodeInfoBean().setInput(qrInput);
-//		}
-	}
+        String list = GenericFrame.getComboBoxlist(qrComboBox, false, qrInput, getQrCodeInfoBean().getList());
+        if (!ValueWidget.isNullOrEmpty(list)) {
+            getQrCodeInfoBean().setList(list);
+        }
+    }
 	/***
 	 * 放大二维码
 	 */
