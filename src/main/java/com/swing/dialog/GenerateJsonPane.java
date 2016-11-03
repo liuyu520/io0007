@@ -14,6 +14,7 @@ import com.swing.table.MyButtonEditor;
 import com.swing.table.MyButtonRender;
 import com.swing.table.MyTextFieldEditor;
 import com.swing.table.TableUtil3;
+import org.codehaus.jackson.JsonParseException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -291,9 +292,15 @@ public class GenerateJsonPane extends GenericDialog {
             text = text.trim();
             if(text.startsWith("{")&&text.endsWith("}")){
 				System.out.println("是json");
-				Map map=(Map) HWJacksonUtils.deSerialize(text, Map.class);
-                TableUtil3.setTableData3(parameterTable_1, map, false, true, columnNames, (Map<String, ActionCallback>) null);
-                rendTable();
+                Map map;
+                try {
+                    map = (Map) HWJacksonUtils.deSerialize(text, Map.class);
+                    TableUtil3.setTableData3(parameterTable_1, map, false, true, columnNames, (Map<String, ActionCallback>) null);
+                    rendTable();
+                } catch (JsonParseException e) {
+                    e.printStackTrace();
+                }
+                
 			}
 		}
 	}

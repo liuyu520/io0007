@@ -11,6 +11,7 @@
  import com.swing.component.MyNamePanel;
  import com.swing.component.TextCompUtil2;
  import com.swing.dialog.toast.ToastMessage;
+ import org.codehaus.jackson.JsonParseException;
 
  import javax.swing.*;
  import javax.swing.event.MouseInputAdapter;
@@ -548,15 +549,20 @@
             isSelectContent = false;
             selectContent = area2.getText();
         }
-        Map map = (Map) HWJacksonUtils.deSerialize(selectContent, Map.class);
-        String jsonResult = WebServletUtil.getRequestBodyFromMap(map);
-        if (!ValueWidget.isNullOrEmpty(jsonResult)) {
-            if (isSelectContent) {
-                WindowUtil.setSysClipboardText(jsonResult);
-                ToastMessage.toast("复制query String到剪切板", 2000);
-            } else {
-                area2.setText(jsonResult);
+        Map map;
+        try {
+            map = (Map) HWJacksonUtils.deSerialize(selectContent, Map.class);
+            String jsonResult = WebServletUtil.getRequestBodyFromMap(map);
+            if (!ValueWidget.isNullOrEmpty(jsonResult)) {
+                if (isSelectContent) {
+                    WindowUtil.setSysClipboardText(jsonResult);
+                    ToastMessage.toast("复制query String到剪切板", 2000);
+                } else {
+                    area2.setText(jsonResult);
+                }
             }
+        } catch (JsonParseException e) {
+            e.printStackTrace();
         }
     }
 

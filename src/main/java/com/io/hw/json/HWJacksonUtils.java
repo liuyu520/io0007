@@ -3,6 +3,7 @@ package com.io.hw.json;
 import com.string.widget.util.ValueWidget;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
@@ -113,7 +114,7 @@ public class HWJacksonUtils {
 	 * @param clazz
 	 * @return
 	 */
-	public static Object deSerialize(String jsonInput,Class clazz){
+    public static Object deSerialize(String jsonInput, Class clazz) throws org.codehaus.jackson.JsonParseException {
         if (ValueWidget.isNullOrEmpty(jsonInput)) {
             return null;
         }
@@ -124,9 +125,14 @@ public class HWJacksonUtils {
 //			mapper.setDeserializationConfig(deserializationConfig)
 			obj = mapper.readValue(jsonInput, clazz);
 			return obj;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        } catch (org.codehaus.jackson.JsonParseException e) {
+            e.printStackTrace();
+            throw e;
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 		return obj;
 	}
 	
@@ -150,6 +156,11 @@ public class HWJacksonUtils {
 	}
 	
 	public static Object unSerialize(String jsonInput,Class clazz){
-		return deSerialize(jsonInput, clazz);
-	}
+        try {
+            return deSerialize(jsonInput, clazz);
+        } catch (JsonParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
