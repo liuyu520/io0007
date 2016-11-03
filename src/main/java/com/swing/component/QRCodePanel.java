@@ -208,7 +208,9 @@ public class QRCodePanel extends GenericPanel {
 		panel.setLayout(gbl_panel);
 
 		inputQRTextArea = new AssistPopupTextArea();
-        inputQRTextArea.setText(qrCodeInfoBean.getInput());
+        if (null != qrCodeInfoBean) {
+            inputQRTextArea.setText(qrCodeInfoBean.getInput());
+        }
         inputQRTextArea.setWrapStyleWord(true);
 		inputQRTextArea.setLineWrap(true);
 
@@ -275,7 +277,9 @@ public class QRCodePanel extends GenericPanel {
 		panel.add(inputScroll, gbc_inputQRTextArea);
 
 		qrComboBox = new JComboBox<String>();
-        ComponentUtil.fillComboBox(qrComboBox, getQrCodeInfoBean().getList());
+        if (null != getQrCodeInfoBean()) {
+            ComponentUtil.fillComboBox(qrComboBox, getQrCodeInfoBean().getList());
+        }
         GridBagConstraints gbc_qrComboBox = new GridBagConstraints();
 		gbc_qrComboBox.gridwidth = 3;
 		gbc_qrComboBox.insets = new Insets(0, 0, 5, 0);
@@ -812,10 +816,12 @@ public class QRCodePanel extends GenericPanel {
 		String qrInput = inputQRTextArea.getText();
 		generateQR(qrInput);
 			this.frame.setCombox(PROP_KEY_QR_CODE_COMBOBOX, inputQRTextArea, qrComboBox,isRefreshCombox);
-        getQrCodeInfoBean().setInput(qrInput);
-        String list = GenericFrame.getComboBoxlist(qrComboBox, false, qrInput, getQrCodeInfoBean().getList());
-        if (!ValueWidget.isNullOrEmpty(list)) {
-            getQrCodeInfoBean().setList(list);
+        if (null != getQrCodeInfoBean()) {
+            getQrCodeInfoBean().setInput(qrInput);
+            String list = GenericFrame.getComboBoxlist(qrComboBox, false, qrInput, getQrCodeInfoBean().getList());
+            if (!ValueWidget.isNullOrEmpty(list)) {
+                getQrCodeInfoBean().setList(list);
+            }
         }
     }
 	/***
