@@ -670,7 +670,22 @@ public final class ComponentUtil {
 			comb.addItem(urls[i]);
 		}
 	}
-	/***
+
+    /***
+     *
+     * @param comb : JComboBox<ComboBoxItemBean>
+     * @param urls
+     */
+    public static void fillComboBox(JComboBox<Object> comb, Object urls[]) {
+        if (comb == null || ValueWidget.isNullOrEmpty(urls)) {
+            return;
+        }
+        for (int i = 0; i < urls.length; i++) {
+            comb.addItem(urls[i]);
+        }
+    }
+
+    /***
 	 * 
 	 * @param comb : 下拉框
 	 * @param picUrls : 以;;分割的字符串

@@ -1,15 +1,17 @@
 package com.common.bean;
 
 import com.string.widget.util.ValueWidget;
+import org.apache.commons.collections.map.ListOrderedMap;
 
-import java.util.Map;
+import java.io.Serializable;
 
 /**
  * Created by 黄威 on 16/10/2016.<br >
  */
-public class RequestParameterTemplate {
+public class RequestParameterTemplate implements Serializable {
+    private static final long serialVersionUID = 8400239923270285633L;
     private String displayName;
-    private Map<String, String> parameters;
+    private ListOrderedMap parameters;
 
     public String getDisplayName() {
         return displayName;
@@ -19,11 +21,11 @@ public class RequestParameterTemplate {
         this.displayName = displayName;
     }
 
-    public Map<String, String> getParameters() {
+    public ListOrderedMap getParameters() {
         return parameters;
     }
 
-    public void setParameters(Map<String, String> parameters) {
+    public void setParameters(ListOrderedMap parameters) {
         this.parameters = parameters;
     }
 
@@ -31,7 +33,13 @@ public class RequestParameterTemplate {
         if (ValueWidget.isNullOrEmpty(this.parameters)) {
             return null;
         } else {
-            return this.parameters.get(key);
+            return (String) this.parameters.get(key);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RequestParameterTemplate [" + displayName + ": parameters=" + parameters + "]";
+    }
+    
 }
