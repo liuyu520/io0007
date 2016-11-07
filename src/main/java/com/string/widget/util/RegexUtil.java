@@ -152,7 +152,13 @@ public class RegexUtil {
 	 * @return
 	 */
 	public static boolean contain2(String input, String regex) {
-		if (ValueWidget.isNullOrEmpty(input)) {
+        /***
+         * input:(1)bss登录(2) <br>
+         regex:bss登录(2)
+         */
+        regex = regex.replace("(", "\\(");
+        regex = regex.replace(")", "\\)");
+        if (ValueWidget.isNullOrEmpty(input)) {
 			return false;
 		}
 		Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);

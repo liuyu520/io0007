@@ -674,7 +674,14 @@
     }
 
 
-    public static Set<Integer> searchAction(String keyWord, JTabbedPane tabbedPane_2) {
+    /***
+     *
+     * @param keyWord
+     * @param tabbedPane_2
+     * @param includeActionName : 是否比较ActionName,即接口访问路径
+     * @return
+     */
+    public static Set<Integer> searchAction(String keyWord, JTabbedPane tabbedPane_2, boolean includeActionName) {
         int size = tabbedPane_2.getTabCount();
         if (size == 0) {
             return null;
@@ -693,7 +700,7 @@
                 }
             }
         }
-        if (ValueWidget.isNullOrEmpty(searchResult)) {
+        if (includeActionName && searchResult.size() == 0) {
             //通过接口名称搜索
             for (int i = 0; i < size; i++) {
                 Component comp = tabbedPane_2.getComponentAt(i);
@@ -712,7 +719,8 @@
      * 搜索成功的提示
      * @param tc
      */
-    public static void setBackgroundWhenSearch(final JTextComponent tc, final Color tfDefaultColor) {
+    public static void setBackgroundWhenSearch(final JTextComponent tc/*, final Color tfDefaultColor*/) {
+        final Color tfDefaultColor = tc.getBackground();
         tc.setBackground(CustomColor.green_little);
         java.util.Timer timer = new java.util.Timer();
         timer.schedule(new java.util.TimerTask() {
