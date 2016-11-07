@@ -269,7 +269,7 @@ public class UnicodePanel extends MyNamePanel {
         } else {
             result = callback.callback(inputTextArea.getText2(), encoding);
         }
-        tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), encoding.toString());
+        tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), null == encoding ? SystemHWUtil.EMPTY : encoding.toString());
         callback.callback(inputTextArea.getText2(), encoding);
         if (!ValueWidget.isNullOrEmpty(result)) {
             resultTextArea.setText(result);

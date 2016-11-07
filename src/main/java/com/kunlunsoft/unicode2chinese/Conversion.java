@@ -39,8 +39,8 @@ public class Conversion {
         }
         if (IsChineseUtil.isHasChinses2(str))//判断是否有中文字符
 			return str;
-		if (str.indexOf("\\u") == -1 || str == null || "".equals(str.trim())) {/*若不是unicode，则直接返回*/
-			return str.replaceAll("\\\\ ", " ");//删掉英文中的\,such as "default\ value1"
+        if (str.indexOf("\\u") == -1 || "".equals(str.trim())) {/*若不是unicode，则直接返回*/
+            return str.replaceAll("\\\\ ", " ");//删掉英文中的\,such as "default\ value1"
 			/* 主要是针对 zk 中的国际化问题 */
 		}
 		StringBuffer sb = new StringBuffer();

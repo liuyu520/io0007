@@ -698,8 +698,9 @@ public final class ComponentUtil {
 	}
 	public static JComboBox<String> comboBoxSelectedHandle(JComboBox<String> comboBox,final JTextField ipTextField){
 		if(ValueWidget.isNullOrEmpty(comboBox)){
-			comboBox = new JComboBox<String>();
-		}
+            System.out.println("JComboBox is null");
+            comboBox = new JComboBox<String>();
+        }
 		comboBox.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {

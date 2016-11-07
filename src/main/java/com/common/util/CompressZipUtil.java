@@ -670,10 +670,10 @@ public final class CompressZipUtil {
 				}
 			}
 		}
-		if(null!=zipIn){
-			zipIn.close();
-		}
-		return null;
+//		if(null!=zipIn){
+        zipIn.close();
+//		}
+        return null;
 	}
 
 	/***

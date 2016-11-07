@@ -286,7 +286,7 @@ public class XmlYunmaUtil {
                         System.out.println("value");
                     }
                     loop = true;
-                    if (null != element33.getParent()) {
+                    if (null != element33 && null != element33.getParent()) {
                         element33.getParent().addChildToMap(element33);
                     }
                     break;//到了兄弟节点,说明本节点已经扫描结束了.
@@ -592,7 +592,7 @@ public class XmlYunmaUtil {
         System.out.println(string);
     }
 
-    @org.junit.Test
+    //    @org.junit.Test
     public void test_getPomDependency() {
         String xml = "<dependency>" +
                 "            <groupId>log4j</groupId>" +
