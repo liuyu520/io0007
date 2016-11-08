@@ -767,18 +767,17 @@ public class TextCompUtil2 {
 			}else
 			if (command.equals(MenuUtil2.ACTION_CREATE_MD5)) {//获取MD5值
 				String text = ta.getText();
-				try {
-					ta.setText(SystemHWUtil.getMD5(text, SystemHWUtil.CHARSET_UTF));
-				} catch (NoSuchAlgorithmException e1) {
-					e1.printStackTrace();
-				} catch (UnsupportedEncodingException e1) {
-					e1.printStackTrace();
-				}
-			}else if (command.equals(MenuUtil2.ACTION_STR_BROWSER)) {//弹出文件选择窗口
-				boolean isSuccess = DialogUtil.browserFile(ta, JFileChooser.FILES_ONLY, ta);
+                createMD5(text, ta);
+            } else if (command.equals(MenuUtil2.ACTION_STR_BROWSER)) {//弹出文件选择窗口
+                boolean isSuccess = DialogUtil.browserFile(ta, JFileChooser.FILES_ONLY, ta);
 			} else if (command.equalsIgnoreCase(MenuUtil2.ACTION_MD5_DECODE)) {
 				String text = ta.getText();
-				String source;
+                if (!ValueWidget.isNullOrEmpty(text) && text.length() < 16) {
+                    //如果文本框中内容不为空,并且字符个数小于16,则计算其MD5,这是为了防止用户的误操作
+                    createMD5(text, ta);
+                    return;
+                }
+                String source;
 				source = SystemHWUtil.md5Map.get(text);
 				if (ValueWidget.isNullOrEmpty(source)) {
 					ToastMessage.toast("暂无md5对应的原文", 3000, Color.red);
@@ -814,5 +813,15 @@ public class TextCompUtil2 {
             }
         }
 
-	}
+        public static void createMD5(String text, JTextComponent ta) {
+            try {
+                ta.setText(SystemHWUtil.getMD5(text, SystemHWUtil.CHARSET_UTF));
+            } catch (NoSuchAlgorithmException e1) {
+                e1.printStackTrace();
+            } catch (UnsupportedEncodingException e1) {
+                e1.printStackTrace();
+            }
+        }
+
+    }
 }
