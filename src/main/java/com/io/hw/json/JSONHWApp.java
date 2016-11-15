@@ -128,14 +128,14 @@ public class JSONHWApp extends GenericFrame {
 		JPanel centInputPane = new JPanel();
 		centInputPane.setLayout(new GridLayout(1, 2));
 		this.inputTA = new UndoTextArea();
-		MenuUtil2.setPopupMenu(this.inputTA);
-		this.inputTA.setLineWrap(true);
+        MenuUtil2.setPopupMenu(this.inputTA, null/*Map<String, ActionCallback> actionCallbackMap */);
+        this.inputTA.setLineWrap(true);
 		this.inputTA.setWrapStyleWord(true);
 		this.inputTA.setEditable(false);
 
 		this.outputTA = new UndoTextArea();
-		MenuUtil2.setPopupMenu(this.outputTA);
-		this.outputTA.setEditable(false);
+        MenuUtil2.setPopupMenu(this.outputTA, null/*Map<String, ActionCallback> actionCallbackMap */);
+        this.outputTA.setEditable(false);
 		this.outputTA.setLineWrap(true);
 		this.outputTA.setWrapStyleWord(true);
 

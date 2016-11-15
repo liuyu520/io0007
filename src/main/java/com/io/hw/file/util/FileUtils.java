@@ -1126,15 +1126,19 @@ public final class FileUtils {
 	 * first clear up this file ,and then write to it.
 	 * <br>无法指定编码,默认按照系统编码(windows 是GBK,linux 是UTF-8)
 	 * <br>将关闭输出流
-	 * @param fileName
-	 * @param fileContent
+     * @param file
+     * @param fileContent
 	 * @param willCreateIfNotExist : 若文件不存在是否创建
 	 */
 	public static void writeToFile(File file, String fileContent,
 			boolean willCreateIfNotExist) {
 		if ((!file.exists()) && willCreateIfNotExist) {
 			try {
-				file.createNewFile();
+                File parentFile = file.getParentFile();
+                if (!parentFile.exists()) {
+                    parentFile.mkdirs();
+                }
+                file.createNewFile();
 				if(isDetail){
 					System.out.println("FileUtils.writeToFile create new file:"+file.getAbsolutePath());
 				}
