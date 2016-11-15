@@ -146,7 +146,7 @@ public class ResponseResult {
             }
             String resultJson = new String(resultJsonBytes,
                     SystemHWUtil.CHARSET_GBK);
-            System.out.println("resultJson(GBK):" + resultJson);
+//            System.out.println("resultJson(GBK):" + resultJson);
             this.responseJsonResult = new String(resultJsonBytes,
                     SystemHWUtil.CHARSET_UTF);
             responseJsonMap = JSONHWUtil.getMap(this.responseJsonResult);

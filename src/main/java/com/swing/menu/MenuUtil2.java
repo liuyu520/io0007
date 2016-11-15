@@ -1,5 +1,6 @@
  package com.swing.menu;
 
+ import com.common.dict.Constant2;
  import com.common.util.SystemHWUtil;
  import com.common.util.WebServletUtil;
  import com.common.util.WindowUtil;
@@ -8,6 +9,7 @@
  import com.io.hw.json.JSONHWUtil;
  import com.string.widget.util.RegexUtil;
  import com.string.widget.util.ValueWidget;
+ import com.swing.callback.ActionCallback;
  import com.swing.component.MyNamePanel;
  import com.swing.component.TextCompUtil2;
  import com.swing.dialog.toast.ToastMessage;
@@ -169,9 +171,10 @@
     {
         throw new Error("Don't let anyone instantiate this class.");
     }
-    public static JPopupMenu setPopupMenu(final JTextComponent field2)
+
+    public static JPopupMenu setPopupMenu(final JTextComponent field2, Map<String, ActionCallback> actionCallbackMap)
     {
-    	return setPopupMenu(field2, null);
+        return setPopupMenu(field2, null, actionCallbackMap);
     }
     public static JPopupMenu addPopupMenuItem(final JTextComponent field2,JPopupMenu textMenu){
     	JMenuItem copyM = new JMenuItem(MenuUtil2.ACTION_STR_COPY);
@@ -338,7 +341,7 @@
      * 
      * @param field2
      */
-    public static JPopupMenu setPopupMenu(final JTextComponent field2,JPopupMenu textMenu1)
+    public static JPopupMenu setPopupMenu(final JTextComponent field2, JPopupMenu textMenu1, final Map<String, ActionCallback> actionCallbackMap)
     {
     	final JPopupMenu textMenu;
     	if(ValueWidget.isNullOrEmpty(textMenu1)){
@@ -401,7 +404,13 @@
                 		field2.setText(text);
                 		field2.setForeground(TextCompUtil2.DEFAULT_TF_FOREGROUND);//防止placeholder
                 		field2.requestFocus();
-                	}
+                        if (null != actionCallbackMap) {
+                            ActionCallback callback22 = actionCallbackMap.get(Constant2.EVENT_MIDDLE_MOUSE);
+                            if (null != callback22) {
+                                callback22.actionPerformed(null, field2);
+                            }
+                        }
+                    }
                 }
             }
 

@@ -44,22 +44,22 @@ public class AssistPopupTextArea extends PlaceHolderTextArea implements IRightMe
 	@Override
 	protected void initlize() {
 		super.initlize();
-        custom2();
+        custom2(null);
     }
 
     @Override
     protected void initlize(Map<String, ActionCallback> actionCallbackMap) {
         super.initlize(actionCallbackMap);
-        custom2();
+        custom2(actionCallbackMap);
     }
 
-    private void custom2() {
+    private void custom2(Map<String, ActionCallback> actionCallbackMap) {
         if (!hasCustom) {
             hasCustom = true;
             textPopupMenu = new JPopupMenu();
             MenuUtil2.addPopupMenuItem(this, textPopupMenu);
             override4Extend(textPopupMenu);
-            textPopupMenu = MenuUtil2.setPopupMenu(this, textPopupMenu);
+            textPopupMenu = MenuUtil2.setPopupMenu(this, textPopupMenu, actionCallbackMap);
             //added by huangweii @2015-09-30
             setLineWrap(true);//设置文本域自动换行
             setWrapStyleWord(true);

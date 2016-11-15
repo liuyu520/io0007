@@ -274,7 +274,7 @@ public class TextCompUtil2 {
                 if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
                     ActionCallback actionCallback = actionCallbackMap1.get("Command_enter");
                     if (null != actionCallback) {
-                        actionCallback.actionPerformed(evt);
+                        actionCallback.actionPerformed(evt, tf);
                     }
                 }
 
@@ -295,7 +295,7 @@ public class TextCompUtil2 {
                 if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
                     ActionCallback actionCallback = actionCallbackMap1.get("Ctrl_enter");
                     if (null != actionCallback) {
-                        actionCallback.actionPerformed(evt);
+                        actionCallback.actionPerformed(evt, tf);
                     }
                 }
             }
@@ -316,7 +316,7 @@ public class TextCompUtil2 {
                 if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
                     ActionCallback actionCallback = actionCallbackMap1.get("alt_enter");
                     if (null != actionCallback) {
-                        actionCallback.actionPerformed(evt);
+                        actionCallback.actionPerformed(evt, tf);
                     }
                 }
             }

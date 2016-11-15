@@ -1,8 +1,8 @@
 package com.swing.component;
 
-import javax.swing.JPopupMenu;
-
 import com.swing.menu.MenuUtil2;
+
+import javax.swing.*;
 
 /***
  * 增加了右键菜单功能
@@ -18,8 +18,8 @@ public class AssistPopupTextPane extends UndoTextPane {
 		textPopupMenu=new JPopupMenu();
 		MenuUtil2.addPopupMenuItem(this, textPopupMenu);
 		override4Extend(textPopupMenu);
-		MenuUtil2.setPopupMenu(this,textPopupMenu);
-	}
+        MenuUtil2.setPopupMenu(this, textPopupMenu, null);
+    }
 	/***
 	 * 用于子类覆写
 	 * @param textPopupMenu

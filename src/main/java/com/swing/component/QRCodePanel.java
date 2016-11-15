@@ -2,6 +2,7 @@ package com.swing.component;
 
 import com.common.MyTask;
 import com.common.bean.QRCodeInfoBean;
+import com.common.dict.Constant2;
 import com.common.util.QRCodeUtil;
 import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
@@ -9,6 +10,7 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.ActionCallback;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericFrame;
 import com.swing.dialog.GenericPanel;
@@ -31,6 +33,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 
 public class QRCodePanel extends GenericPanel {
@@ -45,8 +49,8 @@ public class QRCodePanel extends GenericPanel {
 	 * 生成二维码输入框下面的下拉框
 	 */
 	public static final String PROP_KEY_QR_CODE_COMBOBOX="qr_code_combobox";
-	private static final long serialVersionUID = 1101647354004006850L;
-	private JPanel contentPane;
+    private static final long serialVersionUID = 1101647354004006850L;
+    private JPanel contentPane;
 	private Timer timer = new Timer();
 	private MyTask task = null;
 	private boolean isLocked = false;
@@ -207,7 +211,15 @@ public class QRCodePanel extends GenericPanel {
 				Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
 
-		inputQRTextArea = new AssistPopupTextArea();
+        Map<String, ActionCallback> actionCallbackMap = new HashMap<String, ActionCallback>();
+        actionCallbackMap.put(Constant2.EVENT_MIDDLE_MOUSE, new ActionCallback() {
+            @Override
+            public void actionPerformed(ActionEvent evt, JComponent component) {
+                JTextArea textArea = (JTextArea) component;
+                generateQR(textArea.getText());
+            }
+        });
+        inputQRTextArea = new AssistPopupTextArea(actionCallbackMap);
         if (null != qrCodeInfoBean) {
             inputQRTextArea.setText(qrCodeInfoBean.getInput());
         }
@@ -231,8 +243,12 @@ public class QRCodePanel extends GenericPanel {
 			@Override
 			public void focusGained(FocusEvent e) {
 				if(ValueWidget.isNullOrEmpty(inputQRTextArea.getText())){
-					inputQRTextArea.setText(WindowUtil.getSysClipboardText());
-				}
+                    String sysClipboardText = WindowUtil.getSysClipboardText();
+                    //如果剪切板中的内容过长,则不自动填充
+                    if (!ValueWidget.isNullOrEmpty(sysClipboardText) && sysClipboardText.length() < 30) {
+                        inputQRTextArea.setText(sysClipboardText);
+                    }
+                }
 			}
 		});
 		inputQRTextArea.addKeyListener(new KeyListener() {
