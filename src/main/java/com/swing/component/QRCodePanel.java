@@ -1,8 +1,8 @@
 package com.swing.component;
 
-import com.common.MyTask;
 import com.common.bean.QRCodeInfoBean;
 import com.common.dict.Constant2;
+import com.common.task.TextBoxTask;
 import com.common.util.QRCodeUtil;
 import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
@@ -52,8 +52,8 @@ public class QRCodePanel extends GenericPanel {
     private static final long serialVersionUID = 1101647354004006850L;
     private JPanel contentPane;
 	private Timer timer = new Timer();
-	private MyTask task = null;
-	private boolean isLocked = false;
+    private TextBoxTask task = null;
+    private boolean isLocked = false;
 	/***
 	 * 二维码的输入
 	 */
@@ -117,7 +117,9 @@ public class QRCodePanel extends GenericPanel {
 		}
 	};
     private QRCodeInfoBean qrCodeInfoBean;
-
+    //    protected Timer timer = new Timer();
+//    protected MyTask task = null;
+    public static final int INPUT_WAIT_SECOND = 2;
     /**
 	 * Launch the application.
 	 */
@@ -261,8 +263,8 @@ public class QRCodePanel extends GenericPanel {
 		    }
 		    @Override
 		    public void keyPressed(KeyEvent e) {
-		        if (EventHWUtil.isJustShiftDown(e)) {
-		            if (lastTimeMillSencond == 0) {
+                if (EventHWUtil.isJustShiftDown(e)) {//双击Shift
+                    if (lastTimeMillSencond == 0) {
 		                lastTimeMillSencond = System.currentTimeMillis();
 		            } else {
 		                long currentTime = System.currentTimeMillis();
@@ -273,8 +275,23 @@ public class QRCodePanel extends GenericPanel {
 		                    lastTimeMillSencond = System.currentTimeMillis();
 		                }
 		            }
-		        }
-		    }
+                } else {//输入完成之后生成二维码
+                    if (timer == null) {
+                        timer = new Timer();
+                    }
+                    if (null != task) {
+//                        System.out.println(222);
+                        task.cancel();
+                        task = null;
+                    }
+
+                    if (task == null) {
+//                        System.out.println(111);
+                        task = new TextBoxTask(QRCodePanel.this);
+                        timer.schedule(task, INPUT_WAIT_SECOND * 1000);
+                    }
+                }
+            }
 		});
 		// 增加滚动条
 		JScrollPane inputScroll = new JScrollPane(inputQRTextArea);
@@ -772,13 +789,7 @@ public class QRCodePanel extends GenericPanel {
 		this.timer = timer;
 	}
 
-	public MyTask getTask() {
-		return task;
-	}
 
-	public void setTask(MyTask task) {
-		this.task = task;
-	}
 
 	public boolean isLocked() {
 		return isLocked;
@@ -828,8 +839,8 @@ public class QRCodePanel extends GenericPanel {
 	/***
 	 * 生成二维码
 	 */
-	private void generateQRAction(boolean isRefreshCombox){
-		String qrInput = inputQRTextArea.getText();
+    public void generateQRAction(boolean isRefreshCombox) {
+        String qrInput = inputQRTextArea.getText();
 		generateQR(qrInput);
 			this.frame.setCombox(PROP_KEY_QR_CODE_COMBOBOX, inputQRTextArea, qrComboBox,isRefreshCombox);
         if (null != getQrCodeInfoBean()) {
