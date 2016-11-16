@@ -203,7 +203,25 @@ public class HttpSocketUtil {
 		System.out.println(content);
 	}
 
-	/***
+    /***
+     * 上传文件
+     * @param urlStr : 上传地址<br >例如:http://blog.yhskyc.com/convention2/ajax_image/upload
+     * @param ins
+     * @param headers
+     * @param formFieldName : 例如image223
+     * @param fileName : 例如:2014-06-05_18-01-45.jpg
+     * @return
+     * @throws Exception
+     */
+    public static String uploadFile(String urlStr, InputStream ins,
+                                    Map<String, String> headers, String formFieldName, String fileName)
+            throws Exception {
+        String result = HttpSocketUtil.uploadFile(urlStr, false/*ssl*/,
+                ins, "form-data; name=\"" + formFieldName + "\"; filename=\"" + fileName + "\"", null/*cookie*/, headers, -1/*connectTimeout*/, -1/*readTimeout*/);
+        return result;
+    }
+
+    /***
 	 * 上传文件
 	 * 
 	 * @param urlStr
