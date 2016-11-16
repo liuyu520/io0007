@@ -204,6 +204,18 @@ public class HttpSocketUtil {
 	}
 
     /***
+     * formFieldName 为"image223"
+     * @param urlStr
+     * @param ins
+     * @param fileName
+     * @return
+     * @throws Exception
+     */
+    public static String uploadFile(String urlStr, InputStream ins, String fileName)
+            throws Exception {
+        return uploadFile(urlStr, ins, (Map<String, String>) null, "image223", fileName);
+    }
+    /***
      * 上传文件
      * @param urlStr : 上传地址<br >例如:http://blog.yhskyc.com/convention2/ajax_image/upload
      * @param ins
