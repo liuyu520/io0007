@@ -54,7 +54,9 @@ public class AssistPopupTextArea extends PlaceHolderTextArea implements IRightMe
     }
 
     private void custom2(Map<String, ActionCallback> actionCallbackMap) {
-        if (!hasCustom) {
+        if (hasCustom) {
+            return;
+        }
             hasCustom = true;
             textPopupMenu = new JPopupMenu();
             MenuUtil2.addPopupMenuItem(this, textPopupMenu);
@@ -64,7 +66,6 @@ public class AssistPopupTextArea extends PlaceHolderTextArea implements IRightMe
             setLineWrap(true);//设置文本域自动换行
             setWrapStyleWord(true);
         }
-    }
 
     public JPopupMenu getTextPopupMenu() {
         return textPopupMenu;

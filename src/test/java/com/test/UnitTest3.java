@@ -594,13 +594,7 @@ public class UnitTest3 {
         } catch (SecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -956,15 +950,9 @@ public class UnitTest3 {
                 , "60000746055"/*payeeName*/
                 , "EGFSDFG23DSTEWTW"/*key*/);
         String md5;
-        try {
-            System.out.println(signPlain);
-            md5 = SystemHWUtil.getMD5(signPlain, SystemHWUtil.CHARSET_UTF);
-            System.out.println(md5);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        System.out.println(signPlain);
+        md5 = SystemHWUtil.getMD5(signPlain, SystemHWUtil.CHARSET_UTF);
+        System.out.println(md5);
 
 
 		/*String orderDate="2015-08-14 00:00:00";
@@ -1031,15 +1019,9 @@ public class UnitTest3 {
                 , ""/*payeeName*/
                 , "EGFSDFG23DSTEWTW"/*key*/);
         String md5;
-        try {
-            System.out.println(signPlain);
-            md5 = SystemHWUtil.getMD5(signPlain, SystemHWUtil.CHARSET_UTF);
-            System.out.println(md5);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        System.out.println(signPlain);
+        md5 = SystemHWUtil.getMD5(signPlain, SystemHWUtil.CHARSET_UTF);
+        System.out.println(md5);
 
 
 		/*String orderDate="2015-08-14 00:00:00";
@@ -1136,10 +1118,6 @@ public class UnitTest3 {
         } catch (SecurityException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }

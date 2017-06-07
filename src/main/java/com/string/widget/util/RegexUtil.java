@@ -12,7 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexUtil {
-	/***
+    public static final String REGEX_DELETE_QUOT_brackets = "(:[\\s]*)\"([\\[\\{].*[\\]\\}])[\\s]*\"";
+
+    /***
 	 * 
 	 * @param aa
 	 * @param index
@@ -215,33 +217,92 @@ public class RegexUtil {
 	}
 
 	/***
-	 * 高级的split
-	 * 
-	 * @param source
-	 * @param regex
-	 * @return
-	 */
-	public static String[] splitRegex(String source, String regex) {
-		Pattern pattern = Pattern.compile(regex);
-		String[] dataArr = pattern.split(source);
-		return dataArr;
-	}
+     * startsWith,忽略大小写,兼容正则表达式<br>
+     *
+     * @param input
+     * @param regex
+     * @return
+     */
+    public static boolean startsWith(String input, String regex) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return false;
+        }
+        Pattern p = Pattern.compile("^" + regex + ".*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher m = p.matcher(input);
+        return m.matches();
+    }
+
+    public static boolean startsWith(String input, String regex1, String regex2) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return false;
+        }
+        return startsWith(input, regex1) || startsWith(input, regex2);
+    }
+
+    public static boolean startsWith(String input, String regex1, String regex2, String regex3) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return false;
+        }
+        return startsWith(input, regex1) || startsWith(input, regex2) || startsWith(input, regex3);
+    }
+
+    public static boolean startsWith(String input, String... regex1) {
+        if (regex1.length == 1) {
+            return startsWith(input, regex1[0]);
+        }
+        boolean inite = startsWith(input, regex1[0]);
+        for (int i = 1; i < regex1.length; i++) {
+            if (inite) {
+                return inite;
+            }
+            inite = inite || startsWith(input, regex1[i]);
+        }
+        return inite;
+    }
+
+    /***
+     * 高级的split
+     *
+     * @param source
+     * @param regex
+     * @return
+     */
+    public static String[] splitRegex(String source, String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        String[] dataArr = pattern.split(source);
+        return dataArr;
+    }
+
+    public static boolean equalsWildcard(String source, String regex) {
+        return equalsWildcard(source, regex, false);
+    }
+
+    public static boolean endsWithWildcard(String source, String regex) {
+        return equalsWildcard(source, regex, true);
+    }
 
 	/***
 	 * 
 	 * @param source
 	 * @param regex
 	 *            : 含有通配符,通配符只有一个:*.<br>
-	 *            *表示任何字符,不限个数
-	 * @return
+     *            *表示任何字符,不限个数<br />
+     *            不区分大小写
+     * @return
 	 */
-	public static boolean equalsWildcard(String source, String regex) {
-		regex = regex.replace(".", "\\.");
-		regex = regex.replace("*", "(.*)");// 加上小括号,方便查看
+    public static boolean equalsWildcard(String source, String regex, boolean isEndsWith) {
+        regex = regex.replace(SystemHWUtil.ENGLISH_PERIOD, "\\.");
+        regex = regex.replace("*", "(.*)");// 加上小括号,方便查看
 		// System.out.println(regex);
-		Pattern p = Pattern
-				.compile("^" + regex + "$", Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(source);
+        String regex2 = null;
+        if (isEndsWith) {
+            regex2 = regex + "$";
+        } else {
+            regex2 = "^" + regex + "$";
+        }
+        Pattern p = Pattern
+                .compile(regex2, Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(source);
 		return m.find();
 	}
 
@@ -304,10 +365,11 @@ public class RegexUtil {
 		Pattern p = Pattern.compile(regex,Pattern.MULTILINE);
 		Matcher m = p.matcher(input);
 		String result = m.replaceAll("$1");
-		if (isDeleteN) {
-			result = result.replace("[\\n]", SystemHWUtil.EMPTY);
+        if (!isDeleteN) {
+            return result;
+        }
+        result = result.replace("[\\n]", SystemHWUtil.EMPTY);
 			result = result.replace("[\\r]", SystemHWUtil.EMPTY);
-		}
 		// System.out.println(result);
 		return result;
 	}
@@ -336,15 +398,21 @@ public class RegexUtil {
 		String result = m.replaceAll(SystemHWUtil.EMPTY);
 		return result;
 	}
-	public static String deleteNotes(String input) {
-		if(ValueWidget.isNullOrEmpty(input)){
-			return null;
-		}
-		Pattern p = Pattern.compile("^[/]{2}",Pattern.MULTILINE);
-		Matcher m = p.matcher(input);
-		String result = m.replaceAll(SystemHWUtil.EMPTY);
-		return result;
-	}
+
+    /***
+     * 仅仅删除每行前面的//
+     * @param input
+     * @return
+     */
+    public static String deleteNotes(String input) {
+        if(ValueWidget.isNullOrEmpty(input)){
+            return null;
+        }
+        Pattern p = Pattern.compile("^[/]{2}",Pattern.MULTILINE);
+        Matcher m = p.matcher(input);
+        String result = m.replaceAll(SystemHWUtil.EMPTY);
+        return result;
+    }
 	public static String dealCiaResponseRequest(String input,  boolean isDeleteN) {
 		String result=dealCiaResponse(input, true);
 		result=dealCiaRequest(result,Constant2.REGEX_DELETE_FRONT_OF_CIA_REQUEST_STRICT , true);
@@ -389,40 +457,66 @@ public class RegexUtil {
 		input=input.replaceAll(cr+"+$","");
 		String chinese;
 //		String quote="\"";
-		String replacement=quote+" +$1"+quote+"$2";
-		String regex = null;
-		if (keepBlank) {//保持空格
-			regex = "([\\s]*[^\\s]+.*)";
-		} else {
+        String replacement = quote + (quote.equals("'") ? "" : " + SystemHWUtil.CRLF") + "/\\* \\\\r\\\\n\\ */ +$1" + quote + "$2";
+        String regex = null;
+        String regexMutip = null;//是否匹配多个换行
+        if (keepBlank) {//保持空格 <br />[^\n\r]表示不是换行
+            regex = "([^\n\r]*)";
+            regexMutip = "";
+        } else {
 			regex = "[\\s]*([^\\s]+.*)";
-		}
-		input=input.replace(quote, "\\"+quote);//原字符串转义
+            regexMutip = "+";
+        }
+        input = input.replace("\\", "\\\\");//对斜杠转义,必须在 replace(quote, "\\"+quote) 上面
+        input=input.replace(quote, "\\"+quote);//原字符串转义
         //简单点说,就是把[换行]替换为['(单引号)+(加号)'(单引号)]
         //所以最前面和最后面需要各补一个单引号
         if(cr.equals("\\r\\n")){
-            chinese = input.replaceAll("(\r\n)+" + regex, replacement);
+            chinese = input.replaceAll("(\r\n)" + regexMutip + regex, replacement);
         }else if(cr.equals("\\n")){
-            chinese = input.replaceAll("(\n)+" + regex, replacement);
+            chinese = input.replaceAll("(\n)" + regexMutip + regex, replacement);
         }else if(cr.equals("\\r")){
-            chinese = input.replaceAll("(\r)+" + regex, replacement);
+            chinese = input.replaceAll("(\r)" + regexMutip + regex, replacement);
         }else{
-            chinese = input.replaceAll("(\n\r)+" + regex, replacement);
+            chinese = input.replaceAll("(\n\r)" + regexMutip + regex, replacement);
         }
 		return quote+chinese+quote+";";
 	}
-	/***
+
+    public static String sed(String source, String regex, String replacement) {
+        return sed(source, regex, replacement, Pattern.MULTILINE);
+    }
+
+    /***
 	 * __showLog=True -->__showLog=false
 	 * @param source
 	 * @param regex : 正则表达式
 	 * @param replacement
 	 * @return
 	 */
-	public static String sed(String source,String regex,String replacement){
-		Pattern p=Pattern.compile(regex,Pattern.MULTILINE);
+    public static String sed(String source, String regex, String replacement, int flags) {
+        Pattern p = Pattern.compile(regex, flags);
         Matcher m=p.matcher(source);
         String result = m.replaceAll(replacement);
 		return result;
 	}
+
+    /***
+     *  regex 中必须包含小括号 <br />
+     *   RegexUtil.sed(requestHeaderAndServletPath, "(Cookie:[^:]+)")
+     * @param source
+     * @param regex
+     * @return
+     */
+    public static String sed(String source, String regex) {
+        Pattern p = Pattern.compile(regex, Pattern.MULTILINE);
+        Matcher m = p.matcher(source);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return null;
+    }
+
 	/***
 	 * 
 	 * @param source
@@ -555,5 +649,86 @@ public class RegexUtil {
         Matcher emojiMatcher = emoji.matcher(str);
         str = emojiMatcher.replaceAll(SystemHWUtil.EMPTY);
         return str;
+    }
+
+    /***
+     * 删除重复的行(必须是相连的)
+     * @param input
+     * @return
+     */
+    public static String deleteDuplicateRow(String input) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return input;
+        }
+        String[] rows = input.split(SystemHWUtil.CRLF);
+        List<String> stringlist = new ArrayList<String>();
+        for (int i = 0; i < rows.length; i++) {
+            stringlist.add(rows[i]);
+        }
+        // 搜索结果是经过排序的，根据此规律删除不合要求File
+        for (int i = 0; i < stringlist.size() - 1; i++) {
+            if (/*stringlist.get(i).length()>1&& */stringlist.get(i).equals(stringlist.get(i + 1))) {
+                stringlist.remove(i);
+                if (i != 0) i--;
+            }
+        }
+        return SystemHWUtil.formatArr(stringlist, SystemHWUtil.CRLF);
+    }
+
+    /***
+     * 删除json格式中多余的逗号<br />
+     * 例如:"amount": {
+     "period": 12,
+     "ud1": 300,
+     "storage": 0,
+     "user": 300,
+     "freeStorage": 0,
+     }
+     * @param input
+     * @return
+     */
+    public static String deleteJsonExtraComma(String input) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return input;
+        }
+        System.out.println(input);
+        input = input.replaceAll(",([\\s]*[\\]}])", "$1");
+        return input;
+    }
+
+    /***
+     * 删除中括号两边的引号
+     * @param content
+     * @return
+     */
+    public static StringBuffer deleteQuoteBracketsBetter(String content) {
+        Pattern p = Pattern.compile(REGEX_DELETE_QUOT_brackets);
+        Matcher m = p.matcher(content);
+        StringBuffer sb = new StringBuffer();
+        boolean result = m.find();
+        while (result) {
+            String group1 = m.group(1);
+            String group2 = m.group(2);
+            String findResult = group2/*.replace("\\\\", "\\")*/.replace("\\\"", "\"");
+            m.appendReplacement(sb, group1 + findResult);
+            result = m.find();
+        }
+        m.appendTail(sb);
+        return sb;
+    }
+
+    /***
+     * 获取复杂字符串中的数字
+     * @param input
+     * @return
+     */
+    public static String getDigit(String input) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return null;
+        }
+        Pattern p = Pattern.compile(".*Content-Length: ([\\d]+)[^\\d]+.*", Pattern.DOTALL);
+        Matcher m = p.matcher(input);
+        String result = m.replaceAll("$1");
+        return result;
     }
 }

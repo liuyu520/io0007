@@ -1,5 +1,8 @@
 package com.io.hw.json;
 
+import com.common.util.SystemHWUtil;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 public class JsonTool {
@@ -30,8 +33,13 @@ public class JsonTool {
 
 		for (int i = 0; i < tokenList.size(); i++) {
 			String token = tokenList.get(i);
-			int length = token.getBytes().length;
-			if (length > fixedLenth && i < tokenList.size() - 1
+            int length = 0;
+            try {
+                length = token.getBytes(SystemHWUtil.CHARSET_UTF).length;
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            if (length > fixedLenth && i < tokenList.size() - 1
 					&& tokenList.get(i + 1).equals(":")) {
 				fixedLenth = length;
 			}
@@ -151,9 +159,9 @@ public class JsonTool {
 		}
 	}
 
-	public static void main(String[] args) {
-		String input = "{\"header\":{\"Locale\":\"zh_CN\"},\"resultList\":[{\"error\":null,\"id\":\"\",\"method\":\"\",\"result\":{\"clientStartUpAns\":{\"isAvailable\":\"NO\",\"latestVersion\":{\"clientVersion\":\"11\",\"downloadUrl\":\"/ctDownload.action?channelTerminalId=2309\",\"isForce\":null,\"versionDescription\":null},\"token\":null}},\"status\":\"01\"}]}";
+	/*public static void main(String[] args) {
+        String input = "{\"header\":{\"Locale\":\"zh_CN\"},\"resultList\":[{\"error\":null,\"id\":\"\",\"method\":\"\",\"result\":{\"clientStartUpAns\":{\"isAvailable\":\"NO\",\"latestVersion\":{\"clientVersion\":\"11\",\"downloadUrl\":\"/ctDownload.action?channelTerminalId=2309\",\"isForce\":null,\"versionDescription\":null},\"token\":null}},\"status\":\"01\"}]}";
 		System.out.println(JsonTool.formatJson(input, "      "));
-	}
+	}*/
 
 }

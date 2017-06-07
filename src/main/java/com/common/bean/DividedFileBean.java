@@ -1,9 +1,10 @@
 package com.common.bean;
 
 import java.io.File;
+import java.io.Serializable;
 
-public class DividedFileBean {
-	/***
+public class DividedFileBean implements Serializable {
+    /***
 	 * start from one
 	 */
 	private int sequence;

@@ -1,5 +1,8 @@
 package com.io.hw.json;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.common.bean.json.ParseJsonInfo;
 import com.common.util.SystemHWUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -9,28 +12,132 @@ import com.string.widget.util.ValueWidget;
 import com.swing.dialog.toast.ToastMessage;
 import net.sf.json.JSONException;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
 
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.UnsupportedEncodingException;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class JSONHWUtil {
+    protected static final Logger logger = Logger.getLogger(JSONHWUtil.class);
+
 	public static String addQuotationMarks(String input){
 		String result="\""+input.replaceAll("\"", "\\\\\"")+"\"";
 		return result;
 	}
 
-	public static String jsonFormatter(String uglyJSONString) {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		JsonParser jp = new JsonParser();
-		JsonElement je = jp.parse(uglyJSONString);
-		String prettyJsonString = gson.toJson(je);
-		return prettyJsonString;
-	}
+    public static String jsonFormatter(String uglyJSONString) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        JsonParser jp = new JsonParser();
+        try {
+            JsonElement je = jp.parse(uglyJSONString);
+            String prettyJsonString = gson.toJson(je);
+            return prettyJsonString;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /***
+     * 最大限度地当做json 字符串解析<br />
+     * 方案:"[...]" 转为[...],并且其中的\"-->"<br />
+     * "{...}" 转为{...},并且其中的\"-->"<br />
+     * @param jsonStr
+     * @return
+     */
+    public static String toJson(String jsonStr) {
+        if (ValueWidget.isNullOrEmpty(jsonStr)) {
+            return null;
+        }
+        if (ValueWidget.isHTMLWebPage(jsonStr)) {
+            return jsonStr;
+        }
+
+        if (!jsonStr.trim().startsWith("{")) {
+            return jsonStr;
+        }
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = JSONObject.parseObject(jsonStr);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error(e.getMessage(), e);
+            return jsonStr;
+        }
+
+        ParseJsonInfo parseJsonInfo = toJsonObjectRecursive(jsonObject);
+        if (parseJsonInfo.isHasString()) {
+            return jsonObject.toJSONString();
+        }
+
+        return jsonStr;
+    }
+
+    /**
+     * 最大限度地当做json 字符串解析<br />
+     * 方案:"[...]" 转为[...],并且其中的\"-->"<br /
+     *
+     * @param jsonObject
+     * @return
+     */
+    public static ParseJsonInfo toJsonObjectRecursive(JSONObject jsonObject) {
+//        JSONObject jsonObject=JSONObject.parseObject(jsonStr);
+        Set<Map.Entry<String, Object>> set = jsonObject.entrySet();
+//        boolean hasString=false;
+        ParseJsonInfo parseJsonInfo = new ParseJsonInfo();
+        for (Map.Entry<String, Object> entry : set) {
+//            System.out.println("key :" + entry.getKey());
+            Object val = entry.getValue();
+            String key = entry.getKey();
+//            System.out.println("value :" + val);
+            if (val instanceof String) {
+                String valString = (String) val;
+                valString = valString.trim();
+                if (valString.contains(":") && valString.contains("\"")) {//判断是否是json字符串,比如{"username":"whuang"}
+//                    hasString=true;
+                    if (valString.startsWith("[")) {//"[...]"--数组
+                        JSONArray jsonArray = JSONObject.parseArray(valString);
+                        parseArray(parseJsonInfo, jsonArray);
+                        jsonObject.put(key, jsonArray);
+                    } else {//--对象
+                        ParseJsonInfo parseJsonInfoTmp = toJsonObjectRecursive(JSONObject.parseObject(valString));
+                        jsonObject.put(key, parseJsonInfoTmp.getJsonObject());
+                    }
+
+                    parseJsonInfo.setHasString(true);
+                }
+            } else if (val instanceof JSONObject) {
+                ParseJsonInfo parseJsonInfoTmp = toJsonObjectRecursive((JSONObject) val);
+                if (parseJsonInfoTmp.isHasString()) {
+                    parseJsonInfo.setHasString(true);
+                }
+            }
+//            System.out.println("value type :" +(val instanceof String));
+//            String val2=JSONHWUtil.unescapeJava((String)val);
+//            System.out.println("val2 :" + val2);
+
+        }
+        parseJsonInfo.setJsonObject(jsonObject);
+        return parseJsonInfo;
+    }
+
+    public static void parseArray(ParseJsonInfo parseJsonInfoParent, JSONArray jsonArray) {
+        int size = jsonArray.size();
+        for (int i = 0; i < size; i++) {
+            Object object = jsonArray.get(i);
+            if (object instanceof JSONObject) {
+                ParseJsonInfo parseJsonInfoTmp = toJsonObjectRecursive((JSONObject) object);
+                if (parseJsonInfoTmp.isHasString()) {
+                    parseJsonInfoParent.setHasString(true);
+                    jsonArray.set(i, parseJsonInfoTmp.getJsonObject());
+                }
+
+            }
+        }
+    }
 	
 	/***
 	 * 格式化返回的json字符串
@@ -45,42 +152,22 @@ public class JSONHWUtil {
 		if (null == oldJson) {//oldJson用于解析json报错时恢复原始json的
 			oldJson = json;
 		}
-		JsonElement jsonEle = null;
 		try {
-			JsonParser parser = new JsonParser();
-			jsonEle = parser.parse(json);
-			if (jsonEle != null && !jsonEle.isJsonNull()) {
-				GsonBuilder gb = new GsonBuilder();
-				gb.setPrettyPrinting();
-				gb.serializeNulls();
-				Gson gson = gb.create();
-				String jsonStr = gson.toJson(jsonEle);
-				if (jsonStr != null) {
-					jsonStr = StringEscapeUtils.unescapeJava(jsonStr);
-					if(isFurther){
-						jsonStr = optimizationJson(jsonStr);
-					}
-
-//					jsonStr = gson.toJson(StringEscapeUtils.escapeJava(jsonStr));
-					// System.out.println(jsonStr);
-					ta.setText(jsonStr);
-					if(isFurther){
-                        formatJson(ta, false, oldJson, isSuppressWarnings);
+            String jsonStr = formatJson(json);
+            if (null != jsonStr) {
+                ta.setText(jsonStr);
                     }
-				}
-			} else {
 				String message="是否缺少开始“{”或结束“}”？";
 //				GUIUtil23.warningDialog(message);
 //				ComponentUtil.appendResult(ta, message, true);
                 if (!isSuppressWarnings) {
                     ToastMessage.toast(message, 2000, Color.red);
                 }
-            }
 		} catch (Exception ex) {
 //			GUIUtil23.warningDialog("非法JSON字符串！");
 //			GUIUtil23.errorDialog(ex.getMessage());
-			if (!ValueWidget.isNullOrEmpty(oldJson)) {
-				ta.setText(oldJson);
+            if (isFurther && !ValueWidget.isNullOrEmpty(oldJson)) {
+                ta.setText(oldJson);
                 formatJson(ta, false, null, isSuppressWarnings);
 //				ComponentUtil.appendResult(ta, null, false, false);
 //				ComponentUtil.appendResult(ta, "历史错误信息", true, false);
@@ -98,6 +185,34 @@ public class JSONHWUtil {
 		}
 	}
 
+    public static String formatJson(String json) {
+        JsonElement jsonEle;
+        JsonParser parser = new JsonParser();
+        jsonEle = parser.parse(json);
+        if (jsonEle != null && !jsonEle.isJsonNull()) {
+            GsonBuilder gb = new GsonBuilder();
+            gb.setPrettyPrinting();
+            gb.serializeNulls();
+            Gson gson = gb.create();
+            String jsonStr = gson.toJson(jsonEle);
+            if (jsonStr != null) {
+                jsonStr = StringEscapeUtils.unescapeJava(jsonStr);
+/*if(isFurther){
+jsonStr = optimizationJson(jsonStr);
+                }*/
+
+//					jsonStr = gson.toJson(StringEscapeUtils.escapeJava(jsonStr));
+                // System.out.println(jsonStr);
+                return (jsonStr);
+/*if(isFurther){
+formatJson(ta, false, jsonStr, isSuppressWarnings);
+}*/
+            }
+            return json;
+        }
+        return null;
+    }
+
 	/***
 	 * 优化json字符串
 	 *
@@ -109,6 +224,48 @@ public class JSONHWUtil {
 		jsonStr = jsonStr.replaceAll("\"(\\[.+\\])\"([\\s]*[,}])", "$1$2");
 		return jsonStr;
 	}
+
+   /*
+
+    //会把四个斜杠 当成一个斜杠
+//		jsonStr = jsonStr.replaceAll(, "$1$2");
+//		String regex="\"(\\[.+\\])\"([\\s]*[,}])";
+//        jsonStr=jsonStr.replace("\\","\\\\");//因为正则表达式的替换,本身会减少双引号的层级,
+		jsonStr = pureStringToJson(jsonStr, "\"(\\{[^}]+\\})\"([\\s]*[,}])");
+        jsonStr=jsonStr.replace("\\","\\\\");//因为正则表达式的替换,本身会减少双引号的层级,
+        return pureStringToJson(jsonStr, "\"(\\[.+\\])\"([\\s]*[,}])");
+   public static String pureStringToJson(String jsonStr, String regex) {
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(jsonStr);
+        StringBuffer sb = new StringBuffer();
+        boolean result = m.find();
+        while (result) {
+            String str = m.group(1);//此时已经减掉了一层双引号
+            if(str.contains(":")){
+                m.appendReplacement(sb, *//*JSONHWUtil.unescapeJava(*//*str*//*)*//*+m.group(2));
+            }
+
+            result = m.find();
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }*/
+
+    /***
+     * 功能:减掉一层引号的引用,比如" -->直接去掉<br />
+     * \"-->"<br />
+     * \\"-->\"<br />
+     * "{\"amount\":{\"freeStorage\":\"{\\" username\\":\\"whuang\\"}\",\"period\":12,\"storage\":0},\"priceType\":1,\"trialPeriod\":0}"<br />
+     * 改为:<br />
+     * {amount:{freeStorage:{\ username\:\whuang\},period:12,storage:0},priceType:1,trialPeriod:0}
+     * @param jsonStr
+     * @return
+     */
+    public static String unescapeJava(String jsonStr) {
+        jsonStr = StringEscapeUtils.unescapeJava(jsonStr);
+        return SystemHWUtil.delDoubleQuotation(jsonStr);//去掉最边上的双引号
+    }
 
 	public static String[]parse(net.sf.json.JSONArray array){
 		int length=array.size();

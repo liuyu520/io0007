@@ -22,7 +22,9 @@ public class RequestSendChain extends RequestInfoBean {
 
     public ResponseResult request() {
         ResponseResult preResponseResult = null;
-        if (null == dependentRequest.dependentRequest) {//递归的退出 出口
+        if (null == dependentRequest) {
+            preResponseResult = new ResponseResult(this).invoke();
+        } else if (null == dependentRequest.dependentRequest) {//递归的退出 出口
             preResponseResult = new ResponseResult(dependentRequest).invoke();
         } else {
             preResponseResult = dependentRequest.request();

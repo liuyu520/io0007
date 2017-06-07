@@ -12,8 +12,8 @@ public class ImageBean {
 	/***
 	 * 是否修改尺寸
 	 */
-	private boolean isScale;
-	/***
+    private boolean beScale;
+    /***
 	 * 只有当isScale 为true时fixedWidth 才有用
 	 */
 	private int fixedWidth;
@@ -23,19 +23,20 @@ public class ImageBean {
 	public void setQuality(float quality) {
 		this.quality = quality;
 	}
-	public boolean isScale() {
-		return isScale;
-	}
-	public void setScale(boolean isScale) {
-		this.isScale = isScale;
-	}
+
 	public int getFixedWidth() {
 		return fixedWidth;
 	}
 	public void setFixedWidth(int fixedWidth) {
 		this.fixedWidth = fixedWidth;
 	}
-	
-	
-	
+
+
+    public boolean isBeScale() {
+        return beScale;
+    }
+
+    public void setBeScale(boolean beScale) {
+        this.beScale = beScale;
+    }
 }

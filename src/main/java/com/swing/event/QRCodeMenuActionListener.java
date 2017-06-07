@@ -44,21 +44,23 @@ public class QRCodeMenuActionListener implements ActionListener {
 			qRCodePanel.reduce();
 		}else if (command.startsWith(MenuUtil2.ACTION_READ_QR_CODE)) {// 读取二维码
 			qRCodePanel.deCode(true);
-		}else if (command.equals(MenuUtil2.ACTION_STR_OPEN_BROWSER)) {// 打开浏览器
-			String urlTmp=qRCodePanel.deCode(false);
-			if(!ValueWidget.isNullOrEmpty(urlTmp)){
-				try {
-					URI uri = new URI(urlTmp);
-					Desktop.getDesktop().browse(uri);
-				} catch (URISyntaxException e2) {
-					e2.printStackTrace();
-					qRCodePanel.appendResult(e2.getMessage());
-				} catch (IOException e2) {
-					e2.printStackTrace();
-					qRCodePanel.appendResult(e2.getMessage());
-				}
-			}
-			
-		}
+        }else if (command.equals(MenuUtil2.ACTION_STR_OPEN_BROWSER)) {// 打开浏览器
+            String urlTmp=qRCodePanel.deCode(false);
+            if(!ValueWidget.isNullOrEmpty(urlTmp)){
+                try {
+                    URI uri = new URI(urlTmp);
+                    Desktop.getDesktop().browse(uri);
+                } catch (URISyntaxException e2) {
+                    e2.printStackTrace();
+                    qRCodePanel.appendResult(e2.getMessage());
+                } catch (IOException e2) {
+                    e2.printStackTrace();
+                    qRCodePanel.appendResult(e2.getMessage());
+                }
+            }
+
+        } else if (command.equals("upload")) {// 读取二维码
+            qRCodePanel.uploadAction("jpg");
+        }
 	}
 }

@@ -106,13 +106,11 @@ public class QRCodePanel extends GenericPanel {
 			System.out.println("KeyEvent");
 			System.out.println(e.getKeyCode());
 			if ((e.getKeyCode() == KeyEvent.VK_EQUALS)
-					&& (((InputEvent) e)
-							.isControlDown())) {
-				enlarge();
+                    && (EventHWUtil.isControlDown(((InputEvent) e)))) {
+                enlarge();
 			}else if ((e.getKeyCode() == KeyEvent.VK_MINUS)
-					&& (((InputEvent) e)
-							.isControlDown())) {
-				reduce();
+                    && (EventHWUtil.isControlDown(((InputEvent) e)))) {
+                reduce();
 			}
 		}
 	};
@@ -275,7 +273,9 @@ public class QRCodePanel extends GenericPanel {
 		                    lastTimeMillSencond = System.currentTimeMillis();
 		                }
 		            }
-                } else {//输入完成之后生成二维码
+                    return;
+                }
+                //输入完成之后生成二维码
                     if (timer == null) {
                         timer = new Timer();
                     }
@@ -291,7 +291,6 @@ public class QRCodePanel extends GenericPanel {
                         timer.schedule(task, INPUT_WAIT_SECOND * 1000);
                     }
                 }
-            }
 		});
 		// 增加滚动条
 		JScrollPane inputScroll = new JScrollPane(inputQRTextArea);
@@ -334,18 +333,19 @@ public class QRCodePanel extends GenericPanel {
                 }
             }
         });
-		qrComboBox.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				String  selectedPort=(String)qrComboBox.getSelectedItem();
-                if(!ValueWidget.isNullOrEmpty(selectedPort)&&!selectedPort.equals(inputQRTextArea.getText())){
-                	inputQRTextArea.setText(selectedPort);
-//                	generateQRAction(false);
-                	System.out.println("addMouseListener");
-//                	genQRbutton.doClick();
-                }
-			}
-		});
+        qrComboBox.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                setSelectedItem();
+            }
+        });
+        qrComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println(" ActionListener :actionPerformed");
+                setSelectedItem();
+            }
+        });
 
 		JPanel panel_2 = new JPanel();
 		GridBagConstraints gbc_panel_2 = new GridBagConstraints();
@@ -550,6 +550,16 @@ public class QRCodePanel extends GenericPanel {
 //        toolkit.addAWTEventListener(aWTEventListener, java.awt.AWTEvent.KEY_EVENT_MASK);
 	}
 
+    public void setSelectedItem() {
+        String selectedPort = (String) qrComboBox.getSelectedItem();
+        if (!ValueWidget.isNullOrEmpty(selectedPort) && !selectedPort.equals(inputQRTextArea.getText())) {
+            inputQRTextArea.setText(selectedPort);
+//                	generateQRAction(false);
+//            System.out.println("addMouseListener");
+//                	genQRbutton.doClick();
+        }
+    }
+
 	public void clipboardImageAction(){
 		if(ValueWidget.isNullOrEmpty(image)){
 			GUIUtil23.warningDialog(ERROR_MESSAGE_GENERATEQR_FIRST);
@@ -590,6 +600,36 @@ public class QRCodePanel extends GenericPanel {
 //		});
 //	}
 
+    public void uploadAction(String formatName) {
+        if (ValueWidget.isNullOrEmpty(QRbytes)) {
+            GUIUtil23.warningDialog("请先点击【生成二维码】按钮.");
+            genQRbutton.requestFocus();
+            return;
+        }
+        TextCompUtil2.uploadFile(formatName, QRbytes, "qrcode");
+        /*try {
+            String result= HttpSocketUtil.uploadFile("http://blog.yhskyc.com/convention2/ajax_image/upload",QRbytes,
+                    +formatName,(Map<String, String>) null);
+            Map requestMap = null;
+            try {
+                requestMap = (Map) HWJacksonUtils.deSerialize(result, Map.class);
+                ToastMessage.toast("上传成功",2000);
+                CustomDefaultDialog customDefaultDialog = new CustomDefaultDialog(result, "图片路径", true);
+                customDefaultDialog.setVisible(true);
+//                            ComponentUtil.appendResult(area2,result,true,false);
+
+            } catch (JsonParseException e1) {
+                e1.printStackTrace();
+            } catch (JsonMappingException e1) {
+                e1.printStackTrace();
+            }
+
+            System.out.println(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+    }
+
 	/***
 	 * 把系统剪切板中的图片黏贴到swing的Label控件中
 	 */
@@ -620,57 +660,7 @@ public class QRCodePanel extends GenericPanel {
 	private void setPopupMenu(JComponent qrResultLabel)
     {
 		final QRCodeMenuActionListener myMenuListener=new QRCodeMenuActionListener(this);
-		qrResultLabel.addMouseListener(new MouseInputAdapter()
-        {
-
-            @Override
-            public void mouseReleased(MouseEvent e)
-            {
-                //                super.mousePressed(e);
-                if (e.getButton() == MouseEvent.BUTTON3)
-                {
-                    JPopupMenu textMenu = new JPopupMenu();
-                    JMenuItem cleanUpM = new JMenuItem(MenuUtil2.ACTION_STR_CLEANUP);
-                    JMenuItem copy22M = new JMenuItem(
-                        MenuUtil2.ACTION_IMAGE_COPY);
-                    JMenuItem paste22M = new JMenuItem(
-                            MenuUtil2.ACTION_IMAGE_PASTE);
-                    JMenuItem enlargeM = new JMenuItem(
-                            MenuUtil2.ACTION_ENLARGE);
-                    JMenuItem reduceM = new JMenuItem(
-                            MenuUtil2.ACTION_REDUCE);
-//                    JMenuItem pasteM = new JMenuItem(MenuUtil2.ACTION_STR_PASTE);
-
-                    JMenuItem exportM = new JMenuItem(
-                        MenuUtil2.ACTION_STR_EXPORT);
-                    JMenuItem readQRCodeM = new JMenuItem(
-                            MenuUtil2.ACTION_READ_QR_CODE);
-
-                    JMenuItem openBrowserM = new JMenuItem(
-                            MenuUtil2.ACTION_STR_OPEN_BROWSER);
-                    copy22M.addActionListener(myMenuListener);
-                    cleanUpM.addActionListener(myMenuListener);
-                    exportM.addActionListener(myMenuListener);
-                    enlargeM.addActionListener(myMenuListener);
-                    reduceM.addActionListener(myMenuListener);
-                    paste22M.addActionListener(myMenuListener);
-                    readQRCodeM.addActionListener(myMenuListener);
-                    openBrowserM.addActionListener(myMenuListener);
-                    textMenu.add(cleanUpM);
-                    textMenu.add(copy22M);
-                    textMenu.add(paste22M);
-//                    exportM.add(pasteM);
-                    textMenu.add(exportM);
-                    textMenu.add(enlargeM);
-                    textMenu.add(reduceM);
-                    textMenu.add(readQRCodeM);
-                    textMenu.add(openBrowserM);
-                    textMenu.show(e.getComponent(), e.getX(), e.getY());
-                }
-            }
-
-        });
-
+        MenuUtil2.setImagePopupMenu(qrResultLabel, myMenuListener);
     }
 
 	/***
@@ -718,24 +708,13 @@ public class QRCodePanel extends GenericPanel {
 			genQRbutton.requestFocus();
 			return;
 		}
-		JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if(!ValueWidget.isNullOrEmpty(selectedFile)){
-        	chooser.setSelectedFile(selectedFile);
+
+//        chooser.setName("二维码."+picFormat);
+        String title = "二维码";
+        selectedFile = DialogUtil.chooseFileDialog(selectedFile, "保存二维码", QRCodePanel.this, picFormat);
+        if (null == selectedFile) {
+            return;
         }
-        chooser.setName("二维码."+picFormat);
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "picture Files", picFormat, "二维码");
-            chooser.setFileFilter(filter);
-        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        chooser.setControlButtonsAreShown(true);
-        chooser.setDialogTitle("保存二维码");
-        //            chooser.setVisible(true);
-        int result = chooser.showSaveDialog(QRCodePanel.this);
-        System.out.println("New file:" + result);
-        if (result == JOptionPane.OK_OPTION)
-        {
-            selectedFile = chooser.getSelectedFile();
             if(! SystemHWUtil.isHasSuffix(selectedFile)){
             	selectedFile=new File(selectedFile.getAbsolutePath()+ SystemHWUtil.ENGLISH_PERIOD+picFormat);
             }
@@ -748,7 +727,7 @@ public class QRCodePanel extends GenericPanel {
 			}
             System.out.println("select file:" + selectedFile);
         }
-	}
+
 	public void cleanUpQRLabel(){
 		this.qrResultLabel.setIcon(null);//清空Label中显示的图片
 		QRbytes=null;//清空保存QR的字节数组
@@ -819,14 +798,14 @@ public class QRCodePanel extends GenericPanel {
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}*/
-			if (QRbytes != null) {
-				ImageIcon imageIcon = new ImageIcon(QRbytes);
+            if (QRbytes == null) {
+                return;
+            }
+            ImageIcon imageIcon = new ImageIcon(QRbytes);
 				image=imageIcon.getImage();
 				qrResultLabel.setIcon(imageIcon);
 //				ComponentUtil.appendResult(resultArea, "二维码字节数:\t\t"+QRbytes.length, true);
 				resultArea.setText(qrInput);
-			}
-
 		} catch (WriterException e1) {
 			e1.printStackTrace();
 			GUIUtil23.errorDialog(e1);

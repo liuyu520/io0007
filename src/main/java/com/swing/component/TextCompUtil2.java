@@ -3,9 +3,13 @@ package com.swing.component;
 import com.common.bean.FindTxtResultBean;
 import com.common.bean.HeightWidthBean;
 import com.common.dict.Constant2;
+import com.common.util.ImageHWUtil;
 import com.common.util.ReflectHWUtils;
 import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
+import com.http.util.HttpSocketUtil;
+import com.io.hw.file.util.FileUtils;
+import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.callback.ActionCallback;
@@ -13,8 +17,14 @@ import com.swing.component.inf.IRightMenu;
 import com.swing.dialog.*;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
+import com.swing.image.EditSnapShootDialog;
+import com.swing.image.bean.BufferedImage2Bean;
+import com.swing.listener.DoubleKeyAdapter;
 import com.swing.menu.MenuUtil2;
+import com.swing.menu.ShiftDropListMenuActionListener;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -24,10 +34,11 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.UnsupportedEncodingException;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 /***
@@ -49,14 +60,37 @@ public class TextCompUtil2 {
 			searchMnemonicAction(evt);
 		}
 	};
-	public static final AbstractAction maximizeTAAction=new AbstractAction("maximizeTA111") {
-		private static final long serialVersionUID = -3548620001691220571L;
+    public static final AbstractAction maximizeTAAction=new AbstractAction("maximizeTA111") {
+        private static final long serialVersionUID = -3548620001691220571L;
 
-		public void actionPerformed(ActionEvent evt) {
-			JTextComponent tf = (JTextComponent) evt.getSource();
-			DialogUtil.showMaximizeDialog(tf);
-		}
-	};
+        /***
+         * 注意:只有把对话框设置到文本框的反射是在com/swing/dialog/DialogUtil.java 的 showMaximizeDialog 中操作的<br />
+         * 其他反射操作均在此
+         * @param evt
+         */
+        public void actionPerformed(ActionEvent evt) {
+            JTextComponent tf = (JTextComponent) evt.getSource();
+            toggleMaximizeDialog(tf);
+        }
+    };
+
+    public static void toggleMaximizeDialog(JTextComponent tf) {
+        int maxStatus = getMaxStatus(tf);
+//            System.out.println("maxStatus :" + maxStatus);
+        if (maxStatus == 0) {
+            setMaxStatus(tf, 1);
+            DialogUtil.showMaximizeDialog(tf);
+            return;
+        }
+        JDialog jDialog = getMaxDialog(tf);
+        if (null != jDialog) {
+            jDialog.dispose();
+            setMaxStatus(tf, 0);
+            closeMaxDialog(jDialog);
+//                    setMaxDialog(tf);
+        }
+    }
+
 	/***
 	 * 用于截图的对话框
 	 */
@@ -91,7 +125,6 @@ public class TextCompUtil2 {
 	public static void searchMnemonicAction(ActionEvent evt) {
 		JTextComponent tf = (JTextComponent) evt.getSource();
 		FindTxtResultBean findTxtResultBean = null;
-		try {
 
             findTxtResultBean = (FindTxtResultBean) ReflectHWUtils.getObjectValue(tf, Constant2.FINDTXTRESULTBEAN_FIELD);
             int index;
@@ -112,11 +145,6 @@ public class TextCompUtil2 {
                 return;
             }
             ReflectHWUtils.setObjectValue(tf, Constant2.FINDTXTRESULTBEAN_FIELD, findTxtResultBean);//如果findTxtResultBean为null,则忽略
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
 	}
 
     public static void addActionMap(final JTextComponent tc, final UndoManager undo, final Map<String, ActionCallback> actionCallbackMap) {
@@ -249,16 +277,17 @@ public class TextCompUtil2 {
 			private static final long serialVersionUID = -3548620001691220571L;
 			public void actionPerformed(ActionEvent evt) {
 				JTextComponent tf=(JTextComponent)evt.getSource();
-				if(!ValueWidget.isNullOrEmpty(tf)){
-					tf.setEditable(true);
+                if (ValueWidget.isNullOrEmpty(tf)) {
+                    return;
+                }
+                tf.setEditable(true);
 					tf.requestFocus();
 					tf.repaint();
 					tf.updateUI();
 				}
-			}
 		});
         //on Mac ,this would be command key
-        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_E, getDefaultModifier()/*"control E"*/), "Editable");
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_E, getDefaultModifier() | InputEvent.SHIFT_DOWN_MASK/*"control shift E"*/), "Editable");
 
         tc.getActionMap().put("Command_enter", new AbstractAction("Command_enter111") {
             private static final long serialVersionUID = -3548620001691220571L;
@@ -292,13 +321,14 @@ public class TextCompUtil2 {
                 if (actionCallbackMap1 == null) {
                     actionCallbackMap1 = actionCallbackMap;
                 }
-                if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                if (ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                    return;
+                }
                     ActionCallback actionCallback = actionCallbackMap1.get("Ctrl_enter");
                     if (null != actionCallback) {
                         actionCallback.actionPerformed(evt, tf);
                     }
                 }
-            }
         });
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "Ctrl_enter");
 
@@ -313,13 +343,14 @@ public class TextCompUtil2 {
                 if (actionCallbackMap1 == null) {
                     actionCallbackMap1 = actionCallbackMap;
                 }
-                if (!ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                if (ValueWidget.isNullOrEmpty(actionCallbackMap1)) {
+                    return;
+                }
                     ActionCallback actionCallback = actionCallbackMap1.get("alt_enter");
                     if (null != actionCallback) {
                         actionCallback.actionPerformed(evt, tf);
                     }
                 }
-            }
         });
         tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_DOWN_MASK), "alt_enter");
 
@@ -425,14 +456,11 @@ public class TextCompUtil2 {
 			ReflectHWUtils.setObjectValue(inputTextArea, "placeHolderText", placeHolder);
 		} catch (SecurityException e) {
 			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
 	}
+
 	public static boolean isPlaceHolder(JTextComponent inputTextArea,String placeHolder){
 		return isPlaceHolder(inputTextArea, null, placeHolder);
 	}
@@ -536,6 +564,104 @@ public class TextCompUtil2 {
 		};
 		doc.addDocumentListener(docLis);
 	}
+
+    /**
+     * 在文本框聚焦的情况下,通过按下方向键(仅支持左,右,不支持上下),可以使光标定位到句首或句尾
+     *
+     * @param e
+     * @param inputTextArea
+     */
+    public static void setTFCaretPosition(KeyEvent e, final JTextComponent inputTextArea, final DoubleKeyAdapter doubleKeyAdapter) {
+        if (SystemHWUtil.isWindows) {
+            if (e.getKeyCode() == KeyEvent.VK_UP && e.getID() == KeyEvent.KEY_PRESSED) {
+                System.out.println("上");
+                inputTextArea.setCaretPosition(0);
+            } else if (e.getKeyCode() == KeyEvent.VK_DOWN && e.getID() == KeyEvent.KEY_PRESSED) {
+                System.out.println("下...");
+                inputTextArea.setCaretPosition(inputTextArea.getText().length());
+            }
+        }
+        toggleUpperLowerCase(e, inputTextArea);
+
+//        System.out.println(e);
+        if (EventHWUtil.isJustKeyDown(e, KeyEvent.VK_DOWN)) {//在文本框聚焦的情况下,双击下方向键,可以全选
+//                    System.out.println("setTFCaretPosition");
+            if (doubleKeyAdapter.getLastTimeMillSencond() == 0) {
+                doubleKeyAdapter.setLastTimeMillSencond(System.currentTimeMillis());
+                return;
+            }
+            long currentTime = System.currentTimeMillis();
+            if (MenuUtil2.isDoubleClick(currentTime - doubleKeyAdapter.getLastTimeMillSencond())) {
+                System.out.println("双击 下 方向键");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                        inputTextArea.selectAll();
+                    }
+                }).start();
+
+                doubleKeyAdapter.setLastTimeMillSencond(0);
+                doubleKeyAdapter.setLastTimeMillSencondDown(0);
+            } else {
+                doubleKeyAdapter.setLastTimeMillSencond(System.currentTimeMillis());
+            }
+            return;
+        }
+        if (EventHWUtil.isJustKeyDown(e, KeyEvent.VK_UP)) {//在文本框聚焦的情况下,双击上方向键,可以删除文本框全部内容
+//                    System.out.println("setTFCaretPosition");
+            if (doubleKeyAdapter.getLastTimeMillSencondDown() == 0) {
+                doubleKeyAdapter.setLastTimeMillSencondDown(System.currentTimeMillis());
+                return;
+            }
+            long currentTime = System.currentTimeMillis();
+            if (MenuUtil2.isDoubleClick(currentTime - doubleKeyAdapter.getLastTimeMillSencondDown())) {
+                System.out.println("双击 (上) 方向键");
+                //删除文本框中全部内容,把剪切板内容填入
+//                    inputTextArea.setCaretPosition(0);
+                inputTextArea.setText(WindowUtil.getSysClipboardText());
+                doubleKeyAdapter.setLastTimeMillSencondDown(0);
+                doubleKeyAdapter.setLastTimeMillSencond(0);
+            } else {
+                doubleKeyAdapter.setLastTimeMillSencondDown(System.currentTimeMillis());
+            }
+        }
+
+    }
+
+    /***
+     * 当前选中字符串只有全为大写,才转化为小写<br />
+     * command+shift+U : 转化为大写或小写,只对英文字母有效
+     * @param e
+     * @param inputTextArea
+     */
+    public static void toggleUpperLowerCase(KeyEvent e, JTextComponent inputTextArea) {
+        //command+shift+U : 转化为大写或小写,只对英文字母有效
+        if ((e.getKeyCode() == KeyEvent.VK_U)
+                && (((InputEvent) e)
+                .isShiftDown()) && ((InputEvent) e)
+                .isMetaDown()/*MAC 的command键*/ && e.getID() == KeyEvent.KEY_PRESSED) {
+            String selectContent = inputTextArea.getSelectedText();
+            if (!ValueWidget.isNullOrEmpty(selectContent)) {
+                int selectionStart = inputTextArea.getSelectionStart();
+                int selectionEnd = inputTextArea.getSelectionEnd();
+                String upperCase = selectContent.toUpperCase();
+                if (selectContent.equals(upperCase)) {//当前选中字符串只有全为大写,才转化为小写
+                    //如果既有小写也有大写,则转为大写
+                    inputTextArea.replaceSelection(selectContent.toLowerCase());
+                } else {
+                    inputTextArea.replaceSelection(upperCase);
+                }
+                inputTextArea.setSelectionStart(selectionStart);
+                inputTextArea.setSelectionEnd(selectionEnd);
+            }
+        }
+    }
+
 	/***
 	 * 清除placeholder
 	 * @param inputTextArea
@@ -550,6 +676,13 @@ public class TextCompUtil2 {
 	public static void generateJsonPopup(){
 	}
 
+    private static void popupMenu(JTextComponent inputTextArea, KeyEvent e, JPopupMenu textPopupMenu) {
+        JTextComponent tf = (JTextComponent) e.getSource();
+        Point point = tf.getParent().getLocation();
+        textPopupMenu.show(e.getComponent(), point.x + 20,
+                point.y + 2);// 下移一点
+    }
+
 	/***
 	 * 双击Shift 弹出菜单
 	 *
@@ -557,12 +690,20 @@ public class TextCompUtil2 {
 	 */
     private static void popupMenu(JTextComponent inputTextArea, KeyEvent e, boolean isSimple) {
 //		System.out.println("双击Shift");
-		JPopupMenu textPopupMenu = new JPopupMenu();
-		textPopupMenu.setLabel("打开文件");
-		textPopupMenu.setLightWeightPopupEnabled(true);
-		textPopupMenu.setBackground(Color.GREEN);
-		GenerateJsonActionListener dropListMenuActionListener = new GenerateJsonActionListener(
-				inputTextArea);
+        JPopupMenu textPopupMenu = getTextBoxPopupMenu(inputTextArea, isSimple);
+        /*JMenuItem notepadM = new JMenuItem("notepad 编辑文件");
+        notepadM.addActionListener(dropListMenuActionListener);
+		textPopupMenu.add(notepadM);*/
+        popupMenu(inputTextArea, e, textPopupMenu);
+    }
+
+    private static JPopupMenu getTextBoxPopupMenu(JTextComponent inputTextArea, boolean isSimple) {
+        JPopupMenu textPopupMenu = new JPopupMenu();
+        textPopupMenu.setLabel("打开文件");
+        textPopupMenu.setLightWeightPopupEnabled(true);
+        textPopupMenu.setBackground(Color.GREEN);
+        GenerateJsonActionListener dropListMenuActionListener = new GenerateJsonActionListener(
+                inputTextArea);
         if (!isSimple) {
             JMenuItem openFolderM = new JMenuItem("获取json");
             openFolderM.addActionListener(dropListMenuActionListener);
@@ -615,49 +756,89 @@ public class TextCompUtil2 {
         json2QueryString.setActionCommand(MenuUtil2.ACTION_JSON2QUERY_STRING);
         json2QueryString.addActionListener(dropListMenuActionListener);
         textPopupMenu.add(json2QueryString);
-        /*JMenuItem notepadM = new JMenuItem("notepad 编辑文件");
-		notepadM.addActionListener(dropListMenuActionListener);
-		textPopupMenu.add(notepadM);*/
+        return textPopupMenu;
+    }
 
-		JTextComponent tf = (JTextComponent) e.getSource();
-		Point point = tf.getParent().getLocation();
-		textPopupMenu.show(e.getComponent(), point.x + 20,
-				point.y + 2);// 下移一点
-	}
+    private static JPopupMenu getRequestBodyPopupMenu(JTextComponent inputTextArea) {
+        JPopupMenu textPopupMenu = new JPopupMenu();
+        textPopupMenu.setLabel("打开文件");
+        textPopupMenu.setLightWeightPopupEnabled(true);
+        textPopupMenu.setBackground(Color.GREEN);
+        GenerateJsonActionListener dropListMenuActionListener = new GenerateJsonActionListener(
+                inputTextArea);
+
+        //删除后黏贴
+        JMenuItem formSubmitDataM = new JMenuItem("转化为标准表单数据");
+        formSubmitDataM.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(formSubmitDataM);
+
+       /* JMenuItem urlDecodeM = new JMenuItem(
+                MenuUtil2.ACTION_URL_DECODE);
+        urlDecodeM.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(urlDecodeM);
+
+        JMenuItem urlEncodeM = new JMenuItem(
+                MenuUtil2.ACTION_URL_ENCODE);
+        urlEncodeM.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(urlEncodeM);
+
+        JMenuItem queryString2Json = new JMenuItem(MenuUtil2.ACTION_QUERY_STRING2JSON);
+        queryString2Json.setActionCommand(MenuUtil2.ACTION_QUERY_STRING2JSON);
+        queryString2Json.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(queryString2Json);
+
+        JMenuItem json2QueryString = new JMenuItem(MenuUtil2.ACTION_JSON2QUERY_STRING);
+        json2QueryString.setActionCommand(MenuUtil2.ACTION_JSON2QUERY_STRING);
+        json2QueryString.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(json2QueryString);*/
+        return textPopupMenu;
+    }
+
 
     public static void dropListMenu(final JTextComponent inputTextArea, final boolean isSimple) {
+        final JPopupMenu textPopupMenu = getTextBoxPopupMenu(inputTextArea, isSimple);
+        dropListMenu(inputTextArea, textPopupMenu);
+    }
+
+    public static void dropListMenuRequestParameterBody(final JTextComponent inputTextArea) {
+        final JPopupMenu textPopupMenu = getRequestBodyPopupMenu(inputTextArea);
+        dropListMenu(inputTextArea, textPopupMenu);
+    }
+
+    public static void dropListMenu(final JTextComponent inputTextArea, final JPopupMenu textPopupMenu) {
         inputTextArea.addKeyListener(new KeyListener() {
-			private long lastTimeMillSencond;
+            private long lastTimeMillSencond;
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
 
-			@Override
-			public void keyReleased(KeyEvent e) {
-			}
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
 
-			@Override
-			public void keyPressed(KeyEvent e) { 
-				if (EventHWUtil.isJustShiftDown(e)) {
-					if (lastTimeMillSencond == 0) {
-						lastTimeMillSencond = System.currentTimeMillis();
-					} else {
-						long currentTime = System.currentTimeMillis();
-						long delta=currentTime
-								- lastTimeMillSencond;
-						if (MenuUtil2.isDoubleClick(delta)) {//双击Shift
-                            popupMenu(inputTextArea, e, isSimple);
-                            lastTimeMillSencond = 0;
-						} else {
-							lastTimeMillSencond = System.currentTimeMillis();
-						}
-						delta=0l;
-					}
-				}
-			}
-		});
-	}
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (!EventHWUtil.isJustShiftDown(e)) {
+                    return;
+                }
+                if (lastTimeMillSencond == 0) {
+                    lastTimeMillSencond = System.currentTimeMillis();
+                } else {
+                    long currentTime = System.currentTimeMillis();
+                    long delta=currentTime
+                            - lastTimeMillSencond;
+                    if (MenuUtil2.isDoubleClick(delta)) {//双击Shift
+                        popupMenu(inputTextArea, e, textPopupMenu);
+                        lastTimeMillSencond = 0;
+                    } else {
+                        lastTimeMillSencond = System.currentTimeMillis();
+                    }
+                    delta=0l;
+                }
+            }
+        });
+    }
 
     /***
      * 截图,截屏
@@ -675,19 +856,110 @@ public class TextCompUtil2 {
 		}
 		SpecifyWidthAndHeightDialog specifyWidthAndHeightDialog=new SpecifyWidthAndHeightDialog(heightWidthBean,screenshotDialog);
 		specifyWidthAndHeightDialog.setVisible(true);
-		System.out.println(heightWidthBean.isSuccess());
+        System.out.println(heightWidthBean.isBeSuccess());
 
-		if(heightWidthBean.isSuccess()){
-			if(heightWidthBean.isValid()){
-				ComponentUtil.generateImageAndCopy(area2,heightWidthBean.getHeight(),heightWidthBean.getWidth());
-			}else{
-				ToastMessage.toast("高度或宽度不合法",2000, Color.RED);
-				return;
-			}
-		}else{
-			ToastMessage.toast("已取消",1000, Color.RED);
-		}
-	}
+        if (!heightWidthBean.isBeSuccess()) {
+            ToastMessage.toast("已取消", 1000, Color.RED);
+            return;
+        }
+
+        if (!heightWidthBean.isValid()) {
+            ToastMessage.toast("高度或宽度不合法",2000, Color.RED);
+            return;
+
+        }
+        if (heightWidthBean.isSaveToFile()) {//是否保存到文件
+            java.io.File picSaveFile = DialogUtil.chooseFileDialog(null, " 保存图片", specifyWidthAndHeightDialog, "jpg");
+
+            if (null == picSaveFile) {
+                ToastMessage.toast("取消操作", 2000, Color.RED);
+                return;
+            }
+            ComponentUtil.generateImageAndCopy(area2, picSaveFile, heightWidthBean.getHeight(), heightWidthBean.getWidth(), heightWidthBean.getMultiple());
+        } else if (heightWidthBean.isUpload2Server()) {//上传截图到远程服务器
+            BufferedImage2Bean imgBean = ImageHWUtil.generateImage(area2, null, "jpg"/*picFormat*/
+                    , heightWidthBean.getHeight(), heightWidthBean.getWidth(), heightWidthBean.getMultiple());
+            imgBean.getG2d().dispose();
+            uploadBufferedImage(imgBean.getBufferedImage());
+        } else if (heightWidthBean.isEditScreenshots()) {
+            BufferedImage2Bean bufferedImageBean = ComponentUtil.generateImageAndCopy(area2, heightWidthBean.getHeight(), heightWidthBean.getWidth(), 1/*heightWidthBean.getMultiple()*/, false);
+            bufferedImageBean.getG2d().dispose();
+            BufferedImage2Bean bufferedImageBean2 = ComponentUtil.generateImageAndCopy(area2, heightWidthBean.getHeight(), heightWidthBean.getWidth(), heightWidthBean.getMultiple(), false);
+            bufferedImageBean2.setOriginImage(bufferedImageBean.getBufferedImage());
+            new EditSnapShootDialog(bufferedImageBean2.getBufferedImage(), bufferedImageBean2.getOriginImage(), bufferedImageBean2.getG2d());
+        }else{
+//                    imgBean.getG2d().dispose();
+            ComponentUtil.generateImageAndCopy(area2, heightWidthBean.getHeight(), heightWidthBean.getWidth(), heightWidthBean.getMultiple(), true);
+        }
+    }
+
+    /***
+     * 上传BufferedImage 到远程服务器
+     * @param img
+     */
+    public static void uploadBufferedImage(BufferedImage img) {
+        String formatName = "jpg";
+        ByteArrayOutputStream baos = imageToByteArrayOutputStream(img, formatName);
+
+        //输出数组
+        byte[] bytes = baos.toByteArray();
+        uploadFile(formatName, bytes, "Screenshots");
+    }
+
+    public static void uploadFile(String formatName, byte[] bytes, String uploadedFileName) {
+        String size = FileUtils.formatSize(bytes.length);
+        int resultOption = JOptionPane.showConfirmDialog(null, "Are you sure to Upload " + size + " to Server ?", "确认",
+                JOptionPane.OK_CANCEL_OPTION);
+        if (resultOption != JOptionPane.OK_OPTION) {
+            ToastMessage.toast("取消上传", 2000, Color.red);
+            return;
+        }
+        Map<String, String> parameters = null;
+        try {
+            String result = HttpSocketUtil.uploadFile("http://blog.yhskyc.com/convention2/ajax_image/upload", bytes, parameters,
+                    uploadedFileName + SystemHWUtil.ENGLISH_PERIOD + formatName, (Map<String, String>) null);
+            Map requestMap = null;
+            requestMap = (Map) HWJacksonUtils.deSerialize(result, Map.class);
+            StringBuffer stringBuffer = new StringBuffer("<html>");
+            for (Object obj : requestMap.keySet()) {
+                Object val = requestMap.get(obj);
+                stringBuffer.append("<div style=\"padding-bottom:5px;margin-bottom: 5px;border: 1px solid #f38399;border-radius: 5px;\" >");
+                stringBuffer.append("<span style=\"color: #ddd;\" >").append(obj).append("</span>").append(":").append("<br />");
+                stringBuffer.append(val).append("</div>");
+            }
+            stringBuffer.append("</html>");
+//                System.out.println(stringBuffer);
+            ToastMessage.toast("上传成功", 2000);
+            CustomDefaultDialog customDefaultDialog = new CustomDefaultDialog(stringBuffer.toString(), "图片路径", true, null, 800);
+            customDefaultDialog.setVisible(true);
+//                            ComponentUtil.appendResult(area2,result,true,false);
+
+            System.out.println(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 把BufferedImage 转化为字节数组
+     *
+     * @param img
+     * @return
+     */
+    public static ByteArrayOutputStream imageToByteArrayOutputStream(BufferedImage img, String formatName) {
+        //创建储存图片二进制流的输出流
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try {
+            //创建ImageOutputStream流
+            ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(baos);
+            //将二进制数据写进ByteArrayOutputStream
+            ImageIO.write(img, formatName, imageOutputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return baos;
+    }
 
 	public static GenericDialog showScreenshotDialog(JTextComponent area2,int width,int height){
 		Class clazz=area2.getClass();
@@ -719,17 +991,49 @@ public class TextCompUtil2 {
 	}
 
     public static GenericDialog getScreenshotDialog(JTextComponent area2) {
-        return (GenericDialog) getReflectGetMethod(area2, "getScreenshotDialog");
+        return (GenericDialog) getReflectGetMethod(area2, "getScreenshotDialog", null, null);
     }
 
-    public static Object getReflectGetMethod(JTextComponent area2, String methodName) {
+    public static JDialog getMaxDialog(JTextComponent area2) {
+        return (JDialog) getReflectGetMethod(area2, "getMaxJDialog", null, null);
+    }
+
+    public static void closeMaxDialog(JDialog area2) {
+        getReflectGetMethod(area2, "closeDialog", null, null);
+    }
+
+    public static void setMaxDialog(JTextComponent area2, Object dialog, Class clazz) {
+        getReflectGetMethod(area2, "setMaxJDialog", dialog, clazz);
+    }
+
+    public static Integer getMaxStatus(JTextComponent area2) {
+        return (Integer) getReflectGetMethod(area2, "getMaxStatus", null, null);
+    }
+
+    public static void setMaxStatus(JTextComponent area2, int maxStatus) {
+        getReflectGetMethod(area2, "setMaxStatus", maxStatus, null);
+    }
+
+    public static Object getReflectGetMethod(Object area2, String methodName, Object param, Class clazz2) {
         Class clazz=area2.getClass();
 		  Object obj=null;
 		    Method m;
 			try {
-                m = clazz.getMethod(methodName, new Class[]{});
+                if (clazz2 == null && null != param) {
+                    clazz2 = param.getClass();
+                }
+                if (null == clazz2) {
+                    m = clazz.getMethod(methodName, new Class[]{});
+                } else {
+                    m = clazz.getMethod(methodName, new Class[]{clazz2});
+                }
                 m.setAccessible(true);
-			    obj=m.invoke(area2, null);
+                if (null == param) {
+                    obj = m.invoke(area2);
+                } else {
+                    obj = m.invoke(area2, param);
+                }
+
 			} catch (NoSuchMethodException e) {
 				e.printStackTrace();
 			} catch (SecurityException e) {
@@ -746,7 +1050,7 @@ public class TextCompUtil2 {
 
 
     public static Map<String, ActionCallback> getActionCallbackMap(JTextComponent area2) {
-        return (Map<String, ActionCallback>) getReflectGetMethod(area2, "getActionCallbackMap");
+        return (Map<String, ActionCallback>) getReflectGetMethod(area2, "getActionCallbackMap", null, null);
     }
 
 	static class GenerateJsonActionListener implements ActionListener {
@@ -758,42 +1062,41 @@ public class TextCompUtil2 {
 		}
 
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			String command = e.getActionCommand();
-			if (command.equals("获取json")) {
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+            if (command.equals("获取json")) {
 //				System.out.println(command);
-				GenerateJsonPane generateJsonPane = new GenerateJsonPane(ta, true);
-				generateJsonPane.setVisible(true);
-			}else
-			if (command.equals(MenuUtil2.ACTION_CREATE_MD5)) {//获取MD5值
-				String text = ta.getText();
+                GenerateJsonPane generateJsonPane = new GenerateJsonPane(ta, true);
+                generateJsonPane.setVisible(true);
+            }else if (command.equals(MenuUtil2.ACTION_CREATE_MD5)) {//获取MD5值
+                String text = ta.getText();
                 createMD5(text, ta);
             } else if (command.equals(MenuUtil2.ACTION_STR_BROWSER)) {//弹出文件选择窗口
                 boolean isSuccess = DialogUtil.browserFile(ta, JFileChooser.FILES_ONLY, ta);
-			} else if (command.equalsIgnoreCase(MenuUtil2.ACTION_MD5_DECODE)) {
-				String text = ta.getText();
+            } else if (command.equalsIgnoreCase(MenuUtil2.ACTION_MD5_DECODE)) {
+                String text = ta.getText();
                 if (!ValueWidget.isNullOrEmpty(text) && text.length() < 16) {
                     //如果文本框中内容不为空,并且字符个数小于16,则计算其MD5,这是为了防止用户的误操作
                     createMD5(text, ta);
                     return;
                 }
                 String source;
-				source = SystemHWUtil.md5Map.get(text);
-				if (ValueWidget.isNullOrEmpty(source)) {
-					ToastMessage.toast("暂无md5对应的原文", 3000, Color.red);
-				} else {
-					ta.setText(source);
-				}
-			}else if (command.equals(MenuUtil2.ACTION_STR_EDIT)) {//
+                source = SystemHWUtil.md5Map.get(text);
+                if (ValueWidget.isNullOrEmpty(source)) {
+                    ToastMessage.toast("暂无md5对应的原文", 3000, Color.red);
+                } else {
+                    ta.setText(source);
+                }
+            }else if (command.equals(MenuUtil2.ACTION_STR_EDIT)) {//
 				/*SimpleTextEditDialog generateJsonPane = new SimpleTextEditDialog(ta);
 				generateJsonPane.setVisible(true);*/
-				DialogUtil.showMaximizeDialog(ta);
-			}else if (command.equals(MenuUtil2.ACTION_DELETE_TWO_QUOTE)) {
-				String content=this.ta.getText();
-				if(!ValueWidget.isNullOrEmpty(content)){
-					content= RegexUtil.deleteTwoQuote(content);
-					this.ta.setText(content);
-				}
+                DialogUtil.showMaximizeDialog(ta);
+            }else if (command.equals(MenuUtil2.ACTION_DELETE_TWO_QUOTE)) {
+                String content=this.ta.getText();
+                if(!ValueWidget.isNullOrEmpty(content)){
+                    content= RegexUtil.deleteTwoQuote(content);
+                    this.ta.setText(content);
+                }
             } else if (command.equals(MenuUtil2.ACTION_STR_PASTE_AFTER_DELETE)) {//删除后黏贴
                 String content = WindowUtil.getSysClipboardText();
                 if (ValueWidget.isNullOrEmpty(content)) {
@@ -810,18 +1113,50 @@ public class TextCompUtil2 {
             } else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
                 //{"username":"whuang","age":23} -->username=whuang&age=23
                 MenuUtil2.json2queryString(this.ta);
+            } else if (command.equals("转化为标准表单数据")) {
+                String requestBody = this.ta.getText();
+                //有多个等于号,但是没有& 符号
+                //{param={"queryParams":{"appId":"7"},"start":0,"rows":1}, aa=bb, cc=dd}
+                convert2FormSubmitData(requestBody, ta);
+            }
+        }
+
+        /***
+         * 把 {param={"queryParams":{"appId":"7"},"start":0,"rows":1}, aaa=bbb, ccc=ddd} <br />
+         * 转化为:<br />
+         * aa=bb&ccc=bbb&param={"queryParams":{"appId":"7"},"start":0,"rows":1}
+         * @param requestBody
+         * @param ta
+         */
+        public static void convert2FormSubmitData(String requestBody, JTextComponent ta) {
+            if (!ValueWidget.isNullOrEmpty(requestBody) && SystemHWUtil.findStr(requestBody, "=", 0).getCount() > 1) {
+                if (!requestBody.contains("&")) {
+                    String regux = "[^\\s{=\"},:']";
+                    String input;
+                    input = requestBody.replaceAll(",[\\s]*(" + regux + "+=)", "&$1");
+                    input = SystemHWUtil.deleteCurlyBraces(input);
+//                        input=input.replace(",,","&");
+                    ta.setText(input);
+                }
             }
         }
 
         public static void createMD5(String text, JTextComponent ta) {
-            try {
                 ta.setText(SystemHWUtil.getMD5(text, SystemHWUtil.CHARSET_UTF));
-            } catch (NoSuchAlgorithmException e1) {
-                e1.printStackTrace();
-            } catch (UnsupportedEncodingException e1) {
-                e1.printStackTrace();
             }
-        }
 
     }
+
+    public static void addDoubleShiftPopupMenu(AssistPopupTextField textField2) {
+        final JPopupMenu textPopupMenu = new JPopupMenu();
+        JMenuItem base64M = new JMenuItem("base64 编码");
+        JMenuItem deCodebase64M = new JMenuItem("base64 解码");
+        ShiftDropListMenuActionListener dropListMenuActionListener = new ShiftDropListMenuActionListener(textField2);
+        base64M.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(base64M);
+        deCodebase64M.addActionListener(dropListMenuActionListener);
+        textPopupMenu.add(deCodebase64M);
+        TextCompUtil2.dropListMenu(textField2, textPopupMenu);
+    }
+
 }

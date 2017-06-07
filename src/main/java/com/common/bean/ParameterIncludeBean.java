@@ -4,6 +4,7 @@ import com.common.util.SystemHWUtil;
 import com.common.util.WebServletUtil;
 import com.string.widget.util.ValueWidget;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -11,7 +12,7 @@ import java.net.URLEncoder;
  * @author huangweii
  *         2015年7月16日
  */
-public class ParameterIncludeBean {
+public class ParameterIncludeBean implements Serializable {
     private String key;
     private String value;
     /***

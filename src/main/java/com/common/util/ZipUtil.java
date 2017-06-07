@@ -2,7 +2,9 @@ package com.common.util;
 
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.RandomUtils;
+import com.time.util.TimeHWUtil;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -170,8 +172,8 @@ public final class ZipUtil {
 	 */
 	public static byte[] getContent(final byte[] zipBytes, final String name)
 			throws IOException {
-		File file = File.createTempFile(RandomUtils.getTimeRandom(), "."
-				+ "zip");
+        File file = File.createTempFile(RandomUtils.getTimeRandom(), SystemHWUtil.ENGLISH_PERIOD
+                + "zip");
 		FileOutputStream fileOutputStream = new FileOutputStream(file);
 		fileOutputStream.write(zipBytes);
 		fileOutputStream.flush();
@@ -354,29 +356,50 @@ public final class ZipUtil {
 	 * @throws IOException
 	 */
 	public static void compress(final File zipFile, final String srcFolder)
-			throws IOException {
-		File folder = new File(srcFolder);
-		FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
-		BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
-				fileOutputStream);
-		ZipOutputStream zipOutputStream = new ZipOutputStream(
-				bufferedOutputStream);
-		if (!folder.isDirectory()) {
-			compress(zipOutputStream, folder, srcFolder);
-		} else {
-			List<String> filenameList = listFilename(srcFolder);
-			for (String filename : filenameList) {
-				File file = new File(filename);
-				compress(zipOutputStream, file, srcFolder);
-			}
-		}
-		zipOutputStream.flush();
-		zipOutputStream.close();
-		bufferedOutputStream.flush();
-		bufferedOutputStream.close();
-		fileOutputStream.flush();
-		fileOutputStream.close();
-	}
+            throws IOException {
+        File folder = new File(srcFolder);
+        FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
+        BufferedOutputStream bufferedOutputStream = zipCompressOutputStream(srcFolder, folder, fileOutputStream);
+        bufferedOutputStream.close();
+        fileOutputStream.flush();
+        fileOutputStream.close();
+    }
+
+    public static File compress2response(HttpServletResponse response, final String srcFolder) throws IOException {
+        OutputStream outputStream = response.getOutputStream();
+        response.setContentType(SystemHWUtil.RESPONSE_CONTENTTYPE_ZIP);
+        WebServletUtil.setDownloadFileName(response, TimeHWUtil.getCurrentDateTime().replace(SystemHWUtil.BLANK, SystemHWUtil.UNDERLINE) + ".zip");
+        File folder = new File(srcFolder);
+        BufferedOutputStream bufferedOutputStream = zipCompressOutputStream(srcFolder, folder, outputStream);
+        bufferedOutputStream.close();
+        outputStream.flush();
+//        outputStream.close();
+        return folder;
+    }
+
+    public static BufferedOutputStream zipCompressOutputStream(String srcFolder, File folder, OutputStream fileOutputStream) throws IOException {
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
+                fileOutputStream);
+        ZipOutputStream zipOutputStream = new ZipOutputStream(
+                bufferedOutputStream);
+        compressAction(srcFolder, folder, zipOutputStream);
+        zipOutputStream.flush();
+        zipOutputStream.close();
+        bufferedOutputStream.flush();
+        return bufferedOutputStream;
+    }
+
+    public static void compressAction(String srcFolder, File folder, ZipOutputStream zipOutputStream) throws IOException {
+        if (!folder.isDirectory()) {
+            compress(zipOutputStream, folder, srcFolder);
+            return;
+        }
+        List<String> filenameList = listFilename(srcFolder);
+        for (String filename : filenameList) {
+            File file = new File(filename);
+            compress(zipOutputStream, file, srcFolder);
+        }
+    }
 
 	/**
 	 * @param zipOutputStream
@@ -435,8 +458,8 @@ public final class ZipUtil {
 	 */
 	public static void decompress(final byte[] zipBytes,
 			final String targetFolder) throws IOException {
-		File tempFile = File.createTempFile(RandomUtils.getTimeRandom(), "."
-				+ "zip");
+        File tempFile = File.createTempFile(RandomUtils.getTimeRandom(), SystemHWUtil.ENGLISH_PERIOD
+                + "zip");
 		FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
 		fileOutputStream.write(zipBytes);
 		fileOutputStream.flush();

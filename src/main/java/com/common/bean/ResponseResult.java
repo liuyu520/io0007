@@ -1,13 +1,21 @@
 package com.common.bean;
 
 import com.common.dict.Constant2;
+import com.common.util.RequestUtil;
 import com.common.util.SystemHWUtil;
+import com.http.bean.HttpRequestParameter;
+import com.http.bean.HttpResponseResult;
 import com.http.util.HttpSocketUtil;
 import com.io.hw.json.JSONHWUtil;
+import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
+import com.swing.dialog.toast.ToastMessage;
 import com.swing.messagebox.GUIUtil23;
+import com.swing.table.TableUtil3;
 import org.apache.log4j.Logger;
 
+import java.awt.*;
+import java.net.HttpURLConnection;
 import java.util.Map;
 
 /**
@@ -18,7 +26,7 @@ public class ResponseResult {
     private boolean myResult;
     private RequestInfoBean requestInfoBean;
     private String requestCharset;
-    private Object[] resultArr;
+    private HttpResponseResult resultArr;
     private int resCode;
     private String responseJsonResult;
     private Map<String, String> responseJsonMap;
@@ -26,6 +34,8 @@ public class ResponseResult {
     private AutoTestPanel autoTestPanel;
     private MemoAssistPopupTextArea resultTextPane;*/
     private String requestContentType = null;
+    private Map<String, java.util.List<String>> responseHeaderFields;
+    private HttpURLConnection huc;
     /***
      * 接口调用时间<br>
      * 单位:毫秒
@@ -59,11 +69,11 @@ public class ResponseResult {
         return myResult;
     }
 
-    public Object[] getResultArr() {
+    public HttpResponseResult getResultArr() {
         return resultArr;
     }
 
-    public void setResultArr(Object[] resultArr) {
+    public void setResultArr(HttpResponseResult resultArr) {
         this.resultArr = resultArr;
     }
 
@@ -76,32 +86,37 @@ public class ResponseResult {
     }
 
     public ResponseResult invoke() {
-        String port = getPort(requestInfoBean);
         String servletAction = requestInfoBean.getActionPath();//接口路径
         if (ValueWidget.isNullOrEmpty(servletAction)) {
-            logger.error("servletAction is null");
+            String errorMessage = "servletAction is null";
+            logger.error(errorMessage);
+            System.out.println(errorMessage);
             return null;
         }
         if (!servletAction.startsWith("/")) {//兼容"接口"文本框前面没有斜杠
             servletAction = "/" + servletAction;
         }
-        String url = (requestInfoBean.isSsl() ? "https://" : "http://")
-                + requestInfoBean.getServerIp();
-        if (!ValueWidget.isNullOrEmpty(port)) {
-            url = url + port;
-        }
+        String url = HttpSocketUtil.getUrlPrefix(requestInfoBean);
         url = url + servletAction;
         String postData = null;
 
 
         boolean forcePost = false;
         if (!requestInfoBean.isRequestBodyIsJson() && requestInfoBean.getRequestMethod() == Constant2.REQUEST_METHOD_GET && !ValueWidget.isNullOrEmpty(requestInfoBean.getRequestBodyData())) {//GET请求
-            url += ("?" + requestInfoBean.getRequestBodyData());
+            String getQueryString = null;
+            if (null == requestInfoBean.getParameters()) {
+                getQueryString = ValueWidget.getRequestBodyFromMap(requestInfoBean.getRequestParameters(), true);
+            } else {
+                StringBuffer sbuffer = TableUtil3.getRequestBodyFromList(requestInfoBean.getParameters(), requestInfoBean.isUrlEncoding(), requestCharset, requestInfoBean.isAutoUrlEncoding());
+                getQueryString = sbuffer.toString();
+            }
+            url += ("?" + getQueryString);
         } else {//POST请求
             postData = requestInfoBean.getRequestBodyData();
+            //注意:如果是POST请求,则不需要url编码
             //自定义的content type的优先级高
             if (ValueWidget.isNullOrEmpty(requestInfoBean.getCustomRequestContentType())) {
-                requestContentType = getReqContentType();
+                requestContentType = requestInfoBean.getReqContentType();
             } else {
                 requestContentType = requestInfoBean.getCustomRequestContentType();
             }
@@ -113,11 +128,8 @@ public class ResponseResult {
 
         HttpSocketUtil.setDetail(true);
         //获取请求方法,例如 GET,POST,PUT,DELETE
-        String requestMethod = null;
         if (requestInfoBean.isRequestBodyIsJson()) {
-            requestMethod = "POST";
-        } else {
-            requestMethod = getRequestMethod(requestInfoBean);
+            forcePost = true;
         }
         byte[] resultJsonBytes = null;
         resultArr = null;
@@ -129,26 +141,48 @@ public class ResponseResult {
             //request result(byte[]) ;sessionId;contentType;response code
             long start = System.currentTimeMillis();//接口调用的开始时刻
             //真正发送请求
-            resultArr = HttpSocketUtil.httpRequest(url, requestInfoBean.isSsl(),
-                    forcePost, requestMethod, postData, requestContentType,
-                    requestInfoBean.getRequestCookie(), null, false/*isWrite2file */, null, requestCharset/*newEncoding*/,
-                    85000, 85000);
+            HttpRequestParameter httpRequestParameter = new HttpRequestParameter();
+            httpRequestParameter.setUrl(url)
+                    .setSsl(requestInfoBean.isSsl())
+                    .setForcePost(forcePost)
+                    .setSendData(postData)
+                    .setContentType(requestContentType)
+                    .setRequestCookie(requestInfoBean.getRequestCookie())
+                    .setHeaders(requestInfoBean.getHeaderMap())
+                    .setRequestCharset(requestCharset)
+                    .setConnectTimeout(85000)
+                    .setReadTimeout(85000);
+            /*resultArr = HttpSocketUtil.httpRequest(url, requestInfoBean.isSsl(),
+                    forcePost, requestMethod, postData*//*没有进行url编码*//*, requestContentType,
+                    requestInfoBean.getRequestCookie(), requestInfoBean.getHeaderMap(), false*//*isWrite2file *//*, null, requestCharset*//*newEncoding*//*,
+                    85000, 85000);*/
+            resultArr = HttpSocketUtil.httpRequest(httpRequestParameter);
             long end = System.currentTimeMillis();
             setDelta(end - start);//接口调用时间
-            Integer respCode = (Integer) resultArr[3];
+            Integer respCode = resultArr.getResponseCode();
+            String responseContentType = resultArr.getContentType();
+            System.out.println("response Content-Type:" + responseContentType);
             resCode = respCode.intValue();
 
-
-            resultJsonBytes = (byte[]) resultArr[0];
+            resultJsonBytes = resultArr.getResponse();
             if (ValueWidget.isNullOrEmpty(resultJsonBytes)) {
                 myResult = true;
                 return this;
             }
-            String resultJson = new String(resultJsonBytes,
-                    SystemHWUtil.CHARSET_GBK);
+            String responseCharset = null;
+            //response:
+            //Content-Type : text/html;charset=GBK
+            if (!ValueWidget.isNullOrEmpty(responseContentType) && RegexUtil.contain2(responseContentType, "charset=GBK")) {
+                responseCharset = SystemHWUtil.CHARSET_GBK;
+            } else {
+                responseCharset = SystemHWUtil.CHARSET_UTF;
+            }
+            this.huc = resultArr.getHttpURLConnection();
+            this.responseHeaderFields = huc.getHeaderFields();
+//            String resultJson = new String(resultJsonBytes,
+//                    SystemHWUtil.CHARSET_GBK);
 //            System.out.println("resultJson(GBK):" + resultJson);
-            this.responseJsonResult = new String(resultJsonBytes,
-                    SystemHWUtil.CHARSET_UTF);
+            this.responseJsonResult = new String(resultJsonBytes, responseCharset);
             responseJsonMap = JSONHWUtil.getMap(this.responseJsonResult);
         } catch (Exception e1) {
             e1.printStackTrace();
@@ -156,6 +190,9 @@ public class ResponseResult {
                     runButton.setEnabled(true);
                 }*/
             GUIUtil23.errorDialog(e1);
+            if (requestInfoBean.isSsl()) {//让错误提示更加人性化,更精确
+                ToastMessage.toast("请确认是否支持httpS", 3000, Color.RED);
+            }
         }
         myResult = false;
         return this;
@@ -223,5 +260,14 @@ public class ResponseResult {
     public void setDelta(long delta) {
         this.delta = delta;
     }
-    
+
+    public String getHeaderFieldVal(String key) {
+        if (null == this.huc) {
+            return null;
+        }
+        CookieSetInfo cookieSetInfo = RequestUtil.buildCookieSetInfo(this.responseHeaderFields, key);
+        return cookieSetInfo.getCookies();
+    }
+
+
 }

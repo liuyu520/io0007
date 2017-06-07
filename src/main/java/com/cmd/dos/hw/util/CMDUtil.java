@@ -49,6 +49,13 @@ public class CMDUtil {
             p = Runtime.getRuntime().exec(command2);
             System.out.println(command2);
             reader = new BufferedReader(new InputStreamReader(p.getInputStream(),charset));
+            byte[] bytes = FileUtils.readBytes3(p.getErrorStream());
+            if (!ValueWidget.isNullOrEmpty(bytes)) {
+                System.out.println(new String(bytes, charset));
+                if (SystemHWUtil.isWindows) {
+                    System.out.println(new String(bytes, SystemHWUtil.CHARSET_GBK));
+                }
+            }
         }
         catch (IOException e)
         {
@@ -94,8 +101,8 @@ public class CMDUtil {
 	 * @throws IOException 
 	 */
 	public static String unicode2Native(String nativeStr) throws IOException {
-		FileUtils.writeToFile(filePath_name, nativeStr);
-		return cmdCmdreStr("native2ascii -reverse " + filePath_name,null);
+        FileUtils.writeToFile(filePath_name, nativeStr, false);
+        return cmdCmdreStr("native2ascii -reverse " + filePath_name,null);
 	}
 
 	public static String resolveUnicode(String fileContent, boolean isToUnicode) {
@@ -148,8 +155,8 @@ public class CMDUtil {
 		 BufferedReader reader = null;
 		 Process p = null;
 		 String errorInputStr = null;
-	        try
-	        {
+        String content = null;
+        try {
 //	        	String commandFolder=;
 	        	if(ValueWidget.isNullOrEmpty(charset)){
 	        		charset=SystemHWUtil.CURR_ENCODING;
@@ -199,16 +206,20 @@ public class CMDUtil {
 	                    e.printStackTrace();
 	                }
 	            }
-	            String content = sb.toString();
-	            System.out.println(content);
+                content = sb.toString();
+            System.out.println(content);
 	        }
 	        catch (IOException e)
 	        {
 	            e.printStackTrace();
 	            throw e;
 	        }
-	        return errorInputStr;
-	}
+        if (ValueWidget.isNullOrEmpty(content)) {
+            return errorInputStr;
+        } else {
+            return errorInputStr + SystemHWUtil.CRLF + content;
+        }
+    }
 	/***
 	 * 仅适用于windows 系统,会调用本地命令<br>
 	 * hide:attrib ".mqtt_client.properties" +H<br>

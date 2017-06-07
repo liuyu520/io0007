@@ -1,8 +1,11 @@
 package com.common.bean;
 
 import com.common.dict.Constant2;
+import com.common.util.SystemHWUtil;
 import com.common.util.WebServletUtil;
+import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
+import org.apache.commons.collections.map.ListOrderedMap;
 
 import java.io.Serializable;
 import java.util.*;
@@ -39,6 +42,10 @@ public class RequestInfoBean implements Serializable {
      * POST:2<br>GET:0
      */
     private int requestMethod;
+    /***
+     * "GET","POST","PUT"
+     */
+    private String requestMethodDisplayName;
     /***
      * 请求体
      */
@@ -132,6 +139,51 @@ public class RequestInfoBean implements Serializable {
      * 注意:不是从配置文件中读取的,而是计算出来的.
      */
     private Set<String> preRequestIds;
+    /***
+     * 冗余字段,不序列化,只是为了传递到com/common/bean/ResponseResult.java 中
+     */
+    private List<ParameterIncludeBean> parameters;
+    /***
+     * 是否智能地判断 <br />
+     * 注意:不是强制进行url编码,
+     * <br /> http请求参数中含有& 或者空格,才URL编码
+     * <br /> see /Users/whuanghkl/work/mygit/io0007_new/src/main/java/com/common/util/WebServletUtil.java 中的方法isShouldURLEncode
+     *
+     */
+    private boolean isAutoUrlEncoding;
+    /***
+     * 是否立即发送请求<br />
+     * 存储到什么地方呢?<br />
+     * RequestPanel的成员变量OriginalRequestInfoBean 中
+     */
+    private boolean isSendRightNow;
+    /***
+     * 请求头
+     */
+    private ListOrderedMap headerMap;
+    /***
+     * 是否是请求体参数,<br />而不是header
+     */
+    private boolean isHttpRequestParameter = true;
+    /***
+     * "http请求结果","格式化的json","备忘"标签页的selectedIndex
+     */
+    private int responseResultTabIndex = 0;
+    /***
+     * 是否复制请求结果中的字段<br />
+     * 通过解析json得到
+     */
+    private boolean isCopyFieldInResponse;
+    /***
+     * 与<param>isCopyFieldInResponse</param>配合使用<br />
+     * 要复制的属性名,例如复制<br />
+     * {
+     "auth_code": "TzIcph"
+     }
+     中的auth_code 的值
+     */
+    private String copyFieldName;
+    private RequestInRangeInfo requestInRangeInfo;
 
     public String getPreRequestId() {
         return preRequestId;
@@ -342,6 +394,10 @@ public class RequestInfoBean implements Serializable {
         return ssl;
     }
 
+    /***
+     * 表示是https
+     * @param ssl
+     */
     public void setSsl(boolean ssl) {
         this.ssl = ssl;
     }
@@ -439,5 +495,130 @@ public class RequestInfoBean implements Serializable {
     public void setPreRequestIds(Set<String> preRequestIds) {
         this.preRequestIds = preRequestIds;
     }
-    
+
+    public List<ParameterIncludeBean> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<ParameterIncludeBean> parameters) {
+        this.parameters = parameters;
+    }
+
+    /***
+     * 是否智能地判断 <br />
+     * 注意:不是强制进行url编码,
+     * <br /> http请求参数中含有& 或者空格,才URL编码
+     * <br /> see /Users/whuanghkl/work/mygit/io0007_new/src/main/java/com/common/util/WebServletUtil.java 中的方法isShouldURLEncode
+     *
+     */
+    public boolean isAutoUrlEncoding() {
+        return isAutoUrlEncoding;
+    }
+
+    /***
+     * 是否智能地判断 <br />
+     * 注意:不是强制进行url编码,
+     * <br /> http请求参数中含有& 或者空格,才URL编码
+     * <br /> see /Users/whuanghkl/work/mygit/io0007_new/src/main/java/com/common/util/WebServletUtil.java 中的方法isShouldURLEncode
+     *
+     */
+    public void setAutoUrlEncoding(boolean autoUrlEncoding) {
+        isAutoUrlEncoding = autoUrlEncoding;
+    }
+
+    /***
+     * 是否立即发送请求<br />
+     * 存储到什么地方呢?<br />
+     * RequestPanel的成员变量OriginalRequestInfoBean 中
+     */
+    public boolean isSendRightNow() {
+        return isSendRightNow;
+    }
+
+    /***
+     * 是否立即发送请求<br />
+     * 存储到什么地方呢?<br />
+     * RequestPanel的成员变量OriginalRequestInfoBean 中
+     */
+    public void setSendRightNow(boolean sendRightNow) {
+        isSendRightNow = sendRightNow;
+    }
+
+    public ListOrderedMap getHeaderMap() {
+        return headerMap;
+    }
+
+    public void setHeaderMap(ListOrderedMap headerMap) {
+        this.headerMap = headerMap;
+    }
+
+    public String getRequestMethodDisplayName() {
+        return requestMethodDisplayName;
+    }
+
+    public void setRequestMethodDisplayName(String requestMethodDisplayName) {
+        this.requestMethodDisplayName = requestMethodDisplayName;
+    }
+
+    public boolean isHttpRequestParameter() {
+        return isHttpRequestParameter;
+    }
+
+    public void setHttpRequestParameter(boolean httpRequestParameter) {
+        isHttpRequestParameter = httpRequestParameter;
+    }
+
+    /***
+     * 获取请求的content type
+     * @return
+     */
+    public String getReqContentType() {
+        RequestInfoBean requestInfoBean = this;
+        String contentType = null;
+        if (requestInfoBean.isRequestBodyIsJson()) {
+            contentType = SystemHWUtil.CONTENTTYPE_JSON;
+        } else {
+            contentType = SystemHWUtil.CONTENTTYPE_X_WWW_FORM_URLENCODED;
+        }
+
+        if (requestInfoBean.isEncodingCheckbox() && (!RegexUtil.contain2(contentType, "charset"))) {//是否选中了复选框
+            contentType = contentType + (";charset=" + requestInfoBean.getCharset());//request.getCharacterEncoding() 获取的就是该编码
+        }
+        return contentType;
+    }
+
+    public int getResponseResultTabIndex() {
+        return responseResultTabIndex;
+    }
+
+    public void setResponseResultTabIndex(int responseResultTabIndex) {
+        this.responseResultTabIndex = responseResultTabIndex;
+    }
+
+    public boolean isCopyFieldInResponse() {
+        return isCopyFieldInResponse;
+    }
+
+    public void setCopyFieldInResponse(boolean copyFieldInResponse) {
+        isCopyFieldInResponse = copyFieldInResponse;
+    }
+
+    public String getCopyFieldName() {
+        return copyFieldName;
+    }
+
+    public void setCopyFieldName(String copyFieldName) {
+        this.copyFieldName = copyFieldName;
+    }
+
+    public RequestInRangeInfo getRequestInRangeInfo() {
+        if (null == requestInRangeInfo) {
+            return new RequestInRangeInfo();
+        }
+        return requestInRangeInfo;
+    }
+
+    public void setRequestInRangeInfo(RequestInRangeInfo requestInRangeInfo) {
+        this.requestInRangeInfo = requestInRangeInfo;
+    }
 }

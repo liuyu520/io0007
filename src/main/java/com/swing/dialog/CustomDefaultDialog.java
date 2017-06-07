@@ -30,13 +30,13 @@ public class CustomDefaultDialog extends GenericDialog {
 
 	
     public CustomDefaultDialog(String helpDesc,String title,boolean isParseHtml){
-    	this(helpDesc, title, isParseHtml, null);
+        this(helpDesc, title, isParseHtml, null, null);
     }
 	/**
 	 * Create the frame.
 	 */
-	public CustomDefaultDialog(String helpDesc,String title,boolean isParseHtml,Integer height) {
-		if(helpDesc==null){
+    public CustomDefaultDialog(String helpDesc, String title, boolean isParseHtml, Integer height, Integer width) {
+        if(helpDesc==null){
 			helpDesc=SystemHWUtil.EMPTY;
 		}
 		if(ValueWidget.isNullOrEmpty(title)){
@@ -47,8 +47,11 @@ public class CustomDefaultDialog extends GenericDialog {
 		if(null==height){
 			height=430;
 		}
-		setLoc(450, height);
-		JPanel contentPane = new JPanel();
+        if (null == width) {
+            width = 450;
+        }
+        setLoc(width, height);
+        JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));

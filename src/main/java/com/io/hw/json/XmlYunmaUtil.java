@@ -5,6 +5,7 @@ import com.common.bean.StubRange;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.Map;
  *
  */
 public class XmlYunmaUtil {
+    protected static final Logger logger = Logger.getLogger(XmlYunmaUtil.class);
     public static final char TAG_BEGIN_CHAR = '<';
     public static final String TAG_BEGIN_String = "<";
 
@@ -27,6 +29,13 @@ public class XmlYunmaUtil {
     static int index;
 
 
+    /**
+     * 获取标签名称
+     *
+     * @param xmlContent
+     * @param pos
+     * @return
+     */
     private static ParseBean parseElementName(String xmlContent, int pos) {
         int totalLength = xmlContent.length();
         int i = pos;
@@ -62,11 +71,7 @@ public class XmlYunmaUtil {
         while (i < totalLength) {
             char c = xmlContent.charAt(i);
             if (c == '"' && xmlContent.charAt(i - 1) != '\\') {
-                if (isQuote) {
-                    isQuote = false;
-                } else {
-                    isQuote = true;
-                }
+                isQuote = !isQuote;
             }
 //			if(ValueWidget.isBlank(c)||ValueWidget.isWordChar(c)){//如果是汉字,有问题
             if (c != '>' && c != '<' || (i > 1 && (c == '<' || c == '>') && xmlContent.charAt(i - 1) == '"')/*"<div 不算开始标签*/
@@ -79,7 +84,8 @@ public class XmlYunmaUtil {
             }
             if (c == '<' && xmlContent.charAt(i + 1) != '/') {
                 return -1;
-            } else if (c == '<') {
+            }
+            if (c == '<') {
                 return i;
             }
         }
@@ -174,10 +180,10 @@ public class XmlYunmaUtil {
             }
             if (c == XmlYunmaUtil.TAG_BEGIN_CHAR/*  > */) {
                 return i;
-            } else {//不是空格,但是又不是>,所以还没有结尾
+            }
+            //不是空格,但是又不是>,所以还没有结尾
                 break;
             }
-        }
         return -1;
     }
 
@@ -224,24 +230,7 @@ public class XmlYunmaUtil {
                 if (c2 == '/') {
                     break;
                 } else {
-                    ParseBean parseBean = parseElementName(xmlContent, begin + 1);
-                /*if(parseBean.getResult().equals("level")){
-					System.out.println("level");
-				}*/
-                    System.out.println(parseBean);
-                    index = parseBean.getLengthHasRead();
-                    root = new Element();
-                    root.setTextNode(false);
-                    root.setAttributes(attributes);
-                    List<Element> children = new ArrayList<Element>();//子节点
-                    root.setChildren(children);
-
-                    root.setName(parseBean.getResult());
-                    if (!ValueWidget.isNullOrEmpty(parentElement)) {
-                        parentElement.getChildren().add(root);
-                        parentElement.addChildToMap(root);
-                        root.setParent(parentElement);
-                    }
+                    root = readElement(xmlContent, parentElement, attributes, begin);
                 }
             } else {
                 int endIndex = isEndOfTag(xmlContent, index);
@@ -252,17 +241,7 @@ public class XmlYunmaUtil {
                     if (textNodeIndex == -1) {
                         Element element2 = getElement(xmlContent, index, root);
                     } else {//Text Node
-                        Element element2 = new Element();
-                        element2.setTextNode(true);
-                        element2.setName(xmlContent.substring(index, textNodeIndex).trim());
-                        List<Element> children2 = root.getChildren();
-                        if (children2 == null) {
-                            children2 = new ArrayList<Element>();
-                        }
-                        children2.add(element2);
-                        root.addChildToMap(element2);
-                        root.setChildren(children2);
-                        element2.setParent(root);
+                        textNode(xmlContent, root, textNodeIndex);
                         index = root.getEndTag().length() + textNodeIndex;
                     }
                 }
@@ -275,50 +254,92 @@ public class XmlYunmaUtil {
                 int endIndex = isEnd(xmlContent, index, parentElement.getEndTag());
                 if (endIndex != -1) {
                     index = endIndex;
-                    if (parentElement.getName().equals("cc")) {
+                    /*if (parentElement.getName().equals("cc")) {
                         System.out.println("cc");
-                    }
+                    }*/
                     break;
                 } else {
                     //兄弟节点
-                    Element element33 = getElement(xmlContent, index, parentElement);
-                    if (element33 != null && element33.getName().equals("value")) {
-                        System.out.println("value");
-                    }
-                    loop = true;
-                    if (null != element33 && null != element33.getParent()) {
-                        element33.getParent().addChildToMap(element33);
-                    }
+                    brotherNode(xmlContent, parentElement);
                     break;//到了兄弟节点,说明本节点已经扫描结束了.
                 }
             }
             ParseBean parseBean = null;
             do {
-                parseBean = parseAttribute(xmlContent, index);
-                if (ValueWidget.isNullOrEmpty(parseBean)) {
-                    continue;
-                }
-                String attributeStr = parseBean.getResult();
-                if (!ValueWidget.isNullOrEmpty(attributeStr)) {
-                    String[] strs = attributeStr.split("=");
-                    //删除属性值两边的双引号
-                    attributes.put(strs[0], SystemHWUtil.delDoubleQuotation(strs[1]));
-                    index = parseBean.getLengthHasRead();
-                }
+                parseBean = readAttributeAction(xmlContent, attributes);
             } while (parseBean != null && (!ValueWidget.isNullOrEmpty(parseBean.getResult())));
 
-//			ParseBean parseBean=parseElementName(xmlContent, i);
-//			if (xmlContent.charAt(i) == keyWord.charAt(j)) {
-//				++i;
-//				++j;
-//				if (j == keyWord.length()) {
-//					k = k + 1;// k++
-//					j = 0;
-//				}
-//			} else {
-//				i = i - j + 1;
-//				j = 0;
-//			}
+        }
+        return root;
+    }
+
+    /***
+     * 读取属性
+     * @param xmlContent
+     * @param attributes
+     * @return
+     */
+    private static ParseBean readAttributeAction(String xmlContent, Map<String, Object> attributes) {
+        ParseBean parseBean;
+        parseBean = parseAttribute(xmlContent, index);
+        if (ValueWidget.isNullOrEmpty(parseBean)) {
+            return parseBean;
+        }
+        String attributeStr = parseBean.getResult();
+        if (!ValueWidget.isNullOrEmpty(attributeStr)) {
+            String[] strs = attributeStr.split("=");
+            //删除属性值两边的双引号
+            attributes.put(strs[0], SystemHWUtil.delDoubleQuotation(strs[1]));
+            index = parseBean.getLengthHasRead();
+        }
+        return parseBean;
+    }
+
+    private static void brotherNode(String xmlContent, Element parentElement) {
+        boolean loop;
+        Element element33 = getElement(xmlContent, index, parentElement);
+        if (element33 != null && element33.getName().equals("value")) {
+            System.out.println("value");
+        }
+        loop = true;
+        if (null != element33 && null != element33.getParent()) {
+            element33.getParent().addChildToMap(element33);
+        }
+    }
+
+    private static void textNode(String xmlContent, Element root, int textNodeIndex) {
+        Element element2 = new Element();
+        element2.setTextNode(true);
+        element2.setName(xmlContent.substring(index, textNodeIndex).trim());
+        List<Element> children2 = root.getChildren();
+        if (children2 == null) {
+            children2 = new ArrayList<Element>();
+        }
+        children2.add(element2);
+        root.addChildToMap(element2);
+        root.setChildren(children2);
+        element2.setParent(root);
+    }
+
+    private static Element readElement(String xmlContent, Element parentElement, Map<String, Object> attributes, int begin) {
+        Element root;
+        ParseBean parseBean = parseElementName(xmlContent, begin + 1);
+                /*if(parseBean.getResult().equals("level")){
+                    System.out.println("level");
+				}*/
+//        System.out.println(parseBean);
+        index = parseBean.getLengthHasRead();
+        root = new Element();
+        root.setTextNode(false);
+        root.setAttributes(attributes);
+        List<Element> children = new ArrayList<Element>();//子节点
+        root.setChildren(children);
+
+        root.setName(parseBean.getResult());
+        if (!ValueWidget.isNullOrEmpty(parentElement)) {
+            parentElement.getChildren().add(root);
+            parentElement.addChildToMap(root);
+            root.setParent(parentElement);
         }
         return root;
     }
@@ -388,31 +409,59 @@ public class XmlYunmaUtil {
     public static String assembleStub(StubRange stubRange) {
         if (ValueWidget.isNullOrEmpty(stubRange.getStubs())) {
             return SystemHWUtil.EMPTY;
-        } else if (stubRange.getStubs().size() == 1) {
+        }
+        //解决只有一个stub时, 设置attributeName不生效的问题
+        /*if (stubRange.getStubs().size() == 1) {
             return stubRange.getStubs().get(0);
-        } else {
+        }*/
             List<String> stubs = stubRange.getStubs();
-            StringBuffer stringBuffer = new StringBuffer("<list index=\"" + stubRange.getSelectedIndex() + "\" >");
+        StringBuffer stringBuffer = new StringBuffer("<list index=\"" + stubRange.getSelectedIndex() + "\" ");
+        if (!ValueWidget.isNullOrEmpty(stubRange.getAttributeName())) {
+            stringBuffer.append(" attributeName=\"" + stubRange.getAttributeName() + "\"");
+        }
+        stringBuffer.append(" >");
             stringBuffer.append(SystemHWUtil.CRLF);
             for (int i = 0; i < stubs.size(); i++) {
-                stringBuffer.append("   <value>").append(stubs.get(i)).append("</value>").append(SystemHWUtil.CRLF);
+                stringBuffer.append("   <value ");
+                String attributeVal = (String) SystemHWUtil.reverseMap(stubRange.getAttributeValIndexMap()).get(i);
+                stringBuffer.append(" attributeVal=\"" + (attributeVal == null ? SystemHWUtil.EMPTY : attributeVal) + "\" ");
+                stringBuffer.append(" >").append(SystemHWUtil.CRLF).append(stubs.get(i)).append(SystemHWUtil.CRLF).append("</value>").append(SystemHWUtil.CRLF);
             }
             stringBuffer.append("</list>");
             return stringBuffer.toString();
         }
-    }
 
     public static void assembleStubAndSave(StubRange stubRange, File file) {
         String result = assembleStub(stubRange);
         FileUtils.writeStrToFile(file, result, true);
     }
 
-    public static PomDependency getPomDependency(String xml) {
-        PomDependency pomDependency = new PomDependency();
+    public static List<PomDependency> getPomDependencies(String xml) {
+        if (ValueWidget.isNullOrEmpty(xml)) {
+            logger.error("xml is null");
+            return null;
+        }
+        xml = xml.trim();
+
         Element root = getElement(xml, 0, null);
-        pomDependency.setGroupId(root.getChildByName("groupId").getTextNode());
-        pomDependency.setArtifactId(root.getChildByName("artifactId").getTextNode());
-        pomDependency.setVersion(root.getChildByName("version").getTextNode());
+        List<PomDependency> pomDependencies = new ArrayList<>();
+        if (root.getName().equals("dependencies")) {
+            List<Element> elements = root.getChildren();
+            int size = elements.size();
+            for (int i = 0; i < size; i++) {
+                pomDependencies.add(getSingleDependency(elements.get(i)));
+            }
+        } else {
+            pomDependencies.add(getSingleDependency(root));
+        }
+        return pomDependencies;
+    }
+
+    public static PomDependency getSingleDependency(Element root) {
+        PomDependency pomDependency = new PomDependency();
+        pomDependency.setGroupId(root.getChildByName("groupId").getTextNode())
+                .setArtifactId(root.getChildByName("artifactId").getTextNode())
+                .setVersion(root.getChildByName("version").getTextNode());
         if (!ValueWidget.isNullOrEmpty(root.getChildByName("type"))) {
             pomDependency.setType(root.getChildByName("type").getTextNode());
         }
@@ -438,16 +487,23 @@ public class XmlYunmaUtil {
         input = input.trim();
         if (input.startsWith("<list")) {//因为list可以有属性index
             Element root = getElement(input, 0, null);
-            if ("list".equals(root.getName())) {
+            if (!"list".equals(root.getName())) {
+                return null;
+            }
+            StubRange stubRange = new StubRange();
+            setAttributeName(root, stubRange);
+
                 List<String> stubs = new ArrayList<String>();
                 List<Element> list = root.getChildren();
+
                 for (int i = 0; i < list.size(); i++) {
-                    if ("value".equals(list.get(i).getName())) {
-                        Element element = list.get(i).getChildren().get(0);
-                        stubs.add(element.getName());
+                    Element elementValue = list.get(i);
+                    if ("value".equals(elementValue.getName())) {
+                        setAttributeValIndexMap(stubRange, i, elementValue);
+                        Element textElement = elementValue.getChildren().get(0);
+                        stubs.add(textElement.getName());
                     }
                 }
-                StubRange stubRange = new StubRange();
                 String indexStr = (String) root.getAttributes().get("index");
                 if (!ValueWidget.isNullOrEmpty(indexStr) && ValueWidget.isNumeric(indexStr)) {
                     stubRange.setSelectedIndex(Integer.parseInt(indexStr));
@@ -455,17 +511,36 @@ public class XmlYunmaUtil {
 
                 stubRange.setStubs(stubs);
                 return stubRange;
+
             }
-        } else {
             List<String> stubs = new ArrayList<String>();
             stubs.add(input);
             StubRange stubRange = new StubRange();
-            stubRange.setSelectedIndex(0);
-            stubRange.setStubs(stubs);
+        stubRange.setSelectedIndex(0)
+                .setStubs(stubs);
             return stubRange;
         }
 
-        return null;
+    private static void setAttributeValIndexMap(StubRange stubRange, int i, Element elementValue) {
+        Map<String, Object> attributes2 = elementValue.getAttributes();
+        String keyOfValue = "attributeVal";
+        if (attributes2.containsKey(keyOfValue)) {
+            String val = (String) attributes2.get(keyOfValue);
+            if (!ValueWidget.isNullOrEmpty(val)) {
+                stubRange.getAttributeValIndexMap().put(val, i);
+            }
+        }
+    }
+
+    private static void setAttributeName(Element root, StubRange stubRange) {
+        Map<String, Object> attributes = root.getAttributes();
+        String key = "attributeName";
+        if (attributes.containsKey(key)) {
+            String val = (String) attributes.get(key);
+            if (null != val) {
+                stubRange.setAttributeName(val);
+            }
+        }
     }
 
     //    @Test
@@ -537,7 +612,7 @@ public class XmlYunmaUtil {
     //	@Test
     public void test22() throws IOException {
         StringBuffer content = FileUtils.getFullContent3("D:\\software\\eclipse\\workspace3\\oa_framework\\src\\main\\resources\\ask_for_leave.xml"
-                , "UTF-8");
+                , SystemHWUtil.CHARSET_UTF);
 //		String content="<flow id=\"1 2\"  > <name id=\"111\" > <html id=\"ggg\"  > "
 //				+ "<body>aaaa </body>  </html>  </name>   <name id=\"222\" >  bbb  </name>  </flow>";
 //		String content="<flow id=\"1 2\">aaa   </flow>";
@@ -567,7 +642,7 @@ public class XmlYunmaUtil {
     public void test_stub() {
         String xmlFile = "/Users/whuanghkl/work/project/stub_test/src/main/webapp/stub/a/b/c/d.json";
         try {
-            String content = FileUtils.getFullContent2(new File(xmlFile), "UTF-8", true);
+            String content = FileUtils.getFullContent2(new File(xmlFile), SystemHWUtil.CHARSET_UTF, true);
             Element root = getElement(content, 0, null);
             System.out.println(root);
             List<Element> list = root.getChildren();
@@ -594,14 +669,20 @@ public class XmlYunmaUtil {
 
     //    @org.junit.Test
     public void test_getPomDependency() {
-        String xml = "<dependency>" +
-                "            <groupId>log4j</groupId>" +
+        String xml = "<dependencies><dependency>" +
+                "            <groupId>log4j333</groupId>" +
                 "            <artifactId>log4j</artifactId>" +
                 "            <version>1.2.15</version>" +
                 "            <type>jar</type>" +
-                "</dependency>";
-        PomDependency pomDependency = getPomDependency(xml);
-
+                "</dependency>" +
+                " <dependency>" +
+                "            <groupId>log4j444</groupId>" +
+                "            <artifactId>log5j</artifactId>" +
+                "            <version>1.2.16</version>" +
+                "            <type>jar</type>" +
+                "</dependency></dependencies>";
+        List<PomDependency> pomDependency = getPomDependencies(xml);
+        System.out.println(" :" + JSONHWUtil.formatJson(HWJacksonUtils.getJsonP(pomDependency)));
     }
 
     private static class ParseBean {

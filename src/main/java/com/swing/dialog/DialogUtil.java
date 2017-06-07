@@ -5,13 +5,17 @@ import com.common.bean.FindTxtResultBean;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
+import com.swing.component.AssistPopupTextArea;
+import com.swing.component.TextCompUtil2;
 import com.swing.component.inf.IPlaceHolder;
 import com.swing.dialog.inf.DialogInterface;
 import com.swing.dialog.toast.ToastMessage;
+import com.swing.event.EventHWUtil;
 import com.swing.messagebox.GUIUtil23;
 import com.time.util.TimeHWUtil;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -26,7 +30,9 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class DialogUtil {
 	private DialogUtil() {
@@ -65,16 +71,16 @@ public final class DialogUtil {
 		}
 		File selectedFile = file.getSelectedFile();
 		String dir = null;
-		if (selectedFile != null) {
-			dir = selectedFile.getAbsolutePath();
+        if (selectedFile == null) {
+            bean.setSuccess(false);
+            return bean;
+        }
+        dir = selectedFile.getAbsolutePath();
 			bean.setSelectedFile(selectedFile);
 			if (!ValueWidget.isNullOrEmpty(field)) {
 				field.setText(dir);
 			}
 			bean.setSuccess(true);
-		} else {
-			bean.setSuccess(false);
-		}
 		return bean;
 	}
 
@@ -100,14 +106,18 @@ public final class DialogUtil {
 		if (null != selectFile) {
 			fileChooser.setSelectedFile(selectFile);
 		}
-		/* int resule = */fileChooser.showOpenDialog(comp);
-		// System.out.println(" :" + resule);
-		// if (resule == JFileChooser.DIRECTORIES_ONLY) {
+        int result =
+                fileChooser.showOpenDialog(comp);
+//         System.out.println(" :" + result);
+        // if (resule == JFileChooser.DIRECTORIES_ONLY) {
 		// String fileName = file.getSelectedFile().getName();
 		File selectedFile = fileChooser.getSelectedFile();
 		String dir = null;
-		if (selectedFile != null) {
-			dir = selectedFile.getAbsolutePath();
+        //注意:选中了文件,但是点击[取消],返回值selectedFile不为null
+        if (selectedFile == null || JOptionPane.YES_OPTION != result) {
+            return false;
+        }
+        dir = selectedFile.getAbsolutePath();
 			// int isOpen = JOptionPane.showConfirmDialog(null, dir, " ",
 			// JOptionPane.YES_OPTION);
 			// if (isOpen == 0)
@@ -122,8 +132,6 @@ public final class DialogUtil {
 			// // System.out.println(" ...");
 			// }
 		}
-		return false;
-	}
 
 	/***
 	 * 
@@ -557,9 +565,14 @@ public final class DialogUtil {
 					}
 				});
 	}
-	
-	public static void dragResponse(List<File> list, Component component) {
-		String filePath=list.get(0).getAbsolutePath();
+
+    /***
+     * 只显示第一个文件
+     * @param list
+     * @param component
+     */
+    public static void dragResponse(List<File> list, Component component) {
+        String filePath=list.get(0).getAbsolutePath();
         if (null != filePath) {
             filePath = filePath.trim();
         }
@@ -571,7 +584,27 @@ public final class DialogUtil {
             }
         }
 
-	}
+    }
+
+    /***
+     * 显示所有的文件
+     * @param list
+     * @param component
+     */
+    public static void dragResponseAllFiles(List<File> list, Component component) {
+        if (!ValueWidget.isNullOrEmpty(list)) {
+            if (component instanceof JTextComponent) {
+                StringBuffer filePathBuffer = new StringBuffer();
+                for (File file : list) {
+                    filePathBuffer.append(file.getAbsolutePath()).append(SystemHWUtil.CRLF);
+                }
+                JTextComponent text = (JTextComponent) component;
+                //把文本框的内容设置为拖拽文件的全路径
+                text.setText(filePathBuffer.toString().replaceAll(SystemHWUtil.CRLF + "$", SystemHWUtil.EMPTY));
+            }
+        }
+
+    }
 
     /***
      * 启用系统默认浏览器来打开网址。
@@ -606,23 +639,23 @@ public final class DialogUtil {
         }
 		return null;
 	}
+
 	public static ImageIcon getImageIcon(String resourcePath, Class<?> clazz) throws IOException {
 		String slash="/";
-		if(!resourcePath.contains(slash)&& SystemHWUtil.findStr3(resourcePath, ".").getCount()>1){
-			//兼容:com.common.jn.img.path.png ,把.转化为/,除了最后一个点
-			resourcePath=SystemHWUtil.replaceStrExceptLast(resourcePath, ".", slash );
-		}
+        if (!resourcePath.contains(slash) && SystemHWUtil.findStr3(resourcePath, SystemHWUtil.ENGLISH_PERIOD).getCount() > 1) {
+            //兼容:com.common.jn.img.path.png ,把.转化为/,除了最后一个点
+            resourcePath = SystemHWUtil.replaceStrExceptLast(resourcePath, SystemHWUtil.ENGLISH_PERIOD, slash);
+        }
 		if (resourcePath.startsWith(slash)) {// eg
 			// "/com/pass/img/posterous_uploader.png"
-			URL url = clazz/*this.getClass()*/.getResource(resourcePath);
-			ImageIcon icon = new ImageIcon(url);
-			return icon;
-		} else {// eg "com/pass/img/posterous_uploader.png"
-			InputStream is = clazz.getClassLoader()
+            ImageIcon icon = getImageIconByClass(resourcePath, clazz);
+            return icon;
+        } else {// eg "com/pass/img/posterous_uploader.png",前面没有斜杠
+            InputStream is = clazz.getClassLoader()
 					.getResourceAsStream(resourcePath);
 			if (null == is) {
-				return null;
-			}
+                return getImageIconByClass(resourcePath, clazz);//2017.5.16 增加容错
+            }
 			BufferedInputStream isr = new BufferedInputStream(is);
 			byte[] b = null;
 			/*
@@ -646,6 +679,14 @@ public final class DialogUtil {
 		}
 	}
 
+    private static ImageIcon getImageIconByClass(String resourcePath, Class<?> clazz) {
+        URL url = clazz/*this.getClass()*/.getResource(resourcePath);
+        if (null == url) {
+            return null;
+        }
+        return new ImageIcon(url);
+    }
+
     /***
      * @param resourcePath : "/com/pass/img/posterous_uploader.png"
      * @throws IOException
@@ -658,48 +699,104 @@ public final class DialogUtil {
                 com.apple.eawt.Application.getApplication().setDockIconImage(
                         imageIcon.getImage());
             }
-
         }
     }
 
     public static void showMaximizeDialog(final JComponent area2) {
 		showMaximizeDialog(area2,true);
 	}
-	public static void showMaximizeDialog(final JComponent area2,final boolean isNeedScrollPane) {
-		final Container parent = area2.getParent();
+
+    public static GenericDialog showMaximizeDialog(final JComponent area2, final boolean isNeedScrollPane) {
+        final Container parent = area2.getParent();
 		final JLabel waitingLabel=new JLabel("请稍后");
 		GenericDialog dialog = new GenericDialog() {
+            private JComponent textComp;
+            KeyAdapter keyAdapter = new KeyAdapter() {
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    super.keyTyped(e);
+                }
+
+                /***
+                 * command +W 关闭对话框
+                 * @param e
+                 */
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    super.keyPressed(e);
+//                    System.out.println(e);
+//                    System.out.println("close......");
+//                    System.out.println(e.getModifiers()==4);
+//                    System.out.println(e);
+//                    System.out.println(e.getModifiers()==4);
+//                    System.out.println(e.getKeyCode());
+                    if ((e.getKeyCode() == KeyEvent.VK_W)/*KEY_PRESSED,keyCode=87,keyText=W,keyChar='w',modifiers=⌘,extModifiers=⌘*/
+                            && (EventHWUtil.isControlDown(e)) && e.getID() == KeyEvent.KEY_PRESSED) {
+                        System.out.println("close......");
+//                        if(null!=keyAdapter)textComp.removeKeyListener(keyAdapter);
+//                        keyAdapter=null;
+                        closeDialog();
+                        dispose();
+                    }
+                }
+            };
+
 			@Override
 			public void layout3(Container contentPane) {
 				setTitle("窗口最大化");
 				super.layout3(contentPane);
 				setModal(true);
-				if(isNeedScrollPane){
-					contentPane.add(new JScrollPane(area2));
-				}else{
-					contentPane.add(area2);
-				}
+                if (area2 instanceof JTextField) {//如果传入的area2 是单行文本框,则转化为文本域
+                    JTextField textField = (JTextField) area2;
+                    textComp = new AssistPopupTextArea();
+                    ((AssistPopupTextArea) textComp).setLineWrap(true);
+                    ((AssistPopupTextArea) textComp).setWrapStyleWord(true);
+                    ((AssistPopupTextArea) textComp).setText(textField.getText());
+                } else {
+                    textComp = area2;
+                }
+                if(isNeedScrollPane){
+                    contentPane.add(new JScrollPane(textComp));
+                }else{
+                    contentPane.add(textComp);
+                }
 				
 				parent.add(waitingLabel);
 				addWindowListener(new WindowAdapter() {
 					@Override
 					public void windowClosing(WindowEvent e) {
 						super.windowClosing(e);
-						parent.remove(waitingLabel);
-						parent.add(area2);
-						parent.repaint();
-					}
+                        closeDialog();
+                    }
 				});
-				fullScreen();
+                textComp.addKeyListener(keyAdapter);
+                fullScreen();
 				parent.repaint();
-				JFrame frame= DialogUtil.getTopFrame(area2);
-				if(null!=frame){
+                JFrame frame = DialogUtil.getTopFrame(textComp);
+                if(null!=frame){
 					frame.repaint();
 				}
 			}
-		};
-		dialog.launchFrame();
-	}
+
+            public void closeDialog() {
+                parent.remove(waitingLabel);
+                if (area2 instanceof JTextField) {//如果传入的area2 是单行文本框,则转化为文本域
+                    JTextField textField = (JTextField) area2;
+                    textField.setText(((AssistPopupTextArea) textComp).getText());
+                }
+                parent.add(area2);
+                parent.repaint();
+                area2.requestFocus();
+                textComp.removeKeyListener(keyAdapter);
+            }
+        };
+        if (area2 instanceof JTextComponent) {
+            //此处调用了反射
+            TextCompUtil2.setMaxDialog((JTextComponent) area2, dialog, JDialog.class);
+        }
+        dialog.launchFrame();
+        return dialog;
+    }
 
     /***
      * 追加内容到日志
@@ -722,6 +819,55 @@ public final class DialogUtil {
                 }
             }).start();
         }
+    }
+
+    /***
+     * 选择文件
+     * @param selectedFile2
+     * @param title
+     * @param qrCodePanel
+     * @param picFormat
+     * @return
+     */
+    public static File chooseFileDialog(File selectedFile2, String title, Component qrCodePanel, String picFormat) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (!ValueWidget.isNullOrEmpty(selectedFile2)) {
+            chooser.setSelectedFile(selectedFile2);
+        }
+        Map<String, String> fileTypeMap = new HashMap();
+        fileTypeMap.put("py", "python Files");
+        fileTypeMap.put("java", "Java Files");
+        fileTypeMap.put("js", "Javascript Files");
+        String saveTips = fileTypeMap.get(picFormat);
+        if (ValueWidget.isNullOrEmpty(saveTips)) {
+            saveTips = "picture Files";
+        }
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(saveTips/* 文件类型提示 */, picFormat, title);
+        chooser.setFileFilter(filter);
+        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        chooser.setControlButtonsAreShown(true);
+        chooser.setDialogTitle(title);
+        //            chooser.setVisible(true);
+        int result = -1;
+        try {
+            result = chooser.showSaveDialog(qrCodePanel);
+        } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+//            e.printStackTrace();
+        }
+
+        System.out.println("chooseFileDialog New file:" + result);
+        if (result == JOptionPane.OK_OPTION) {
+            File selectedFile = chooser.getSelectedFile();
+            if (null == selectedFile) {
+                return null;
+            }
+            if (!selectedFile.getAbsolutePath().endsWith(picFormat) && !ValueWidget.isNullOrEmpty(picFormat)) {//增加后缀名
+                selectedFile = new File(selectedFile.getAbsolutePath() + SystemHWUtil.ENGLISH_PERIOD + picFormat);
+            }
+            return selectedFile;
+        }
+        return null;
     }
 }
 	

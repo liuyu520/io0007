@@ -61,7 +61,9 @@ public class AssistPopupTextField extends UndoTextField implements IRightMenu {
     }
 
     private void custom() {
-        if (!hasCustom) {
+        if (hasCustom) {
+            return;
+        }
             hasCustom = true;
             textPopupMenu = new JPopupMenu();
             MenuUtil2.addPopupMenuItem(this, textPopupMenu);
@@ -69,7 +71,6 @@ public class AssistPopupTextField extends UndoTextField implements IRightMenu {
             MenuUtil2.setPopupMenu(this, textPopupMenu, null);
             ComponentUtil.assistantTF(this);//增加自动补全
         }
-    }
 
     @Override
     public void showMenu() {

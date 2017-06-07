@@ -35,10 +35,8 @@ public class SimpleTextEditDialog extends GenericDialog {
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(new BorderLayout(0, 0));
-        {
             JScrollPane scrollPane = new JScrollPane();
             contentPanel.add(scrollPane);
-            {
                 /*textArea = new AssistPopupTextArea();
                 if (!ValueWidget.isNullOrEmpty(SimpleTextEditDialog.this.targetTF)) {
                     String text = null;
@@ -51,8 +49,6 @@ public class SimpleTextEditDialog extends GenericDialog {
                     textArea.setText(text);
                 }*/
                 scrollPane.setViewportView(targetTF);
-            }
-        }
         {
             JPanel buttonPane = new JPanel();
             buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -75,7 +71,6 @@ public class SimpleTextEditDialog extends GenericDialog {
                 buttonPane.add(okButton);
                 getRootPane().setDefaultButton(okButton);
             }
-            {
                 JButton cancelButton = new JButton("Cancel");
                 cancelButton.setActionCommand("Cancel");
                 cancelButton.addActionListener(new ActionListener() {
@@ -87,7 +82,6 @@ public class SimpleTextEditDialog extends GenericDialog {
                 buttonPane.add(cancelButton);
             }
         }
-    }
 
    /* *//**
      * Launch the application.

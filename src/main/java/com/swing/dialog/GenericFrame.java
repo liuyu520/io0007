@@ -54,14 +54,17 @@ public class GenericFrame extends AbstractFrame {
 		
 	}
 
+    public void init33(final GenericFrame frame) {
+        init33(frame, true);
+    }
     /***
      * 在 GenericFrame和AbstractFrame 中都没有调用<br>
      * 应该在GenericFrame 的子类中调用
      *
      * @param frame
      */
-    public void init33(final GenericFrame frame) {
-		this.addWindowListener(new WindowAdapter() {
+    public void init33(final GenericFrame frame, final boolean isTimingClose) {
+        this.addWindowListener(new WindowAdapter() {
 
 			@Override
 			public void windowActivated(WindowEvent e) {
@@ -81,8 +84,8 @@ public class GenericFrame extends AbstractFrame {
 			public void windowDeactivated(WindowEvent e) {
 				setActived22(false);
 //				System.out.println("window Deactivated");
-				if(isTiming){
-					windowDeactivated2(frame);
+                if (isTimingClose && isTiming) {
+                    windowDeactivated2(frame);
 				}
 				super.windowDeactivated(e);
 			}
@@ -229,9 +232,9 @@ public class GenericFrame extends AbstractFrame {
 
     public static String getComboBoxlist(JComboBox<String> comboBox, boolean freshCombox, String rootPath, String roots) {
         if(ValueWidget.isNullOrEmpty(roots)){
-        	roots=rootPath;
-        }else{
-        	String roots_old[]=roots.split(Constant2.SHAREDPICDIVISION);
+            return rootPath;
+        }
+        String roots_old[]=roots.split(Constant2.SHAREDPICDIVISION);
         	int index;
         	String urls_new[] = null;
 			if ((index = SystemHWUtil.indexOf(roots_old, rootPath)) == SystemHWUtil.NEGATIVE_ONE) {//不包含
@@ -252,7 +255,6 @@ public class GenericFrame extends AbstractFrame {
         	}
 
             roots = StringUtils.join(urls_new, Constant2.SHAREDPICDIVISION);
-        }
         return roots;
     }
     /***

@@ -28,7 +28,7 @@ public class SearchInputDialog extends GenericDialog {
     public SearchInputDialog(JTextComponent targetTF, String keyword) {
         setModal(true);
         this.targetTF = targetTF;
-        setTitle("搜索");
+        setTitle("搜索(Ctrl+F)");
         setLoc(450, 100);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -37,7 +37,6 @@ public class SearchInputDialog extends GenericDialog {
         textArea = new AssistPopupTextField(false/*needSearch*/);
         textArea.placeHolder("请输入关键字,不区分大小写");
         contentPanel.add(textArea, BorderLayout.NORTH);
-        {
             JPanel buttonPane = new JPanel();
             buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
@@ -53,12 +52,8 @@ public class SearchInputDialog extends GenericDialog {
                         }
                         //一定从索引为0的地方查找
                         FindTxtResultBean findTxtResultBean = DialogUtil.searchText(SearchInputDialog.this.targetTF, 0, json);
-                        try {
                             ReflectHWUtils.setObjectValue(SearchInputDialog.this.targetTF, Constant2.FINDTXTRESULTBEAN_FIELD, findTxtResultBean, false);
                             SearchInputDialog.this.dispose();
-                        } catch (IllegalAccessException e1) {
-                            e1.printStackTrace();
-                        }
                     }
                 });
                 buttonPane.add(searchButton);
@@ -72,7 +67,6 @@ public class SearchInputDialog extends GenericDialog {
                     }
                 });
                 buttonPane.add(cancelButton);
-        }
         //优先搜索上次搜索的关键字
         if (ValueWidget.isNullOrEmpty(keyword)) {
             FindTxtResultBean findTxtResultBean = null;
@@ -83,11 +77,7 @@ public class SearchInputDialog extends GenericDialog {
                 }
             } catch (SecurityException e) {
                 e.printStackTrace();
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
             } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
 

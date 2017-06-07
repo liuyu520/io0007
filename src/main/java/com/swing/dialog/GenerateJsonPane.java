@@ -180,7 +180,9 @@ public class GenerateJsonPane extends GenericDialog {
 		panel_3.setLayout(new BorderLayout(0, 0));
 		panel_3.setBackground(backgroundColor);
 		textArea = new AssistPopupTextArea();
-		JScrollPane scrollPane_1 = new JScrollPane(textArea);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JScrollPane scrollPane_1 = new JScrollPane(textArea);
 		panel_3.add(scrollPane_1);
 
 		JPanel panel_4 = new JPanel();
@@ -287,23 +289,21 @@ public class GenerateJsonPane extends GenericDialog {
 		GenerateJsonPane.this.dispose();
 	}
 	private void readJson(String text) {
-		if(!ValueWidget.isNullOrEmpty(text))
-		{
+        if (ValueWidget.isNullOrEmpty(text)) {
+            return;
+        }
             text = text.trim();
             if(text.startsWith("{")&&text.endsWith("}")){
 				System.out.println("是json");
-                Map map;
-                try {
+                Map map = null;
                     map = (Map) HWJacksonUtils.deSerialize(text, Map.class);
+                if (null != map) {
                     TableUtil3.setTableData3(parameterTable_1, map, false, true, columnNames, (Map<String, ActionCallback>) null);
                     rendTable();
-                } catch (JsonParseException e) {
-                    e.printStackTrace();
                 }
                 
 			}
 		}
-	}
 
 	private String preview2(){
 		List<ParameterIncludeBean> parameters =TableUtil3.getTableParameters(parameterTable_1/*,true*/);

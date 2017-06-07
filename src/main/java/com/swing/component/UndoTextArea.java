@@ -3,6 +3,7 @@ package com.swing.component;
 import com.common.bean.FindTxtResultBean;
 import com.swing.callback.ActionCallback;
 import com.swing.dialog.GenericDialog;
+import com.swing.listener.DoubleKeyAdapter;
 
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
@@ -11,6 +12,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.Map;
 
 /***
@@ -44,6 +46,13 @@ public class UndoTextArea extends JTextArea {
      * key:"Command_enter","Ctrl_enter","alt_enter"
      */
     private Map<String, ActionCallback> actionCallbackMap;
+    /***
+     * 0:原始状态;<br />
+     * 1:最大化状态;<br />
+     * 2:删除之后
+     */
+    protected Integer maxStatus = 0;
+    protected JDialog maxJDialog;
 
     public UndoTextArea(String text) {
         super(text);
@@ -141,6 +150,14 @@ public class UndoTextArea extends JTextArea {
 		});
 //		addActionMap();
         TextCompUtil2.addActionMap(this, undo, actionCallbackMap);
+        final JTextComponent textField = this;
+        this.addKeyListener(new DoubleKeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyTyped(e);
+                TextCompUtil2.toggleUpperLowerCase(e, textField);
+            }
+        });
     }
 
     protected void initlize() {
@@ -176,5 +193,21 @@ public class UndoTextArea extends JTextArea {
 
     public void setActionCallbackMap(Map<String, ActionCallback> actionCallbackMap) {
         this.actionCallbackMap = actionCallbackMap;
+    }
+
+    public Integer getMaxStatus() {
+        return maxStatus;
+    }
+
+    public void setMaxStatus(Integer maxStatus) {
+        this.maxStatus = maxStatus;
+    }
+
+    public JDialog getMaxJDialog() {
+        return maxJDialog;
+    }
+
+    public void setMaxJDialog(JDialog maxJDialog) {
+        this.maxJDialog = maxJDialog;
     }
 }

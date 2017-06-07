@@ -23,8 +23,8 @@ public class AssembleUtil {
             if(isRightTimes(base, times, remaining)){
             	addElementBySort(result, buffer, isSort);
             }
-            
-        } else {
+            return;
+        }
             for (int i = 0; i < remaining; i++) {
                 StringBuffer bufferTmp = new StringBuffer(buffer);
                 bufferTmp.append(base[base.length - 1 - i]);
@@ -34,8 +34,6 @@ public class AssembleUtil {
                 assemble(result, bufferTmp, SystemHWUtil.aheadElement(base, base.length - 1 - i), times, remaining - 1, isSort);
             }
         }
-
-    }
 
     public static boolean isRightTimes(String[] base, int times, int remaining) {
         return times<=0||times==base.length-remaining+1;

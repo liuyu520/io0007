@@ -14,6 +14,7 @@ import com.swing.dialog.CustomDefaultDialog;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.SearchInputDialog;
 import com.swing.dialog.toast.ToastMessage;
+import com.swing.image.bean.BufferedImage2Bean;
 import com.swing.messagebox.GUIUtil23;
 
 import javax.swing.*;
@@ -21,9 +22,6 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 
 /***
  * 文本域的右键菜单响应事件.
@@ -200,17 +198,9 @@ public class Menu2ActionListener implements ActionListener {
 			if (ValueWidget.isNullOrEmpty(selectContent)) {
 				return;
 			}
-			try {
 				String md5=SystemHWUtil.getMD5(selectContent, SystemHWUtil.CURR_ENCODING);
 				WindowUtil.setSysClipboardText(md5);
 				ToastMessage.toast("已复制MD5值到剪切板",3000);
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-				GUIUtil23.errorDialog(e);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				GUIUtil23.errorDialog(e);
-			}
 			
 		}else if (command.startsWith(MenuUtil2.ACTION_DELETE_DIGIT_OF_FRONT)) {//删除每行前面的数字
 			String content=area2.getText();
@@ -233,12 +223,12 @@ public class Menu2ActionListener implements ActionListener {
 			if(ValueWidget.isNullOrEmpty(content)){
 				return;
 			}
-			BufferedImage img =ImageHWUtil.genericImage(area2, null, "jpg"/*picFormat*/);
-			if(ValueWidget.isNullOrEmpty(img)){
+            BufferedImage2Bean img = ImageHWUtil.genericImage(area2, null, "jpg"/*picFormat*/);
+            if(ValueWidget.isNullOrEmpty(img)){
 				return;
 			}
-			ComponentUtil.setClipboardImage(area2.getParent(),img);
-			ToastMessage.toast("复制图片到剪切板",3000);
+            ComponentUtil.setClipboardImage(area2.getParent(), img.getBufferedImage());
+            ToastMessage.toast("复制图片到剪切板",3000);
 		}else if (command.startsWith(MenuUtil2.ACTION_QUERY_STRING2JSON)) {
             MenuUtil2.queryString2Json(area2, false/*isSuppressWarnings*/, true/*isFurther*/);
         }else if (command.startsWith(MenuUtil2.ACTION_JSON2QUERY_STRING)) {
@@ -276,25 +266,36 @@ public class Menu2ActionListener implements ActionListener {
 			//弹出框显示HTML
 			CustomDefaultDialog customDefaultDialog=new CustomDefaultDialog(selectContent,"显示HTML",true);
 			customDefaultDialog.setVisible(true);
-		}else if(command.equals("格式化json")){
+        }else if(command.equals("格式化json")){
             JSONHWUtil.formatJson(area2, false, null, false);
+        } else if (command.equals("转化为json")) {
+            area2.setText(JSONHWUtil.toJson(area2.getText()));
+//            JSONHWUtil.formatJson(area2, true, null, false);
         }else if(command.equals(MenuUtil2.ACTION_TF_EDITABLE)){
-			area2.setEditable(true);
-			area2.setEnabled(true);
-			area2.requestFocus();
-		}else if(command.equals(MenuUtil2.ACTION_STR_OPEN_BROWSER)){
-			String selectContent = area2.getSelectedText();
-			if (ValueWidget.isNullOrEmpty(selectContent)) {
-				return;
-			}
-			DialogUtil.openBrowser(selectContent);
-		}else if(command.equals(MenuUtil2.ACTION_STR_SEARCH)){
-			SearchInputDialog searchInputDialog = new SearchInputDialog(area2,null);
-			searchInputDialog.setVisible(true);
-		}else if(command.equals(MenuUtil2.ACTION_IMAGE_COPY_SPECIFY_WIDTH_HEIGHT)){
+            area2.setEditable(true);
+            area2.setEnabled(true);
+            area2.requestFocus();
+        }else if(command.equals(MenuUtil2.ACTION_STR_OPEN_BROWSER)){
+            String selectContent = area2.getSelectedText();
+            if (ValueWidget.isNullOrEmpty(selectContent)) {
+                return;
+            }
+            DialogUtil.openBrowser(selectContent);
+        }else if(command.equals(MenuUtil2.ACTION_STR_SEARCH)){
+            SearchInputDialog searchInputDialog = new SearchInputDialog(area2,null);
+            searchInputDialog.setVisible(true);
+        }else if(command.equals(MenuUtil2.ACTION_IMAGE_COPY_SPECIFY_WIDTH_HEIGHT)){
             //截图,截屏
             TextCompUtil2.copyImgAction(area2);
-		}
+        } else if (command.equals("删除json中多余逗号")) {
+            String content = this.area2.getText();
+            if (!ValueWidget.isNullOrEmpty(content)) {
+                content = RegexUtil.deleteJsonExtraComma(content);
+                this.area2.setText(content);
+            }
+        } else if (command.equals("删除中括号两边的引号(优化)")) {
+            MenuUtil2.deleteQuoteBracketsBetter(this.area2);
+        }
 	}
 
 

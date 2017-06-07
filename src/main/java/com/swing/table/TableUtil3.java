@@ -62,6 +62,29 @@ public class TableUtil3 {
 		}
 	}
 
+    public static StringBuffer getRequestBodyFromList(List<ParameterIncludeBean> parameters, boolean isUrlEncoding, String urlEncodeParameterCharset, boolean isAutoUrlEncoding) {
+        if (null == parameters) {
+            return null;
+        }
+        StringBuffer sbuffer = new StringBuffer();
+        int size = parameters.size();
+        for (int i = 0; i < size; i++) {
+            ParameterIncludeBean parameterIncludeBean = parameters.get(i);
+            if (parameterIncludeBean.isIgnore()) {
+                parameters.remove(parameterIncludeBean);
+                size--;
+                i--;
+                continue;
+            }
+            sbuffer.append(parameterIncludeBean.getQueryString(isUrlEncoding, urlEncodeParameterCharset/*, isAutoUrlEncoding*/));
+            if (i < size - 1) {
+                sbuffer.append("&");
+            }
+
+        }
+        return sbuffer;
+    }
+
 	/***
 	 * show specified column
 	 * 
@@ -424,21 +447,33 @@ public class TableUtil3 {
      * @param columnIndex
 	 * @param keyObj
 	 */
-	public static void setTableValueAt(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj){
-		if(keyObj instanceof JScrollPane){
-			JScrollPane js=(JScrollPane)keyObj;
-        	JTextComponent tf=(JTextComponent)js.getViewport().getComponent(0);
-        	keyObj = tf.getText();
-		}
-		String key=null;
-		if(keyObj instanceof String){
-			key=(String)keyObj;
-		}else{
-			key=String.valueOf(keyObj);
-		}
-    	Object valueAtObj=parameterTable_1.getValueAt(rowIndex, columnIndex);
+    public static void setTableValueAt(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj){
+        String key = null;
+        keyObj = getTableCellValStr(keyObj);
+
+        if (keyObj instanceof String) {
+            key = (String) keyObj;
+        } else {
+            key = String.valueOf(keyObj);
+        }
+        Object valueAtObj = parameterTable_1.getValueAt(rowIndex, columnIndex);
         setTableCellVal(parameterTable_1, rowIndex, columnIndex, keyObj, key, valueAtObj);
 
+    }
+
+    public static String getTableCellValStr(Object keyObj) {
+        if(keyObj instanceof JScrollPane){
+            JScrollPane js=(JScrollPane)keyObj;
+            JTextComponent tf=(JTextComponent)js.getViewport().getComponent(0);
+            keyObj = tf.getText();
+        }
+        String key=null;
+        if(keyObj instanceof String){
+            key=(String)keyObj;
+        }else{
+            key=String.valueOf(keyObj);
+        }
+        return key;
     }
 
     public static void setTableCellVal(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj, String key, Object valueAtObj) {
@@ -516,6 +551,9 @@ public class TableUtil3 {
 
     public static String getPreRequestVal(ResponseResult preResponseResult, RequestInfoBean requestInfoBean) {
         Map<String, String> responseMapLogin = preResponseResult.getResponseJsonMap();
+        if (ValueWidget.isNullOrEmpty(responseMapLogin)) {
+            return null;
+        }
         String preRequestKey = requestInfoBean.getPreRequestParameterName();
         if (ValueWidget.isNullOrEmpty(preRequestKey)) {
             System.out.println("preRequestKey is null.servlet path:" + requestInfoBean.getActionPath());

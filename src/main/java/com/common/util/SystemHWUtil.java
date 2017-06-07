@@ -2,19 +2,19 @@ package com.common.util;
 
 import com.common.bean.FindTxtResultBean;
 import com.common.bean.PrivPubKeyBean;
+import com.common.bean.exception.LogicBusinessException;
+import com.common.dict.Constant2;
 import com.common.enu.SignatureAlgorithm;
 import com.io.hw.exception.MyException;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
 import com.time.util.TimeHWUtil;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import sun.security.x509.X509CertImpl;
 import sun.security.x509.X509CertInfo;
 
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
+import javax.crypto.*;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
@@ -24,7 +24,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -32,10 +31,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,8 +41,9 @@ import java.util.regex.Pattern;
  * @author huangwei
  * 
  */
-public final class SystemHWUtil {
-	public static final String OSNAME = System.getProperty("os.name");
+public final class SystemHWUtil<T> extends MapUtil {
+    protected static Logger logger = Logger.getLogger(SystemHWUtil.class);
+    public static final String OSNAME = System.getProperty("os.name");
 	public static final String OSARCH = System.getProperty("os.arch");
 	public static final String SEPARATOR = System.getProperty("file.separator");
 	public static final String USER_DIR = System.getProperty("user.dir");
@@ -99,7 +96,11 @@ public final class SystemHWUtil {
 	public static final String CONTENTTYPE_HTML = "text/html";
 	public static final String CONTENTTYPE_JSON = "application/json";
 	public static final String CONTENTTYPE_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
-	public static final String CONTENTTYPE_OCTET_STREAM = "application/octet-stream";
+    /***
+     * "application/x-www-form-urlencoded;charset=utf-8"
+     */
+    public static final String CONTENTTYPE_X_WWW_FORM_URLENCODED_UTF = "application/x-www-form-urlencoded;charset=utf-8";
+    public static final String CONTENTTYPE_OCTET_STREAM = "application/octet-stream";
 	/***
 	 * 应答(response)中的Content-Type:网页
 	 */
@@ -125,7 +126,11 @@ public final class SystemHWUtil {
 	 * 应答(response)中的Content-Type:二进制文件,例如
 	 */
 	public static final String RESPONSE_CONTENTTYPE_BINARY = "application/octet-stream";
-	public static final String RESPONSE_CONTENTTYPE_JAVASCRIPT = "application/javascript";
+    /***
+     * zip压缩包
+     */
+    public static final String RESPONSE_CONTENTTYPE_ZIP = "application/zip";
+    public static final String RESPONSE_CONTENTTYPE_JAVASCRIPT = "application/javascript";
 	/***
 	 * 兼容性比上面的更好
 	 */
@@ -288,9 +293,10 @@ public final class SystemHWUtil {
 //		md5Map.put("", "Iloveyou");
 //		md5Map.put("", "Iloveyou");
 	}
-	private SystemHWUtil() {
-		throw new Error("Don't let anyone instantiate this class.");
-	}
+
+    public SystemHWUtil() {//因为变成了泛型,所以允许实例化
+//		throw new Error("Don't let anyone instantiate this class.");
+    }
 
 	public static void copyFile(String resourceFileName, String targetFileName)
 			throws IOException {
@@ -359,7 +365,6 @@ public final class SystemHWUtil {
 
 			while ((byteNum = in.read(buffer)) != NEGATIVE_ONE) {
 				target.write(buffer, 0, byteNum);
-
 			}
 			System.out.println("[SystemUtil:copyFile]:file copy successfully!");
 		} catch (Exception e) {
@@ -421,11 +426,12 @@ public final class SystemHWUtil {
 	 * @throws IOException 
 	 */
 	public static void createEmptyFile(File file) throws IOException{
-		if(!file.exists()){//如果文件不存在
-			createParentFolder(file);
+        if (file.exists()) {//如果文件不存在
+            return;
+        }
+        createParentFolder(file);
 			file.createNewFile();
 		}
-	}
 	/***
 	 * 创建空文件,若文件已存在,则方法返回
 	 * @param file
@@ -808,8 +814,8 @@ public final class SystemHWUtil {
 	}
 
 	public static boolean isHasChinses(String str) {
-		String encodeName = "UTF-8";
-		for (int i = 0; i < str.length(); i++) {
+        String encodeName = SystemHWUtil.CHARSET_UTF;
+        for (int i = 0; i < str.length(); i++) {
 			try {
 				String singleStr = str.substring(i, i + 1);
 				int leng = getEncodeLength(singleStr, encodeName);
@@ -831,8 +837,8 @@ public final class SystemHWUtil {
 	}
 
 	public static boolean isHasChinses2(String str) throws MyException {
-		String encodeName = "UTF-8";
-		char[] chars = str.toCharArray();
+        String encodeName = SystemHWUtil.CHARSET_UTF;
+        char[] chars = str.toCharArray();
 		for (int i = 0; i < chars.length; i++) {
 			try {
 				char c = chars[i];
@@ -855,15 +861,15 @@ public final class SystemHWUtil {
 		if (str.length() != 1) {
 			throw new Exception("超过一个字符");
 		}
-		String encod = URLEncoder.encode(str, "UTF-8");
-		return encod.length();
+        String encod = URLEncoder.encode(str, SystemHWUtil.CHARSET_UTF);
+        return encod.length();
 	}
 
 	public static int getEncodeLength(char c, String encodeName)
 			throws UnsupportedEncodingException {// 返回值为9
 		// 的话，则说明有中文。
-		String encod = URLEncoder.encode(String.valueOf(c), "UTF-8");
-		return encod.length();
+        String encod = URLEncoder.encode(String.valueOf(c), SystemHWUtil.CHARSET_UTF);
+        return encod.length();
 	}
 
 	public static String splitAndFilterString(String input, int length) {
@@ -1041,10 +1047,16 @@ public final class SystemHWUtil {
 		return bigInt.toString(16);
 	}
 
-	public static byte[] digest(byte srcBytes[], String algorithm)
-			throws NoSuchAlgorithmException {
-		MessageDigest digest = MessageDigest.getInstance(algorithm);
-		digest.update(srcBytes);
+    public static byte[] digest(byte srcBytes[], String algorithm) {
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            logger.error(e.getMessage(), e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        digest.update(srcBytes);
 		byte digestBytes[] = digest.digest();
 		return digestBytes;
 	}
@@ -1056,22 +1068,31 @@ public final class SystemHWUtil {
 	 * @throws NoSuchAlgorithmException
 	 * @throws UnsupportedEncodingException
 	 */
-	public static String getMD5(String source,String charset) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		if(ValueWidget.isNullOrEmpty(charset)){
+    public static String getMD5(String source, String charset) {
+        if(ValueWidget.isNullOrEmpty(charset)){
 			charset=SystemHWUtil.CURR_ENCODING;
 		}
-		return getMD5(source.getBytes(charset));
-	}
-	public static String getMD5(byte[] source) throws NoSuchAlgorithmException {
-		byte bytes[] = digest(source, "MD5");
+        try {
+            return getMD5(source.getBytes(charset));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            logger.error("getMD5 String.getBytes(" + charset + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+    }
+
+    public static String getMD5(byte[] source) {
+        byte bytes[] = digest(source, "MD5");
 		return SystemHWUtil.toHexString(bytes);
 	}
-	public static byte[] getMD5Bytes(byte[] source) throws NoSuchAlgorithmException {
-		byte bytes[] = digest(source, "MD5");
+
+    public static byte[] getMD5Bytes(byte[] source) {
+        byte bytes[] = digest(source, "MD5");
 		return bytes;
 	}
-	public static boolean compareMD5(String source,String charset,String comparedMD5) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		String md5=getMD5(source,charset);
+
+    public static boolean compareMD5(String source, String charset, String comparedMD5) {
+        String md5=getMD5(source,charset);
 		return (md5.equalsIgnoreCase(comparedMD5)&&comparedMD5!=null);
 	}
 	/***
@@ -1096,22 +1117,44 @@ public final class SystemHWUtil {
 		return (md5.equalsIgnoreCase(comparedMD5)&&comparedMD5!=null);
 	}
 	/**
-	 * MD5 encrypt,test ok
-	 * 
+     * MD5 encrypt,test ok<br />
+     * 可以调用 <code>
+     *     SystemHWUtil.toHexString
+     * </code>
+     *
 	 * @param data
 	 * @return byte[]
 	 * @throws Exception
 	 */
-	public static byte[] encryptMD5(byte[] data) throws Exception {
-
-		MessageDigest md5 = MessageDigest.getInstance(SystemHWUtil.KEY_MD5);
-		md5.update(data);
+    public static byte[] encryptMD5(byte[] data) {
+        MessageDigest md5 = null;
+        try {
+            md5 = MessageDigest.getInstance(SystemHWUtil.KEY_MD5);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            logger.error("MessageDigest.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        md5.update(data);
 		return md5.digest();
 	}
 
-	public static byte[] encryptMD5(String data) throws Exception {
-		return encryptMD5(data.getBytes(SystemHWUtil.CHARSET_ISO88591));
-	}
+    /***
+     * 可以调用 <code>
+     *     SystemHWUtil.toHexString
+     * </code>
+     * @param data
+     * @return
+     */
+    public static byte[] encryptMD5(String data) {
+        try {
+            return encryptMD5(data.getBytes(SystemHWUtil.CHARSET_ISO88591));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            logger.error("data.getBytes() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+    }
 
 	/***
 	 * compare two file by Md5
@@ -1227,8 +1270,9 @@ public final class SystemHWUtil {
 	public static void printList(List<?> list, String delimiter,StringBuilder stringBuilder) {
 		printList(list, true, delimiter,stringBuilder);
 	}
-	public static void printList(List list) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException{
-		for (int i = 0; i < list.size(); i++) {
+
+    public static void printList(List list) {
+        for (int i = 0; i < list.size(); i++) {
 			Object obj = list.get(i);
 			SystemHWUtil.printObject(obj);
 			System.out.println(SystemHWUtil.DIVIDING_LINE);
@@ -1276,12 +1320,19 @@ public final class SystemHWUtil {
 	 * @return RSAPublicKey
 	 * @throws Exception
 	 */
-	public static PublicKey convert2PublicKey(byte[] keyBytes) throws Exception {
-		X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
-		KeyFactory keyFactory = KeyFactory
-				.getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);// RSA
-		PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
-		return publicKey;
+    public static PublicKey convert2PublicKey(byte[] keyBytes) {
+        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = null;// RSA
+        keyFactory = getKeyFactory();
+        PublicKey publicKey = null;
+        try {
+            publicKey = keyFactory.generatePublic(x509KeySpec);
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+            logger.error("keyFactory.generatePublic() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        return publicKey;
 	}
 
 	/***
@@ -1289,11 +1340,9 @@ public final class SystemHWUtil {
 	 * @param keyHexStr
 	 *            : hex(16) string
 	 * @return PublicKey
-	 * @throws Exception
 	 */
-	public static PublicKey convert2PublicKey(String keyHexStr)
-			throws Exception {
-		byte[] keyBytes = hexStrToBytes(keyHexStr);
+    public static PublicKey convert2PublicKey(String keyHexStr) {
+        byte[] keyBytes = hexStrToBytes(keyHexStr);
 		return convert2PublicKey(keyBytes);
 	}
 
@@ -1307,13 +1356,26 @@ public final class SystemHWUtil {
 		return toHexString(publicKey.getEncoded());
 	}
 
-	public static PublicKey getPublicKey(InputStream in)
-			throws CertificateException {
-		CertificateFactory cf = CertificateFactory
-				.getInstance(SystemHWUtil.CERTIFICATEFACTORY_X509);
-		X509Certificate oCertServer = (X509Certificate) cf
-				.generateCertificate(in);
-		PublicKey pubKey = oCertServer.getPublicKey();
+    public static PublicKey getPublicKey(InputStream in) {
+        CertificateFactory cf = null;
+        try {
+            cf = CertificateFactory
+                    .getInstance(SystemHWUtil.CERTIFICATEFACTORY_X509);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+            logger.error("CertificateFactory.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        X509Certificate oCertServer = null;
+        try {
+            oCertServer = (X509Certificate) cf
+                    .generateCertificate(in);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+            logger.error("CertificateFactory.generateCertificate() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        PublicKey pubKey = oCertServer.getPublicKey();
 		return pubKey;
 	}
 
@@ -1324,10 +1386,16 @@ public final class SystemHWUtil {
 	 * @throws CertificateException
 	 * @throws FileNotFoundException
 	 */
-	public static PublicKey getPublicKey(File file)
-			throws CertificateException, FileNotFoundException {
-		InputStream in = new FileInputStream(file);
-		return getPublicKey(in);
+    public static PublicKey getPublicKey(File file) {
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            logger.error("FileInputStream(" + file.getAbsolutePath() + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        return getPublicKey(in);
 	}
 
 	/***
@@ -1335,11 +1403,9 @@ public final class SystemHWUtil {
 	 * @param hex
 	 *            :hex(16) bit string
 	 * @return PublicKey
-	 * @throws CertificateException
 	 */
-	public static PublicKey getPublicKey(String hex)
-			throws CertificateException {
-		InputStream in = FileUtils.getByteArrayInputSream2hexString(hex);
+    public static PublicKey getPublicKey(String hex) {
+        InputStream in = FileUtils.getByteArrayInputSream2hexString(hex);
 		return getPublicKey(in);
 	}
 
@@ -1350,19 +1416,30 @@ public final class SystemHWUtil {
 	 * @param publicExponent
 	 *            :E
 	 * @return
-	 * @throws Exception
 	 */
-	public static PublicKey getPublicKey(String modulus, String publicExponent)
-			throws Exception {
-		BigInteger m = new BigInteger(modulus);
+    public static PublicKey getPublicKey(String modulus, String publicExponent) {
+        BigInteger m = new BigInteger(modulus);
 
 		BigInteger e = new BigInteger(publicExponent);
 		RSAPublicKeySpec keySpec = new RSAPublicKeySpec(m, e);
-		KeyFactory keyFactory = KeyFactory
-				.getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);
+        KeyFactory keyFactory = null;
+        keyFactory = getKeyFactory();
 
-		PublicKey publicKey = keyFactory.generatePublic(keySpec);
-		return publicKey;
+        PublicKey publicKey = null;
+        publicKey = generatePublic(keySpec, keyFactory);
+        return publicKey;
+    }
+
+    public static PublicKey generatePublic(RSAPublicKeySpec keySpec, KeyFactory keyFactory) {
+        PublicKey publicKey;
+        try {
+            publicKey = keyFactory.generatePublic(keySpec);
+        } catch (InvalidKeySpecException e1) {
+            e1.printStackTrace();
+            logger.error("KeyFactory.generatePublic() error", e1);
+            throw new LogicBusinessException(e1.getMessage(), e1);
+        }
+        return publicKey;
 	}
 
 	// public static PublicKey getPublicKey(BigInteger m, BigInteger e){
@@ -1378,14 +1455,21 @@ public final class SystemHWUtil {
 	 * @param modulus
 	 * @param ePublicExponent
 	 * @return
-	 * @throws Exception
 	 */
 	public static PublicKey getPublicKey(BigInteger modulus,
-			BigInteger ePublicExponent) throws Exception {
-		RSAPublicKeySpec keySpec = new RSAPublicKeySpec(modulus,
+                                         BigInteger ePublicExponent) {
+        RSAPublicKeySpec keySpec = new RSAPublicKeySpec(modulus,
 				ePublicExponent);
-		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-		PublicKey publicKey = keyFactory.generatePublic(keySpec);
+        KeyFactory keyFactory = null;
+        try {
+            keyFactory = KeyFactory.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            logger.error("KeyFactory.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        PublicKey publicKey = null;
+        publicKey = generatePublic(keySpec, keyFactory);
 
 		return publicKey;
 
@@ -1396,11 +1480,9 @@ public final class SystemHWUtil {
 	 * @param m
 	 * @param publicExponent
 	 * @return
-	 * @throws Exception
 	 */
-	public static PublicKey getPublicKey(BigInteger m, byte[] publicExponent)
-			throws Exception {
-		BigInteger e = new BigInteger(publicExponent);
+    public static PublicKey getPublicKey(BigInteger m, byte[] publicExponent) {
+        BigInteger e = new BigInteger(publicExponent);
 		return getPublicKey(m, e);
 	}
 
@@ -1413,11 +1495,25 @@ public final class SystemHWUtil {
 	 * @throws Exception
 	 */
 	public static PrivateKey convert2PrivateKey(byte[] keyBytes,
-			String algorithm) throws Exception {
-		PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
-		KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
-		PrivateKey privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
-		return privateKey;
+                                                String algorithm) {
+        PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = null;
+        try {
+            keyFactory = KeyFactory.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            logger.error("KeyFactory.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        PrivateKey privateKey = null;
+        try {
+            privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+            logger.error("KeyFactory.generatePrivate() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        return privateKey;
 	}
 
 	/***
@@ -1425,11 +1521,10 @@ public final class SystemHWUtil {
 	 * @param keyString
 	 *            : hex(16) string
 	 * @return
-	 * @throws Exception
 	 */
 	public static PrivateKey convert2PrivateKey(String keyString,
-			String algorithm) throws Exception {
-		byte[] keyBytes = hexStrToBytes(keyString);
+                                                String algorithm) {
+        byte[] keyBytes = hexStrToBytes(keyString);
 		return convert2PrivateKey(keyBytes, algorithm);
 	}
 
@@ -1451,21 +1546,47 @@ public final class SystemHWUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] decrypt(byte[] message, Key key) throws Exception {
-		Cipher cipher = Cipher.getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);
-		cipher.init(Cipher.DECRYPT_MODE, key);
-		return cipher.doFinal(message);
-	}
+    public static byte[] decrypt(byte[] message, Key key) {
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            logger.error("Cipher.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+            logger.error("Cipher.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, key);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            logger.error("Cipher.init() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        try {
+            return cipher.doFinal(message);
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+            logger.error("Cipher.doFinal() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+            logger.error("Cipher.doFinal() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+    }
 
 	/**
 	 * decrypt,key can be a public key， can also be a private key
 	 * 
 	 * @param message
 	 * @return
-	 * @throws Exception
 	 */
-	public static byte[] decrypt(String message, Key key) throws Exception {
-		return SystemHWUtil.decrypt(SystemHWUtil.hexStrToBytes(message), key);
+    public static byte[] decrypt(String message, Key key) {
+        return SystemHWUtil.decrypt(SystemHWUtil.hexStrToBytes(message), key);
 	}
 
 	/**
@@ -1475,11 +1596,10 @@ public final class SystemHWUtil {
 	 * @param data
 	 * @param publicKeyStr
 	 * @return
-	 * @throws Exception
 	 */
 	public static byte[] decryptByPublicKey(byte[] data, String publicKeyStr,
-			String algorithm,boolean isHext) throws Exception {
-		// 对密钥解密
+                                            String algorithm, boolean isHext) {
+        // 对密钥解密
 		byte[] keyBytes = SystemHWUtil.hexStrToBytes(publicKeyStr);
 
 		// 取得公钥
@@ -1495,17 +1615,16 @@ public final class SystemHWUtil {
 	 * @param data
 	 * @param privateKeyStr
 	 * @return
-	 * @throws Exception
 	 */
 	public static byte[] decryptByPrivateKey(byte[] data, String privateKeyStr,
-			String algorithm) throws Exception {
-		byte[] keyBytes = SystemHWUtil.hexStrToBytes(privateKeyStr);
+                                             String algorithm) {
+        byte[] keyBytes = SystemHWUtil.hexStrToBytes(privateKeyStr);
 		return decryptByPrivateKey(data, keyBytes, algorithm);
 	}
 
 	public static byte[] decryptByPrivateKey(byte[] data, byte[] keyBytes,
-			String algorithm) throws Exception {
-		PrivateKey privateKey = SystemHWUtil.convert2PrivateKey(keyBytes,
+                                             String algorithm) {
+        PrivateKey privateKey = SystemHWUtil.convert2PrivateKey(keyBytes,
 				algorithm);
 		return SystemHWUtil.decrypt(data, privateKey);
 	}
@@ -1520,9 +1639,8 @@ public final class SystemHWUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] decryptByPrivateKey(byte[] data, byte[] N, byte[] D)
-			throws Exception {
-		PrivateKey privateKey = getPrivateKey(N, D);
+    public static byte[] decryptByPrivateKey(byte[] data, byte[] N, byte[] D) {
+        PrivateKey privateKey = getPrivateKey(N, D);
 		return decrypt(data, privateKey);
 	}
 
@@ -1614,10 +1732,16 @@ public final class SystemHWUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] encrypt(String message, Key key) throws Exception {
-		return SystemHWUtil.encrypt(
-				message.getBytes(SystemHWUtil.CHARSET_ISO88591), key);
-	}
+    public static byte[] encrypt(String message, Key key) {
+        try {
+            return SystemHWUtil.encrypt(
+                    message.getBytes(SystemHWUtil.CHARSET_ISO88591), key);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("String.getBytes() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+    }
 
 	/**
 	 * encrypt use public key
@@ -2106,17 +2230,35 @@ public final class SystemHWUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static PrivateKey getPrivateKey(BigInteger m, BigInteger d)
-			throws Exception {
-		RSAPrivateKeySpec keySpec = new RSAPrivateKeySpec(m, d);
+    public static PrivateKey getPrivateKey(BigInteger m, BigInteger d) {
+        RSAPrivateKeySpec keySpec = new RSAPrivateKeySpec(m, d);
 
-		KeyFactory keyFactory = KeyFactory
-				.getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);
-		PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+        KeyFactory keyFactory = getKeyFactory();
+        PrivateKey privateKey = null;
+        try {
+            privateKey = keyFactory.generatePrivate(keySpec);
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+            logger.error("KeyFactory.generatePrivate() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
 
 		return privateKey;
 
 	}
+
+    public static KeyFactory getKeyFactory() {
+        KeyFactory keyFactory;
+        try {
+            keyFactory = KeyFactory
+                    .getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            logger.error("KeyFactory.getInstance() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        return keyFactory;
+    }
 
 	// public static PrivateKey getPrivateKey(byte[] N_hex, byte[] D_hex){
 	// return SystemUtil.getPrivateKey(new BigInteger(N_hex), new
@@ -2128,17 +2270,15 @@ public final class SystemHWUtil {
 	 * @param privateExponent
 	 *            :D
 	 * @return
-	 * @throws Exception
 	 */
 	public static PrivateKey getPrivateKey(BigInteger m, byte[] privateExponent)// TODO
-			throws Exception {
-		BigInteger d = new BigInteger(privateExponent);
+    {
+        BigInteger d = new BigInteger(privateExponent);
 		return getPrivateKey(m, d.negate());
 	}
 
-	public static PrivateKey getPrivateKey(byte[] m, byte[] privateExponent)
-			throws Exception {
-		return getPrivateKey(SystemHWUtil.getBigIntegerByByteArr(m),
+    public static PrivateKey getPrivateKey(byte[] m, byte[] privateExponent) {
+        return getPrivateKey(SystemHWUtil.getBigIntegerByByteArr(m),
 				SystemHWUtil.getBigIntegerByByteArr(privateExponent));
 	}
 
@@ -2148,19 +2288,24 @@ public final class SystemHWUtil {
 	 * @param publicKey
 	 * @param priKey
 	 * @return
-	 * @throws Exception
 	 */
 	public static boolean verifyPrivPubKey(PublicKey publicKey,
-			PrivateKey priKey) throws Exception {
-		String message = "32";
+                                           PrivateKey priKey) {
+        String message = "32";
 		RSAPublicKey rsaPublKey = (RSAPublicKey) publicKey;
 		RSAPrivateKey rsaPriKey = (RSAPrivateKey) priKey;
-		byte[] encryptBytes = SystemHWUtil.encrypt(message, publicKey);
-		byte[] decryptBytes = SystemHWUtil.decrypt(encryptBytes, priKey);
-		return new String(decryptBytes, SystemHWUtil.CHARSET_ISO88591)
-				.equals(message)
-				&& rsaPriKey.getModulus().equals(rsaPublKey.getModulus());
-	}
+        byte[] encryptBytes = SystemHWUtil.encrypt(message, publicKey);
+        byte[] decryptBytes = SystemHWUtil.decrypt(encryptBytes, priKey);
+        try {
+            return new String(decryptBytes, SystemHWUtil.CHARSET_ISO88591)
+                    .equals(message)
+                    && rsaPriKey.getModulus().equals(rsaPublKey.getModulus());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            logger.error(e.getMessage(), e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+    }
 
 	/***
 	 * OK
@@ -2172,20 +2317,17 @@ public final class SystemHWUtil {
 	 * @param d
 	 *            :private exponent
 	 * @return
-	 * @throws Exception
 	 */
 	public static boolean verifyPrivPubKey(BigInteger modulus,
-			BigInteger publicExponent, BigInteger privateExponent)
-			throws Exception {
-		PublicKey pubKey = getPublicKey(modulus, publicExponent);
+                                           BigInteger publicExponent, BigInteger privateExponent) {
+        PublicKey pubKey = getPublicKey(modulus, publicExponent);
 		PrivateKey priKey = getPrivateKey(modulus, privateExponent);
 		return SystemHWUtil.verifyPrivPubKey(pubKey, priKey);
 	}
 
 	public static boolean verifyPrivPubKey(String modulus_decimal,
-			String publicExponent_decimal, String privateExponent_decimal)
-			throws Exception {
-		BigInteger modulus = new BigInteger(modulus_decimal);
+                                           String publicExponent_decimal, String privateExponent_decimal) {
+        BigInteger modulus = new BigInteger(modulus_decimal);
 		BigInteger publicExponent = new BigInteger(publicExponent_decimal);
 		BigInteger privateExponent = new BigInteger(privateExponent_decimal);
 		return verifyPrivPubKey(modulus, publicExponent, privateExponent);
@@ -2322,10 +2464,10 @@ public final class SystemHWUtil {
 		BigInteger bigIntArg1 = new BigInteger(argument1);
 		if (isAdd) {
 			tf.setText(bigIntArg1.add(BIGINT1).toString());
-		} else {
-			tf.setText(bigIntArg1.subtract(BIGINT1).toString());
+            return;
+        }
+        tf.setText(bigIntArg1.subtract(BIGINT1).toString());
 		}
-	}
 
 	/***
 	 * 
@@ -3523,8 +3665,8 @@ public final class SystemHWUtil {
 	 * @throws NoSuchFieldException
 	 * @throws IllegalAccessException
 	 */
-	public static void printObject(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException{
-		List<Field>fields=ReflectHWUtils.getAllFieldList(obj.getClass());
+    public static void printObject(Object obj) {
+        List<Field>fields=ReflectHWUtils.getAllFieldList(obj.getClass());
 		int length=fields.size();
 		for(int i=0;i<length;i++){
 			Field f=fields.get(i);
@@ -4005,8 +4147,8 @@ public final class SystemHWUtil {
             return false;
         }
         boolean result = false;
-		if (input.equals("0") || input.equals("1")) {
-			int resultint = Integer.parseInt(input);
+        if (input.equals("0") || input.equals(Constant2.PARAMETER_VALUE_ON)) {
+            int resultint = Integer.parseInt(input);
 			result = (resultint == 1);
 		} else {
 			result = Boolean.parseBoolean(input);
@@ -4014,21 +4156,6 @@ public final class SystemHWUtil {
 		return result;
 	}
 
-	/***
-	 * reverse map Note : value in oldMap must be unique. rever
-	 * 
-	 * @param oldMap
-	 * @return
-	 */
-	public static Map reverseMap(Map oldMap) {
-		Map newMap = new HashMap<Object, Object>();
-		for (Iterator it = oldMap.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<Object, String> entry = (Map.Entry<Object, String>) it
-					.next();
-			newMap.put(entry.getValue(), entry.getKey());
-		}
-		return newMap;
-	}
 
 	/***
 	 * 
@@ -4050,50 +4177,6 @@ public final class SystemHWUtil {
 		return objs;
 	}
 
-	/***
-	 * convert request query string to map
-	 * 
-	 * @param queryString
-	 * @return
-	 */
-	public static Map<String, Object> parseQueryString(String queryString) {
-		if (ValueWidget.isNullOrEmpty(queryString)) {
-			return null;
-		}
-		int index = queryString.indexOf("?");
-		if (index != SystemHWUtil.NEGATIVE_ONE) {
-			queryString = queryString.substring(index + 1);
-		}
-		
-		Map<String, Object> argMap = new HashMap<String, Object>();
-		String[] queryArr = queryString.split("&");
-		for (int i = 0; i < queryArr.length; i++) {
-			String string = queryArr[i];
-			String keyAndValue[] = string.split("=", 2);
-			if (keyAndValue.length != 2) {
-				argMap.put(keyAndValue[0], EMPTY);
-			} else {
-				argMap.put(keyAndValue[0], keyAndValue[1]);
-			}
-		}
-		return argMap;
-	}
-
-	/***
-	 * convert Map<String, Object> to Map<String, String>
-	 * 
-	 * @param oldMap
-	 * @return
-	 */
-	public static Map<String, String> convertMap(Map<String, Object> oldMap) {
-		Map<String, String> newMap = new HashMap<String, String>();
-		for (Iterator it = oldMap.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it
-					.next();
-			newMap.put(entry.getKey(), (String) entry.getValue());
-		}
-		return newMap;
-	}
 
 	public static String getFilecharset(File sourceFile) {
 		String charset = "GBK";
@@ -4544,56 +4627,6 @@ public final class SystemHWUtil {
 		return resultList;
 	}
 
-	/***
-	 * 判断arrayList 中是否包含 apkId
-	 * 
-	 * @param arrayList
-	 * @param propertyValue
-	 * @return
-	 */
-	public static boolean isContainMap(List<HashMap<String, String>> arrayList,
-			String propertyName, String propertyValue) {
-		if (ValueWidget.isNullOrEmpty(arrayList)) {
-			return false;
-		}
-		for (int i = 0; i < arrayList.size(); i++) {
-			HashMap<String, String> map = arrayList.get(i);
-			String apkTmp = map.get(propertyName);
-			if (apkTmp.equalsIgnoreCase(propertyValue)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/***
-	 * 去掉了List<Map>中重复的Map
-	 * 
-	 * @param list
-	 * @param propertyName
-	 * @return
-	 * @throws SecurityException
-	 * @throws IllegalArgumentException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalAccessException
-	 */
-	public static List<?> uniqueMap(List<?> list, String propertyName)
-			throws SecurityException, IllegalArgumentException,
-			NoSuchFieldException, IllegalAccessException {
-		if (ValueWidget.isNullOrEmpty(list)) {
-			return list;
-		}
-		List resultList = new ArrayList();
-		resultList.add(list.get(0));
-		for (int i = 1; i < list.size(); i++) {
-			Map obj = (Map) list.get(i);
-			if (!isContainObject(resultList, propertyName,
-					(String) obj.get(propertyName))) {
-				resultList.add(obj);
-			}
-		}
-		return resultList;
-	}
 
 	/***
 	 * 判断文件路径中是否有后缀名
@@ -4801,48 +4834,6 @@ public final class SystemHWUtil {
 		return list;
 	}
 
-    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode, boolean quoteEscape) {
-        String args[] = oneRequestArg.split(divideString);
-		for (int i = 0; i < args.length; i++) {
-			String string = args[i];
-			String[] strs = string.split("=", 2);
-			if (strs.length > 1) {
-				if (isTrimBank) {
-					if (!ValueWidget.isNullOrEmpty(strs[1])) {
-						strs[1] = strs[1].trim();
-					}
-				}
-                if (quoteEscape && null != strs[1]) {
-                    strs[1] = strs[1].replace("\"", "\\\"");
-                }
-                try {
-					if (ValueWidget.isNullOrEmpty(oldEncoding)
-							|| ValueWidget.isNullOrEmpty(newEncoding)) {
-                        if (urlDecode) {
-                            strs[1] = URLDecoder.decode(strs[1], SystemHWUtil.CHARSET_UTF);
-                        }
-                        requestMap.put(strs[0], strs[1]);
-					} else {
-						requestMap.put(strs[0],
-								new String(strs[1].getBytes(oldEncoding),
-										newEncoding));
-					}
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-	}
-
-    public static void setArgumentMap(Map requestMap, String oneRequestArg, boolean isTrimBank, String oldEncoding, String newEncoding, boolean urlDecode, boolean quoteEscape) {
-        setArgumentMap(requestMap, "&", oneRequestArg, isTrimBank, oldEncoding, newEncoding, urlDecode, quoteEscape);
-    }
-
-    public static void setArgumentMap(Map requestMap, String divideString, String oneRequestArg, boolean isTrimBank, boolean urlDecode, boolean quoteEscape) {
-        setArgumentMap(requestMap, divideString, oneRequestArg, isTrimBank, null, null, urlDecode, quoteEscape);
-    }
-
 	/***
 	 * 用于命令行工具
 	 *
@@ -4936,9 +4927,10 @@ public final class SystemHWUtil {
 		}
 
 		public int compare(Object o1, Object o2) {
-			if (null != o1 && null != o2) {
-
-				try {
+            if (null == o1 || null == o2) {
+                return 0/*等于*/;
+            }
+            try {
 					if (SystemHWUtil.indexOfArr(titles, (String) ReflectHWUtils.getObjectValue(o1, comparedProperty)) >
 							SystemHWUtil.indexOfArr(titles, (String) ReflectHWUtils.getObjectValue(o2, comparedProperty))) {
 						return 1/*大于*/;
@@ -4947,16 +4939,12 @@ public final class SystemHWUtil {
 					}
 				} catch (SecurityException e) {
 					e.printStackTrace();
-				} catch (NoSuchFieldException e) {
+                    throw new LogicBusinessException(e.getMessage(), e);
+            } catch (IllegalArgumentException e) {
 					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
-				}
-			}
-			return 0/*等于*/;
-		}
+                    throw new LogicBusinessException(e.getMessage(), e);
+                }
+        }
 
 	}
 
@@ -5007,15 +4995,11 @@ public final class SystemHWUtil {
 					}
 				} catch (SecurityException e) {
 					e.printStackTrace();
-				} catch (NoSuchFieldException e) {
-					e.printStackTrace();
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
 				}
-			}
-			return 0/*等于*/;
+            }
+            return 0/*等于*/;
 		}
 	}
 }

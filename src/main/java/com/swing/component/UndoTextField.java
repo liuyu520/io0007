@@ -2,9 +2,11 @@ package com.swing.component;
 
 import com.common.bean.FindTxtResultBean;
 import com.common.util.SystemHWUtil;
+import com.string.widget.util.ValueWidget;
 import com.swing.callback.ActionCallback;
 import com.swing.component.inf.IPlaceHolder;
 import com.swing.dialog.GenericDialog;
+import com.swing.listener.DoubleKeyAdapter;
 
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
@@ -13,6 +15,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.Map;
 
 /***
@@ -43,6 +46,14 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
      * key:"Command_enter","Ctrl_enter","alt_enter"
      */
     private Map<String, ActionCallback> actionCallbackMap;
+    private boolean hasSetTFCaretPosition = false;
+    /***
+     * 0:原始状态;<br />
+     * 1:最大化状态;<br />
+     * 2:删除之后
+     */
+    protected Integer maxStatus = 0;
+    protected JDialog maxJDialog;
 
 	public UndoTextField(String text, boolean needSearch) {
 		super(text);
@@ -107,6 +118,16 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 			}
 		});
         TextCompUtil2.addActionMap(this, undo, needSearch, actionCallbackMap);
+
+        //在文本框聚焦的情况下,通过按下方向键(仅支持左,右,不支持上下),可以使光标定位到句首或句尾
+        final JTextComponent textField = this;
+        this.addKeyListener(new DoubleKeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyTyped(e);
+                TextCompUtil2.setTFCaretPosition(e, textField, this);
+            }
+        });
     }
 
     protected void initlize(boolean needSearch) {
@@ -144,9 +165,12 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 	 * @param placeHolder
 	 */
 	public UndoTextField placeHolder(String placeHolder){
-		setPlaceHolder(placeHolder);
-		TextCompUtil2.placeHolderFocus(this, placeHolder);
-		return this;
+        if (!ValueWidget.isNullOrEmpty(placeHolder)) {
+            setPlaceHolder(placeHolder);
+            TextCompUtil2.placeHolderFocus(this, placeHolder);
+        }
+        setHasSetTFCaretPosition(true);
+        return this;
 	}
 
 	/***
@@ -162,6 +186,17 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 		}
 	}
 
+    public void setText(String input, boolean regular) {
+        super.setText(input);
+        /***
+         * 防止程序中setText 方法的参数正好和 placeholder 完全相同<br>
+         *     手动输入是没有问题的
+         */
+        if (regular) {
+            setForeground(Color.black);
+        }
+    }
+
     public JComponent getParentPanelOrFrame() {
         return parentPanelOrFrame;
     }
@@ -176,5 +211,29 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 
     public void setActionCallbackMap(Map<String, ActionCallback> actionCallbackMap) {
         this.actionCallbackMap = actionCallbackMap;
+    }
+
+    public boolean isHasSetTFCaretPosition() {
+        return hasSetTFCaretPosition;
+    }
+
+    public void setHasSetTFCaretPosition(boolean hasSetTFCaretPosition) {
+        this.hasSetTFCaretPosition = hasSetTFCaretPosition;
+    }
+
+    public Integer getMaxStatus() {
+        return maxStatus;
+    }
+
+    public void setMaxStatus(Integer maxStatus) {
+        this.maxStatus = maxStatus;
+    }
+
+    public JDialog getMaxJDialog() {
+        return maxJDialog;
+    }
+
+    public void setMaxJDialog(JDialog maxJDialog) {
+        this.maxJDialog = maxJDialog;
     }
 }

@@ -3,6 +3,7 @@ package com.swing.dialog;
 import com.common.bean.HeightWidthBean;
 import com.common.util.SystemHWUtil;
 import com.string.widget.util.ValueWidget;
+import com.swing.component.AssistPopupTextField;
 import com.swing.dialog.toast.ToastMessage;
 
 import javax.swing.*;
@@ -20,11 +21,12 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
 
     private static final long serialVersionUID = 7703582006425540953L;
     private JPanel contentPane;
-    private JTextField heightTextField;
-    private JTextField widthTextField;
+    private AssistPopupTextField heightTextField;
+    private AssistPopupTextField widthTextField;
     //	private JTextField textField;
     private HeightWidthBean heightWidthBean;
     private GenericDialog screenshotDialog;
+    private JComboBox<String> resolutionComboBox;
 
     /**
      * Create the frame.
@@ -35,7 +37,7 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
         setModal(true);
         setTitle("指定高度和宽度");
 //		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLoc(450, 130);
+        setLoc(450, 150);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -54,7 +56,7 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
         gbc_label.gridy = 0;
         contentPane.add(label, gbc_label);
 
-        heightTextField = new JTextField();
+        heightTextField = new AssistPopupTextField();
         if (null != heightWidthBean) {
             heightTextField.setText(String.valueOf(heightWidthBean.getHeight()));
         }
@@ -74,7 +76,7 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
         gbc_label_1.gridy = 1;
         contentPane.add(label_1, gbc_label_1);
 
-        widthTextField = new JTextField();
+        widthTextField = new AssistPopupTextField();
         if (null != heightWidthBean) {
             widthTextField.setText(String.valueOf(heightWidthBean.getWidth()));
         }
@@ -103,6 +105,27 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
 		contentPane.add(textField, gbc_textField);
 		textField.setColumns(10);*/
 
+        JLabel label_2 = new JLabel("分辨率");
+        GridBagConstraints gbc_label_2 = new GridBagConstraints();
+        gbc_label_2.anchor = GridBagConstraints.EAST;
+        gbc_label_2.insets = new Insets(0, 0, 5, 5);
+        gbc_label_2.gridx = 0;
+        gbc_label_2.gridy = 2;
+        contentPane.add(label_2, gbc_label_2);
+
+        resolutionComboBox = new JComboBox();
+        resolutionComboBox.addItem("1倍");
+        resolutionComboBox.addItem("2倍");
+        resolutionComboBox.addItem("3倍");
+        resolutionComboBox.addItem("4倍");
+        resolutionComboBox.setSelectedIndex(1);
+        GridBagConstraints gbc_ersolutionComboBox = new GridBagConstraints();
+        gbc_ersolutionComboBox.insets = new Insets(0, 0, 5, 0);
+        gbc_ersolutionComboBox.fill = GridBagConstraints.HORIZONTAL;
+        gbc_ersolutionComboBox.gridx = 1;
+        gbc_ersolutionComboBox.gridy = 2;
+        contentPane.add(resolutionComboBox, gbc_ersolutionComboBox);
+
         JPanel panel = new JPanel();
         GridBagConstraints gbc_panel = new GridBagConstraints();
         gbc_panel.gridwidth = 2;
@@ -112,28 +135,11 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
         gbc_panel.gridy = 3;
         contentPane.add(panel, gbc_panel);
 
-        JButton button = new JButton("确定");
+        JButton button = new JButton("确定截图");
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //校验
-				/*if(!DialogUtil.verifyTFAndInteger(heightTextField,"高度")){
-					return;
-				}*/
-                if (!DialogUtil.verifyTFAndInteger(widthTextField, "宽度")) {
-                    return;
-                }
-                int height2 = Integer.parseInt(heightTextField.getText());
-                int width2 = Integer.parseInt(widthTextField.getText());
-                if (height2 <= 0 || width2 <= 0) {
-                    ToastMessage.toast("高度或宽度不合法", 1000, Color.RED);
-                    return;
-                }
-                heightWidthBean.setHeight(height2);
-                heightWidthBean.setWidth(width2);
-                heightWidthBean.setSuccess(true);
-                SpecifyWidthAndHeightDialog.this.dispose();//关闭对话框
-                closeScreenshotDialog();
+                screenshots(heightWidthBean, false, false);
             }
         });
         addWindowListener(new WindowAdapter() {
@@ -141,12 +147,69 @@ public class SpecifyWidthAndHeightDialog extends GenericDialog {
             public void windowClosing(WindowEvent e) {
                 super.windowClosing(e);
                 if (null != heightWidthBean) {
-                    heightWidthBean.setSuccess(false);
+                    heightWidthBean.setBeSuccess(false);
                 }
                 closeScreenshotDialog();
             }
         });
+
         panel.add(button);
+
+        JButton editButton = new JButton("编辑截图");
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                screenshots(heightWidthBean, false, true);
+            }
+        });
+        panel.add(editButton);
+
+        JButton saveBtn = new JButton("保存为");
+        saveBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                screenshots(heightWidthBean, true, false);
+            }
+        });
+        panel.add(saveBtn);
+        JButton upload2serverBtn = new JButton("上传到服务器");
+        upload2serverBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                screenshots(heightWidthBean, false, true/*isUpload2Server*/);
+            }
+        });
+        panel.add(upload2serverBtn);
+    }
+
+    public void screenshots(HeightWidthBean heightWidthBean, boolean isSaveToFile, boolean editScreenshots) {
+        screenshots(heightWidthBean, isSaveToFile, false, editScreenshots);
+    }
+
+    public void screenshots(HeightWidthBean heightWidthBean, boolean isSaveToFile, boolean isUpload2Server, boolean editScreenshots) {
+        //校验
+				/*if(!DialogUtil.verifyTFAndInteger(heightTextField,"高度")){
+					return;
+				}*/
+        if (!DialogUtil.verifyTFAndInteger(widthTextField, "宽度")) {
+            return;
+        }
+        int height2 = Integer.parseInt(heightTextField.getText());
+        int width2 = Integer.parseInt(widthTextField.getText());
+        if (height2 <= 0 || width2 <= 0) {
+            ToastMessage.toast("高度或宽度不合法", 1000, Color.RED);
+            return;
+        }
+        heightWidthBean.setHeight(height2);
+        heightWidthBean.setWidth(width2);
+        heightWidthBean.setSaveToFile(isSaveToFile);
+        heightWidthBean.setUpload2Server(isUpload2Server);
+        heightWidthBean.setEditScreenshots(editScreenshots);
+        heightWidthBean.setMultiple(resolutionComboBox.getSelectedIndex() + 2);
+//                System.out.println("分辨率:"+heightWidthBean.getMultiple());
+        heightWidthBean.setBeSuccess(true);
+        SpecifyWidthAndHeightDialog.this.dispose();//关闭对话框
+        closeScreenshotDialog();
     }
 
     /**

@@ -10,6 +10,7 @@ import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import com.swing.component.ComponentUtil;
+import com.swing.image.bean.BufferedImage2Bean;
 
 import javax.imageio.*;
 import javax.swing.*;
@@ -202,10 +203,10 @@ public class ImageHWUtil {
 				String result=ImageHWUtil.convert2RGB(srcImgPath,mogrifyQuality,cmdFolder);//转化图片为RGB格式,会调用mogrify.exe本地文件
 				System.out.println("[getBufferedImage]result:"+result);
 				bufferedImage=ImageHWUtil.inputImage(srcImgPath);
-				bufferedImageBean.setRGB(false);
-			}else{
-				bufferedImageBean.setRGB(true);
-			}
+                bufferedImageBean.setBeRGB(false);
+            }else{
+                bufferedImageBean.setBeRGB(true);
+            }
 			bufferedImageBean.setImage(bufferedImage);
 			return bufferedImageBean;
 		}
@@ -213,11 +214,11 @@ public class ImageHWUtil {
 		public static BufferedImageBean getBufferedImage(InputStream in) throws IOException{
 			BufferedImageBean bufferedImageBean=new BufferedImageBean();
 			BufferedImage image = null;
-			bufferedImageBean.setRGB(false);
-			try {
+            bufferedImageBean.setBeRGB(false);
+            try {
 				image=ImageHWUtil.inputImage(in);
-				bufferedImageBean.setRGB(true);
-			} catch (javax.imageio.IIOException e) {
+                bufferedImageBean.setBeRGB(true);
+            } catch (javax.imageio.IIOException e) {
 //				e.printStackTrace();
 				System.out.println(e.getMessage());
 			}
@@ -278,7 +279,6 @@ public class ImageHWUtil {
 		 * @throws IOException
 		 */
 		public static void thumbnail(String srcImgPath,float quality,int fixedWidth) throws IOException {
-			
 			thumbnail(srcImgPath, quality, fixedWidth, new File(getThumbnailName(srcImgPath)));
 		}
 		/***
@@ -338,14 +338,15 @@ public class ImageHWUtil {
 				descFile=new File(destPath);
 			}
 			thumbnail(bufferedImageBean, quality, fixedWidth, descFile);
-			
-			if(isNoDestFile){//没有提供目标文件
-				File srcImgFile=new File(srcImgPath);
+
+            if (!isNoDestFile) {//没有提供目标文件
+                return;
+            }
+            File srcImgFile=new File(srcImgPath);
 				if(srcImgFile.delete()){
 					descFile.renameTo(srcImgFile);
 				}
 			}
-		}
 		public static File thumbnail(InputStream in,float quality,int fixedWidth,File descFile) throws IOException {
 			BufferedImageBean bufferedImageBean=getBufferedImage(in);
 			boolean isNoDestFile=ValueWidget.isNullOrEmpty(descFile);
@@ -393,8 +394,8 @@ public class ImageHWUtil {
 		 * @throws IOException
 		 */
 		public static File reduceImage(String srcImgPath,String destPath,int mogrifyQuality,String cmdFolder,ImageBean imageBean) throws IOException{
-			return reduceImage(srcImgPath,mogrifyQuality, imageBean.getQuality(), destPath, cmdFolder, imageBean.isScale(), imageBean.getFixedWidth());
-		}
+            return reduceImage(srcImgPath, mogrifyQuality, imageBean.getQuality(), destPath, cmdFolder, imageBean.isBeScale(), imageBean.getFixedWidth());
+        }
 
 		/***
 		 * 只调用mogrify.exe转化为RGB格式,而不改变quality
@@ -406,8 +407,8 @@ public class ImageHWUtil {
 		 * @throws IOException
 		 */
 		public static File reduceImage(String srcImgPath,String destPath,String cmdFolder,ImageBean imageBean) throws IOException{
-			return reduceImage(srcImgPath,SystemHWUtil.NEGATIVE_ONE, imageBean.getQuality(), destPath, cmdFolder, imageBean.isScale(), imageBean.getFixedWidth());
-		}
+            return reduceImage(srcImgPath, SystemHWUtil.NEGATIVE_ONE, imageBean.getQuality(), destPath, cmdFolder, imageBean.isBeScale(), imageBean.getFixedWidth());
+        }
 
 		/***
 		 * 只改变图像大小
@@ -447,15 +448,14 @@ public class ImageHWUtil {
 			int height22 = image.getHeight(null);
 			System.out.println("width22:" + width22);
 			System.out.println("height22:" + height22);
-			if (width22 > fixedWidth) {
-				float oldWidth22 = width22;
+            if (width22 <= fixedWidth) {
+                System.out.println("没有修改宽度");
+                return image;
+            }
+            float oldWidth22 = width22;
 				width22 = fixedWidth;
 				float height33 = ((float) height22) * (((float)fixedWidth) / oldWidth22);
 				height22 = (int) height33;
-			}else{
-				System.out.println("没有修改宽度");
-				return image;
-			}
 			//设置图片的像素大小
 			BufferedImage bufferedImage = new BufferedImage(width22, height22, type);
 			Graphics2D g = bufferedImage.createGraphics();
@@ -498,12 +498,12 @@ public class ImageHWUtil {
 				int mogrifyQuality=mogrifyRule(file);
 				ComponentUtil.appendResult(resultTA1, "mogrify compress rate:"+ mogrifyQuality+"%",false);
 				BufferedImageBean imageBean=getBufferedImage(file.getAbsolutePath(),mogrifyQuality);//主要目的是获取图片的像素大小,若不是RGB,则转化为RGB格式,同时mogrifyQuality会生效
-				ComponentUtil.appendResult(resultTA1, imageBean.isRGB()?"RGB图片":"CMYK模式", false);
+                ComponentUtil.appendResult(resultTA1, imageBean.isBeRGB() ? "RGB图片" : "CMYK模式", false);
 //				image.flush();
 				String fileSize2=FileUtils.formatFileSize2(file);
 
-				if(!imageBean.isRGB()){//经过mogrify命令压缩之后
-					ComponentUtil.appendResult(resultTA1, "after mogrify compress size:"+ fileSize2,false);
+                if (!imageBean.isBeRGB()) {//经过mogrify命令压缩之后
+                    ComponentUtil.appendResult(resultTA1, "after mogrify compress size:"+ fileSize2,false);
 					if(FileUtils.getFileSize2(file)<2*1024*1024){
 					ComponentUtil.appendResult(resultTA1, "忽略2:"+SystemHWUtil.CRLF+file.getAbsolutePath(), true);
 					continue;
@@ -553,12 +553,15 @@ public class ImageHWUtil {
 			long M=1024*1024;//1M 的大小
 			if(fileSize>50*M){
 				return 60;
-			}else if(fileSize>8*M){
-				return (int)(75-(15*(fileSize-8*M)/((50-8)*M)));
-			}else if(fileSize>2*M){
-				return (int)(96-(21*(fileSize-2*M)/((8-2)*M)));
-			}else if(fileSize>M){
-				return (int)(98-(2*(fileSize-1*M)/((2-1)*M)));
+            }
+            if (fileSize > 8 * M) {
+                return (int)(75-(15*(fileSize-8*M)/((50-8)*M)));
+            }
+            if (fileSize > 2 * M) {
+                return (int)(96-(21*(fileSize-2*M)/((8-2)*M)));
+            }
+            if (fileSize > M) {
+                return (int)(98-(2*(fileSize-1*M)/((2-1)*M)));
 			}
 			return 100;
 		}
@@ -582,10 +585,12 @@ public class ImageHWUtil {
 			float M=1024*1024f;//1M 的大小
 			if(fileSize>50*M){
 				return 70;
-			}else if(fileSize>8*M){
-				return (80.0f-(10.0f*(fileSize-8*M)/((float)(50-8)*M)));
-			}else if(fileSize>1*M){
-				return (95.0f-(15.0f*(fileSize-1*M)/((float)(8-1)*M)));
+            }
+            if (fileSize > 8 * M) {
+                return (80.0f-(10.0f*(fileSize-8*M)/((float)(50-8)*M)));
+            }
+            if (fileSize > 1 * M) {
+                return (95.0f-(15.0f*(fileSize-1*M)/((float)(8-1)*M)));
 			}
 			return 100f;
 		}
@@ -623,18 +628,16 @@ public class ImageHWUtil {
 				rgb[0]=Integer.parseInt(red,16);
 				rgb[1]=Integer.parseInt(green,16);
 				rgb[2]=Integer.parseInt(blue,16);
-
-			}else{
-				String red=hex22.substring(0, 1);
+                return rgb;
+            }
+            String red=hex22.substring(0, 1);
 				String green=hex22.substring(1, 2);
 				String blue=hex22.substring(2, 3);
 				rgb[0]=Integer.parseInt(red+red,16);
 				rgb[1]=Integer.parseInt(green+green,16);
 				rgb[2]=Integer.parseInt(blue+blue,16);
-
 //				result=String.valueOf(Integer.parseInt(red+red,16))+" , "
 //				+Integer.parseInt(green+green,16)+" , "+Integer.parseInt(blue+blue,16);
-			}
 			return rgb;
 		}
 		
@@ -702,20 +705,22 @@ public class ImageHWUtil {
 	            System.out.println(imageWidth+"\t"+imageHeight);
 	    }
 
-	    public static BufferedImage genericImage(JComponent ta,File destFile,String format){
-	    	return generateImage(ta, destFile, format, null);
+    public static BufferedImage2Bean genericImage(JComponent ta, File destFile, String format) {
+        return generateImage(ta, destFile, format, null);
 	    }
-	public static BufferedImage generateImage(JComponent ta,File destFile,String format,Integer specifiedHeight) {//TODO 如何提高分辨率
-		return generateImage(ta,destFile,format,specifiedHeight,-1);
-	}
+
+    public static BufferedImage2Bean generateImage(JComponent ta, File destFile, String format, Integer specifiedHeight) {//TODO 如何提高分辨率
+        return generateImage(ta, destFile, format, specifiedHeight, -1, 4);
+    }
 	    /***
 	     * convert JTextArea to image
 	     * @param ta
-	     * @param destFile
-	     * @param format
-	     */
-	    public static BufferedImage generateImage(JComponent ta,File destFile,String format,Integer specifiedHeight,Integer specifiedWidth){//TODO 如何提高分辨率
-	    	int height=ta.getHeight();
+         * @param destFile : java.io.File or OutputStream
+         * @param format
+         * @param multiple : 分辨率倍数
+         */
+        public static BufferedImage2Bean generateImage(JComponent ta, Object destFile, String format, Integer specifiedHeight, Integer specifiedWidth, int multiple) {
+            int height=ta.getHeight();
 			int width=ta.getWidth();
 	    	if(specifiedHeight!=null&&specifiedHeight!=SystemHWUtil.NEGATIVE_ONE){//如果指定了高度
 	    		height=specifiedHeight;
@@ -723,9 +728,11 @@ public class ImageHWUtil {
 			if(specifiedWidth!=null&&specifiedWidth!=SystemHWUtil.NEGATIVE_ONE){//如果指定了高度
 				width=specifiedWidth;
 			}
-            BufferedImage img = new BufferedImage(width * 4, height * 4, BufferedImage.TYPE_INT_RGB);
+            BufferedImage img = new BufferedImage(width * multiple, height * multiple, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = img.createGraphics();
-            g2d.scale(4, 4);
+            BufferedImage2Bean bufferedImageBean = new BufferedImage2Bean();
+            bufferedImageBean.setBufferedImage(img);
+            g2d.scale(multiple, multiple);
             /*g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 	        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
@@ -734,17 +741,31 @@ public class ImageHWUtil {
 	        g2d.setColor(Color.YELLOW);
 	        g2d.fill(e);*/
 	        ta.printAll(g2d);
-	        g2d.dispose();
-	        if(!ValueWidget.isNullOrEmpty(destFile)){
-	        	try {
-		            ImageIO.write(img, format/*"jpg"*/, destFile);
-		        } catch (IOException ex) {
+            bufferedImageBean.setG2d(g2d);
+
+            if (ValueWidget.isNullOrEmpty(destFile)) {
+                return bufferedImageBean;
+            }
+            g2d.dispose();
+            if (destFile instanceof File) {//把截图保存到文件
+                File file = (File) destFile;
+                try {
+                    ImageIO.write(img, format/*"jpg"*/, file);
+                } catch (IOException ex) {
 		            ex.printStackTrace();
 		        }
-	        }
-
-	        return img;
-		}
+                return bufferedImageBean;
+            }
+            if (destFile instanceof OutputStream) {
+                OutputStream outputStream = (OutputStream) destFile;
+                try {
+                    ImageIO.write(img, format/*"jpg"*/, outputStream);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return bufferedImageBean;
+        }
 
 		static class ImageLoadStatus {
 			public boolean widthDone = false;

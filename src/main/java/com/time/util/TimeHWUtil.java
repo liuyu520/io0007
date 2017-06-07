@@ -1,9 +1,12 @@
 package com.time.util;
 
+import com.common.bean.TimeInterval;
 import com.common.bean.TimeLong;
+import com.common.bean.exception.LogicBusinessException;
 import com.common.util.ReflectHWUtils;
 import com.common.util.SystemHWUtil;
 import com.string.widget.util.ValueWidget;
+import org.apache.log4j.Logger;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -19,15 +22,18 @@ import java.util.regex.Pattern;
  * 2015年7月26日
  */
 public class TimeHWUtil {
-	/***
+    protected static Logger logger = Logger.getLogger(TimeHWUtil.class);
+    /***
 	 * yyyy-MM-dd HH:mm:ss
 	 */
 	public static final String yyyyMMddHHmmss = "yyyy-MM-dd HH:mm:ss";
-	public static final String YYYYMMDDHHMM = "yyyy-MM-dd HH:mm";
+    public static final String yyyyMMddHHmmss_NO_DELIMITER = "yyyyMMddHHmmss";
+    public static final String YYYYMMDDHHMM = "yyyy-MM-dd HH:mm";
 	public static final String YYYYMMDDHHMM_ZH = "yyyy年MM月dd HH点mm分";
 	public static final String YYYYMMDDHHMMSS_ZH="yyyy年MM月dd日 HH点mm分ss秒";
 	public static final String yyyyMMdd = "yyyy-MM-dd";
-	/***
+    public static final String yyyyMMddHHmm = "yyyyMMddHHmm";
+    /***
 	 * 没有中划线
 	 */
 	public static final String YYYYMMDD_NO_LINE = "yyyyMMdd";
@@ -46,8 +52,12 @@ public class TimeHWUtil {
 	 */
 	public static String formatDateTime(Timestamp timestamp) {// format date
 																// ,such as
-		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMddHHmmss);
-		String formatTimeStr = null;
+        return formatTimestamp(timestamp, yyyyMMddHHmmss);
+    }
+
+    public static String formatTimestamp(Timestamp timestamp, String format) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        String formatTimeStr = null;
 		if(ValueWidget.isNullOrEmpty(timestamp)){
 			/* 如果没有传参数timestamp，则默认为当前时间*/
 			timestamp=new Timestamp(new Date().getTime());
@@ -57,10 +67,12 @@ public class TimeHWUtil {
 		}
 		return formatTimeStr;
 	}
+
 	/**
-	 * 	
-	 * @param Millisecond :毫秒数
-	 * @return
+	 *
+     * @param Millisecond
+     *            :毫秒数
+     * @return
 	 */
 	public static String formatDateTime(long Millisecond) {
 		Timestamp timestamp=new Timestamp(Millisecond);
@@ -74,8 +86,12 @@ public class TimeHWUtil {
 	 * @return
 	 */
 	public static String formatDateTime(Date date) {// format date ,such as
-		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMddHHmmss);
-		String formatStr = null;
+        return formatDateTimeCommon(date, yyyyMMddHHmmss);
+    }
+
+    public static String formatDateTimeCommon(Date date, String format) {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        String formatStr = null;
 		if(ValueWidget.isNullOrEmpty(date)){
 			/*若没有传递参数，则默认为当前时间*/
 			date=new Date();
@@ -101,17 +117,8 @@ public class TimeHWUtil {
 	 */
 	public static String formatDate(Timestamp timestamp) {// format date ,such
 															// as
-		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMdd);
-		String formatTimeStr = null;
-		if(ValueWidget.isNullOrEmpty(timestamp)){
-			/* 如果没有传参数timestamp，则默认为当前时间*/
-			timestamp=new Timestamp(new Date().getTime());
-		}
-		if (timestamp != null) {
-			formatTimeStr = sdf.format(timestamp);
-		}
-		return formatTimeStr;
-	}
+        return formatTimestamp(timestamp, yyyyMMdd);
+    }
 
 	/***
 	 * yyyy-MM-dd
@@ -120,56 +127,33 @@ public class TimeHWUtil {
 	 * @return
 	 */
 	public static String formatDate(Date date) {// format date ,such as
-		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMdd);
-		String formatTimeStr = null;
-		if(ValueWidget.isNullOrEmpty(date)){
-			/*若没有传递参数，则默认为当前时间*/
-			date=new Date();
-		}
-		if (date != null) {
-			formatTimeStr = sdf.format(date);
-		}
-		return formatTimeStr;
-	}
+        return formatDateTimeCommon(date, yyyyMMdd);
+    }
 
 	public static String formatDateZh(Date date) {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
-		String formatTimeStr = null;
-		if(ValueWidget.isNullOrEmpty(date)){
-			/*若没有传递参数，则默认为当前时间*/
-			date=new Date();
-		}
-		if (date != null) {
-			formatTimeStr = sdf.format(date);
-		}
-		return formatTimeStr;
-	}
+        return formatDateTimeCommon(date, "yyyy年MM月dd日");
+    }
 
 	public static String formatDateZh(Timestamp timestamp) {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
-		String formatTimeStr = null;
-		if(ValueWidget.isNullOrEmpty(timestamp)){
-			/* 如果没有传参数timestamp，则默认为当前时间*/
-			timestamp=new Timestamp(new Date().getTime());
-		}
-		if (timestamp != null) {
-			formatTimeStr = sdf.format(timestamp);
-		}
-		return formatTimeStr;
-	}
+        return formatTimestamp(timestamp, "yyyy年MM月dd日");
+    }
 
 	/**
 	 * 
 	 * @param formatStr
 	 *            format : yyyy-MM-dd HH:mm:ss
 	 * @return
-	 * @throws ParseException
 	 */
-	public static Timestamp getTimestamp4Str(String formatStr)
-			throws ParseException {
-		SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMddHHmmss);
-		return new Timestamp(sdf.parse(formatStr).getTime());
-	}
+    public static Timestamp getTimestamp4Str(String formatStr) {
+        SimpleDateFormat sdf = new SimpleDateFormat(yyyyMMddHHmmss);
+        try {
+            return new Timestamp(sdf.parse(formatStr).getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+            logger.error("SimpleDateFormat.parse(" + formatStr + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+    }
 
 	/**
 	 * 
@@ -184,16 +168,19 @@ public class TimeHWUtil {
 		return new Timestamp(date.getTime());
 	}
 
-	public static Date getDate4Str(String formatStr) throws ParseException {
-		String format=null;
-		if(formatStr.length()>10){
-			format=yyyyMMddHHmmss;
-		}else{
-			format=yyyyMMdd;
-		}
-		SimpleDateFormat sdf = new SimpleDateFormat(format);
-		return sdf.parse(formatStr);
+    public static Date getDate4Str(String formatStr) {
+        String format=null;
+        if (formatStr.length() > 17) {
+            format=yyyyMMddHHmmss;
+        } else if (formatStr.length() > 10) {
+            format = YYYYMMDDHHMM;
+        }else{
+            format=yyyyMMdd;
+        }
+        return parseDateByPattern(formatStr, format);
+
 	}
+
 	public static Date getUSDate4Str(String dateStr){
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM d HH:mm:ss", Locale.US);
 		try {
@@ -201,8 +188,9 @@ public class TimeHWUtil {
 			return date;
 		} catch (ParseException e) {
 			e.printStackTrace();
-		}
-		return null;
+            logger.error("SimpleDateFormat.parse(" + dateStr + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
 	}
 
 	/***
@@ -250,6 +238,10 @@ public class TimeHWUtil {
 		return date.before(new java.util.Date());
 	}
 
+    public static boolean compareToDate(String dateStr) {
+        return compareToDate(getDate4Str(dateStr));
+    }
+
 	public static Timestamp getTimestampAfter(Date d, int day) {
 		Calendar now = Calendar.getInstance();
 		now.setTime(d);
@@ -293,8 +285,8 @@ public class TimeHWUtil {
 	 * @return
 	 * @throws ParseException
 	 */
-	public static java.util.Date getDateBefore(String d, int day) throws ParseException {
-		java.util.Date date=getDate4Str(d);
+    public static java.util.Date getDateBefore(String d, int day) {
+        java.util.Date date=getDate4Str(d);
 		return getDateBefore(date, day);
 	}
 	/***
@@ -481,7 +473,7 @@ public class TimeHWUtil {
 		return now.getTime();
 	}
 
-    public static java.util.Date getDateAfterByHour(String dateStr, int hour) throws ParseException {
+    public static java.util.Date getDateAfterByHour(String dateStr, int hour) {
         Date d = getDate4Str(dateStr);
         return getDateAfterByHour(d, hour);
     }
@@ -615,16 +607,8 @@ public class TimeHWUtil {
 	}
 	
 	public static String getMiniuteSecond(Date date) {
-		SimpleDateFormat sdf = new SimpleDateFormat("mm:ss");
-		String formatTimeStr = null;
-		if(ValueWidget.isNullOrEmpty(date)){
-			date=new Date();
-		}
-		if (date != null) {
-			formatTimeStr = sdf.format(date);
-		}
-		return formatTimeStr;
-	}
+        return formatDateTimeCommon(date, "mm:ss");
+    }
 	public static String getMiniuteSecondZH(Date date) {
 		SimpleDateFormat sdf = new SimpleDateFormat("mm分ss秒");
 		String formatTimeStr = null;
@@ -667,9 +651,11 @@ public class TimeHWUtil {
 			return sdf.parse(dateStr);
 		} catch (ParseException e) {
 			e.printStackTrace();
-		}
-		return null;
+            logger.error("SimpleDateFormat.parse(" + dateStr + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
 	}
+
 	/***
 	 * convert Date to cron ,eg.  "0 06 10 15 1 ? 2014"
 	 * @param date  : 时间点
@@ -760,8 +746,11 @@ public class TimeHWUtil {
 	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
 	 */
-	public static void formatTime(List list,String columnName,String transientColumn) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		int size=list.size();
+    public static void formatTime(List list, String columnName,
+                                  String transientColumn) throws SecurityException,
+            NoSuchFieldException, IllegalArgumentException,
+            IllegalAccessException {
+        int size=list.size();
 		for(int i=0;i<size;i++){
 			Object obj=list.get(i);
 			Object val=ReflectHWUtils.getObjectValue(obj, columnName);
@@ -769,10 +758,12 @@ public class TimeHWUtil {
 				continue;
 			}
 			Long timeValue=(Long)val ;
-			ReflectHWUtils.setObjectValue(obj, transientColumn,TimeHWUtil.formatSecondTime(timeValue));
-		}
+            ReflectHWUtils.setObjectValue(obj, transientColumn,
+                    TimeHWUtil.formatSecondTime(timeValue));
+        }
 	}
-	/***
+
+    /***
 	 * 返回人性化可读的时长
 	 * @param time : 秒
 	 * @return
@@ -821,6 +812,43 @@ public class TimeHWUtil {
     public static String format(Calendar c) {
         Date d = c.getTime();
         return formatDateTime(d);
+    }
+
+    /***
+     * "startTime":"2017-10-31 00:00:00","endTime":"2017-12-01 23:59:59"<br />
+     * 防止8月31 ,增加一个月变成了10月1日
+     *
+     * @param startDateTime
+     * @param endDateTime
+     * @return
+     */
+    public static Date adjustEndDate(Date startDateTime, Date endDateTime) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDateTime);
+        // 防止8月31 ,增加一个月变成了10月1日
+        int startDay2 = calendar.get(Calendar.DAY_OF_MONTH);
+        if (startDay2 > 28) {// 二月份是28天
+            calendar.setTime(endDateTime);
+            while (calendar.get(Calendar.DAY_OF_MONTH) != startDay2
+                    && calendar.get(Calendar.DAY_OF_MONTH) < 4) {
+                endDateTime = getDateBefore(endDateTime, 1);
+                calendar.setTime(endDateTime);
+            }
+        }
+        return endDateTime;
+    }
+
+    public static boolean isBetween(List<TimeInterval> timeIntervalList,
+                                    String time) {
+        if (timeIntervalList == null || time == null) {
+            return false;
+        }
+        for (TimeInterval timeInterval : timeIntervalList) {
+            if (timeInterval.isBetween(time)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 	public void test_002(){

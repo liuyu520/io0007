@@ -1,13 +1,16 @@
 package com.swing.component;
 
+import com.common.bean.exception.LogicBusinessException;
 import com.common.dict.Constant2;
 import com.common.util.*;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
 import com.swing.dialog.toast.ToastMessage;
+import com.swing.image.bean.BufferedImage2Bean;
 import com.swing.menu.MenuUtil2;
 import com.swing.messagebox.GUIUtil23;
 import com.time.util.TimeHWUtil;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -29,7 +32,8 @@ import java.util.Date;
 import java.util.List;
 
 public final class ComponentUtil {
-	/***
+    protected static Logger logger = Logger.getLogger(ComponentUtil.class);
+    /***
 	 * 为了防止JTextField 重复增加 DocumentListener
 	 */
 	public static List<JTextField> tfs = new ArrayList<JTextField>();
@@ -131,36 +135,30 @@ public final class ComponentUtil {
 	 * 
 	 * @param sourceTF
 	 * @param e
-	 * @throws BadLocationException
 	 */
-	public static void assistantTF(final JTextField sourceTF, DocumentEvent e)
-			throws BadLocationException {
-		int changeLength = e.getLength();
-		if (changeLength == 1) {// 表示一次性增加的字符个数是1
-			final Document doc = e.getDocument();
-			final String input = doc.getText(e.getDocument().getLength() - 1,
-					changeLength);
-			String filepath = null;
+    public static void assistantTF(final JTextField sourceTF, DocumentEvent e) {
+        int changeLength = e.getLength();
+        if (changeLength != 1) {// 表示一次性增加的字符个数是1
+            return;
+        }
+        final Document doc = e.getDocument();
+        final String input;
+        try {
+            input = doc.getText(e.getDocument().getLength() - 1,
+                    changeLength);
+        } catch (BadLocationException e1) {
+            e1.printStackTrace();
+            logger.error("Document.getText(" + changeLength + ") error", e1);
+            throw new LogicBusinessException(e1.getMessage(), e1);
+        }
+        String filepath = null;
 			File[] files = null;
 			final String sourceFileStr = sourceTF.getText();
-			if (input.endsWith(SystemHWUtil.SEPARATOR)) {// 输入的必须是一个字符，必须是\
-				files = FileUtils.getFilesByPathAndSuffix(sourceFileStr, "");
-
-			} else {
-
-				String fatherFolder = SystemHWUtil.getParentDir(sourceFileStr);
-				if (!ValueWidget.isNullOrEmpty(fatherFolder)) {
-					files = FileUtils.getFilesByPathAndPrefix(fatherFolder,
-							SystemHWUtil.getFileSimpleName(sourceFileStr));
-				}
-
-			}
-			if (!ValueWidget.isNullOrEmpty(files)) {
-				if (files.length == 1) {
-					filepath = files[0].getAbsolutePath();
+        files = getFiles(input, files, sourceFileStr);
+        if (!ValueWidget.isNullOrEmpty(files) && (files.length == 1)) {
+            filepath = files[0].getAbsolutePath();
 					// System.out.println(filepath);
 				}
-			}
 			if (!ValueWidget.isNullOrEmpty(filepath)) {
 				// System.out.println("input:" + filepath);
 				// 临时变量
@@ -183,7 +181,21 @@ public final class ComponentUtil {
 				}).start();
 			}
 		}
-	}
+
+    private static File[] getFiles(String input, File[] files, String sourceFileStr) {
+        if (input.endsWith(SystemHWUtil.SEPARATOR)) {// 输入的必须是一个字符，必须是\
+            files = FileUtils.getFilesByPathAndSuffix(sourceFileStr, "");
+            return files;
+        }
+
+        String fatherFolder = SystemHWUtil.getParentDir(sourceFileStr);
+        if (!ValueWidget.isNullOrEmpty(fatherFolder)) {
+            files = FileUtils.getFilesByPathAndPrefix(fatherFolder,
+                    SystemHWUtil.getFileSimpleName(sourceFileStr));
+        }
+
+        return files;
+    }
 
 	public static void assistantTF(final JTextField sourceTF) {
 		boolean isContains = tfs.contains(sourceTF);
@@ -202,13 +214,8 @@ public final class ComponentUtil {
 			@Override
 			public void insertUpdate(DocumentEvent e) {
 				// System.out.println("insert");
-				try {
 					ComponentUtil.assistantTF(sourceTF, e);// Assist path
 															// complement
-				} catch (BadLocationException e2) {
-					e2.printStackTrace();
-				}
-
 			}
 
 			@Override
@@ -280,7 +287,8 @@ public final class ComponentUtil {
 			public void actionPerformed(ActionEvent e) {
 				if(ValueWidget.isNullOrEmpty(ta)){
 					ToastMessage.toast("文本框为null,请确认文本框是否已经创建",4000,Color.red);
-				}else{
+                    logger.error("请在 new 文本框之后再调用getCopyBtn()方法");
+                }else{
 					String input = ta.getText();
 					if (!ValueWidget.isNullOrEmpty(input)) {
 						WindowUtil.setSysClipboardText(input);
@@ -627,34 +635,17 @@ public final class ComponentUtil {
 //		}
         catch (SecurityException e) {
             e.printStackTrace();
-        } catch (NoSuchFieldException e) {
+            throw new LogicBusinessException(e.getMessage(), e);
+        } /*catch (NoSuchFieldException e) {  TODO
             e.printStackTrace();
-        } catch (IllegalArgumentException e) {
+        }*/ catch (IllegalArgumentException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+            throw new LogicBusinessException(e.getMessage(), e);
+        } /*catch (IllegalAccessException e) {
             e.printStackTrace();
-        }
+        }*/
 
 		
-		/*try {
-			Map map=(Map)ReflectHWUtils.getObjectValue(clipboardTrans, "flavorsToData");
-			Object val=null;
-			for(Object obj:map.keySet()){
-				val=map.get(obj);
-				break;
-			}
-			byte[] data=(byte[])ReflectHWUtils.getObjectValue(val, "data");
-			
-			return data;//(BufferedImage)trans.getTransferData(trans.getTransferDataFlavors()[0]);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}*/
 		return image;
 	}
 	/***
@@ -696,33 +687,44 @@ public final class ComponentUtil {
 			ComponentUtil.fillComboBox(comb, SystemHWUtil.unique(urls));
 		}
 	}
-	public static JComboBox<String> comboBoxSelectedHandle(JComboBox<String> comboBox,final JTextField ipTextField){
-		if(ValueWidget.isNullOrEmpty(comboBox)){
+
+    public static JComboBox<String> comboBoxSelectedHandle(JComboBox<String> comboBox, final JTextField ipTextField){
+        if(ValueWidget.isNullOrEmpty(comboBox)){
             System.out.println("JComboBox is null");
             comboBox = new JComboBox<String>();
         }
-		comboBox.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				JComboBox<String> target=(JComboBox<String>)e.getSource();
-				String  selectedPort=(String)target.getSelectedItem();
-                if(!ValueWidget.isNullOrEmpty(selectedPort)){
-                	ipTextField.setText(selectedPort);
-                }
+        comboBox.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                setSelectedItem(e, ipTextField);
 //				System.out.println(e.getSource());
-			}
-		});
-		comboBox.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				JComboBox<String> target=(JComboBox<String>)e.getSource();
-				String  selectedPort=(String)target.getSelectedItem();
-                if(!ValueWidget.isNullOrEmpty(selectedPort)){
-                	ipTextField.setText(selectedPort);
-                }
-			}
-		});
-		return comboBox;
-	}
+            }
+        });
+        comboBox.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                setSelectedItem(e, ipTextField);
+            }
+        });
+        comboBox.addActionListener(new ActionListener() {
+            /***
+             * 单击弹出的下拉列表时触发
+             * @param e
+             */
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setSelectedItem(e, ipTextField);
+            }
+        });
+        return comboBox;
+    }
+
+    public static void setSelectedItem(AWTEvent e, JTextField ipTextField) {
+        JComboBox<String> target=(JComboBox<String>)e.getSource();
+        String  selectedPort=(String)target.getSelectedItem();
+        if(!ValueWidget.isNullOrEmpty(selectedPort)){
+            ipTextField.setText(selectedPort);
+        }
+    }
 	
 	/***
 	 * 
@@ -768,23 +770,47 @@ public final class ComponentUtil {
 				specifiedHeight=inputHeight;
 			}
 		}
-		generateImageAndCopy(ta, specifiedHeight,-1);
-	}
+        generateImageAndCopy(ta, specifiedHeight, -1, 4, true);
+    }
 
+    public static BufferedImage2Bean generateImageAndCopy(JTextComponent ta, File destFile, Integer specifiedHeight, Integer specifiedWidth, int multiple) {
+        return generateImageAndCopy(ta, destFile, specifiedHeight, specifiedWidth, multiple, false);
+    }
+
+    /***
+     * 截屏
+     * @param ta
+     * @param specifiedHeight
+     * @param specifiedWidth
+     * @param multiple
+     * @return
+     */
+    public static BufferedImage2Bean generateImageAndCopy(JTextComponent ta, Integer specifiedHeight, Integer specifiedWidth, int multiple, boolean isCope2Clip) {
+        return generateImageAndCopy(ta, null, specifiedHeight, specifiedWidth, multiple, isCope2Clip);
+    }
     /***
      * 截图,截屏
      * @param ta
      * @param specifiedHeight
      * @param specifiedWidth
      */
-    public static void generateImageAndCopy(JTextComponent ta, Integer specifiedHeight,Integer specifiedWidth) {
-		BufferedImage img = ImageHWUtil.generateImage(ta, null, "jpg"/*picFormat*/,specifiedHeight,specifiedWidth);
-		if(ValueWidget.isNullOrEmpty(img)){
-			return;
-		}
-		ComponentUtil.setClipboardImage(ta.getParent(),img);
-		ToastMessage.toast("复制图片到剪切板",3000);
-	}
+    public static BufferedImage2Bean generateImageAndCopy(JTextComponent ta, File destFile, Integer specifiedHeight, Integer specifiedWidth, int multiple, boolean isCope2Clip) {
+        BufferedImage2Bean img = ImageHWUtil.generateImage(ta, destFile, "jpg"/*picFormat*/, specifiedHeight, specifiedWidth, multiple);
+        if(ValueWidget.isNullOrEmpty(img)){
+            return null;
+        }
+        if (null == destFile) {
+            if (isCope2Clip) {
+                img.getG2d().dispose();
+                ComponentUtil.setClipboardImage(ta.getParent(), img.getBufferedImage());
+                ToastMessage.toast("复制图片到剪切板",3000);
+            }
+        } else {
+            ToastMessage.toast("已保存:" + destFile.getAbsolutePath(), 3000);
+        }
+
+        return img;
+    }
 
 	/***
 	 * 保存图片时选择要保存为的文件路径

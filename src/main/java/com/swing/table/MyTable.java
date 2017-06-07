@@ -28,5 +28,3 @@ public class MyTable extends JTable{
 	}
 }
 
-//submit1
-//submit 2

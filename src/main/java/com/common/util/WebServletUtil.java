@@ -2,6 +2,8 @@ package com.common.util;
 
 import com.common.bean.ClientOsInfo;
 import com.common.dict.Constant2;
+import com.http.util.HttpSocketUtil;
+import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 
 import javax.servlet.ServletContext;
@@ -103,9 +105,8 @@ public final class WebServletUtil {
 		if (filename == null) {
 			filename = downloadFilePath.getName();
 		}
-		response.addHeader("Content-Disposition", "attachment;filename="
-				+ new String(filename.getBytes()));
-		response.addHeader("Content-Length", "" + downloadFilePath.length());
+        setDownloadFileName(response, filename);
+        response.addHeader("Content-Length", "" + downloadFilePath.length());
 		OutputStream toClient = new BufferedOutputStream(
 				response.getOutputStream());
 		response.setContentType("application/octet-stream");
@@ -114,6 +115,11 @@ public final class WebServletUtil {
 		toClient.close();
 
 	}
+
+    public static void setDownloadFileName(HttpServletResponse response, String filename) {
+        response.addHeader(Constant2.CONTENT_DISPOSITION, "attachment;filename="
+                + filename);//原来的写法,不知道为什么 new String(filename.getBytes())
+    }
 
 	/***
 	 * download file
@@ -168,7 +174,6 @@ public final class WebServletUtil {
 		}
 		byte buffer[] = new byte[contentLength];
 		for (int i = 0; i < contentLength;) {
-
 			int readlen = request.getInputStream().read(buffer, i,
 					contentLength - i);
 			if (readlen == -1) {
@@ -211,17 +216,18 @@ public final class WebServletUtil {
 		String submitMehtod = request.getMethod();
 		String queryString = null;
 
-		if (submitMehtod.equals("GET")) {// GET
-			queryString = request.getQueryString();
-			String charEncoding = request.getCharacterEncoding();// charset
-			if (charEncoding == null) {
-				charEncoding = SystemHWUtil.CHARSET_UTF;
-			}
-			return queryString.getBytes(charEncoding);
-		} else {// POST
-			return getRequestPostBytes(request);
-		}
-	}
+        if (!submitMehtod.equals("GET")) {// GET
+            // POST
+            return getRequestPostBytes(request);
+        }
+        //Get
+        queryString = request.getQueryString();
+        String charEncoding = request.getCharacterEncoding();// charset
+        if (charEncoding == null) {
+            charEncoding = SystemHWUtil.CHARSET_UTF;
+        }
+        return queryString.getBytes(charEncoding);
+    }
 
 	/**
 	 * Compatible with GET and POST
@@ -233,7 +239,11 @@ public final class WebServletUtil {
 	public static String getRequestQueryStr(HttpServletRequest request,
 			String charEncoding) throws IOException {
 		String submitMehtod = request.getMethod();
-		if (submitMehtod.equalsIgnoreCase("post")) {
+        if (!submitMehtod.equalsIgnoreCase("post")) {
+            return request.getQueryString();
+        }
+        // form method :Get
+
 			byte[] bytes = getRequestPostBytes(request);
 			if(bytes==null){
 				return null;
@@ -255,9 +265,6 @@ public final class WebServletUtil {
 				charEncoding=SystemHWUtil.CHARSET_UTF;
 			}
 			return new String(bytes, charEncoding);
-		} else {// form method :Get
-			return request.getQueryString();
-		}
 	}
 
     /***
@@ -448,7 +455,6 @@ public final class WebServletUtil {
 //			 message="header value:\t"+headerValue;
 			 resultMap.put(key, headerValue);
 //			 System.out.println(message);
-
 		 }
 		 return resultMap;
 	}
@@ -481,24 +487,34 @@ public final class WebServletUtil {
 	 * @param response
 	 * @param map
 	 */
-	public static void rememberMe(HttpServletRequest request,HttpServletResponse response,Map map){
-		Cookie[] cookies = request.getCookies();
-		for(Object obj:map.keySet()){
-			Object val22=(map.get(obj));
-			String cookieValue=null;
-			boolean isSave=true;
-			if(!ValueWidget.isNullOrEmpty(val22)&&(val22 instanceof Boolean)&&(! SystemHWUtil.parse2Boolean(val22))){
-				isSave=false;
-				System.out.println("delete cookie key:"+obj);
-			}else{
-				cookieValue=(String)val22;
-				System.out.println("remember cookie ,key:"+obj);
-			}
+    public static void rememberMe(HttpServletRequest request, HttpServletResponse response, Map map){
+        Cookie[] cookies = request.getCookies();
+        for(Object obj:map.keySet()){
+            Object val22=(map.get(obj));
+            String cookieValue=null;
+            boolean isSave=true;
+            boolean beShouldSave = beShouldSave(val22);
+            if (beShouldSave) {
+                isSave=false;
+            }
+            cookieValue = getCookieValue(obj, val22);
+            rememberMe(cookies, response, (String) obj, cookieValue, isSave);
+        }
+    }
 
-			rememberMe(cookies, response, (String)obj, cookieValue, isSave);
-		}
+    public static String getCookieValue(Object obj, Object val22) {
+        if (beShouldSave(val22)) {
+            System.out.println("delete cookie key:"+obj);
+            return null;
+        }
+        String cookieValue = (String) val22;
+        System.out.println("remember cookie ,key:"+obj);
+        return cookieValue;
+    }
 
-	}
+    public static boolean beShouldSave(Object val22) {
+        return !ValueWidget.isNullOrEmpty(val22) && (val22 instanceof Boolean) && (!SystemHWUtil.parse2Boolean(val22));
+    }
 
 	/***
 	 * 是否保存cookie
@@ -511,45 +527,19 @@ public final class WebServletUtil {
 	public static Cookie rememberMe(Cookie[] cookies , /*HttpServletRequest request,*/HttpServletResponse response,String emaiCookieName, String cookieValue,
 			boolean isSave) {
 //		HttpServletRequest request = ServletActionContext.getRequest();
+        if (cookies == null && (!isSave)) {
+            return null;
+        }
 
-		boolean flag = false;
 		// Cookie passwordCook = null;
 		Cookie emailCook = null;
 		if (cookies != null) {
-			System.out.println("cookie 不为空");
-			for (Cookie c : cookies) {
-				// if (passwordCookieName.equals(c.getName()))
-				// {
-				// c.setValue(URLEncoder.encode(password, "utf-8"));
-				// passwordCook = c;
-				// flag = true;
-				// continue;
-				// }
-//				if(c.getName().equals(Constant2.COOKIE_KEY_ISAUTO_LOGIN )){
-//					System.out.println(Constant2.COOKIE_KEY_ISAUTO_LOGIN+":"+cookieValue);
-//				}
-				if (emaiCookieName.equals(c.getName()) ) {
-					System.out.println("找到了 " + emaiCookieName);
-					System.out.println("cookie的值为 " + c.getValue());
-					if((! ValueWidget.isNullOrEmpty(cookieValue))){
-					try {
-						c.setValue(URLEncoder.encode(cookieValue, "utf-8"));
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-					}
-					emailCook = c;
-					flag = true;
-					break;
-				}
-			}
-
-		}
-
+            emailCook = getSelectedCookie(cookies, emaiCookieName, cookieValue);
+        }
+        boolean flag = (emailCook != null);//是否找到
 //		HttpServletResponse response = ServletActionContext.getResponse();
-		if (isSave) {
-			if (!flag) {
-				System.out.println("没有找到 " + emaiCookieName);
+        if (isSave && (!flag)) {
+            System.out.println("没有找到 " + emaiCookieName);
 				// passwordCook = new Cookie(passwordCookieName, URLEncoder
 				// .encode(password, "utf-8"));
 				try {
@@ -559,23 +549,61 @@ public final class WebServletUtil {
 					e.printStackTrace();
 				}
 			}
-			emailCook.setMaxAge(10000000);//单位是秒,所以大概115 天
-            emailCook.setPath("/");//设置cookie时,设置path为根路径
+        if (isSave) {//保存
+            return updateCookie(response, emailCook);
+        }
+
+        if (flag) {//不保存,并且找到了cookie
+            System.out.println("让 cookie 失效");
+            emailCook.setMaxAge(0);
+            emailCook.setPath("/");//设置cookie时,设置path为根路径 ,如果不设置path ,则无法让cookie 失效
             response.addCookie(emailCook);
-			flag=true;
-			System.out.println("保存cookie:"+emailCook.getValue());
-		} else {
-			if (flag) {
-				System.out.println("让 cookie 失效");
-				emailCook.setMaxAge(0);
-				response.addCookie(emailCook);
-			}
-		}
+        }
 
+        return emailCook;
+    }
 
-		return emailCook;
-	}
+    /***
+     * 更新cookie,主要是更新有效期
+     * @param response
+     * @param emailCook
+     * @return
+     */
+    public static Cookie updateCookie(HttpServletResponse response, Cookie emailCook) {
+        emailCook.setMaxAge(10000000);//单位是秒,所以大概115 天
+        emailCook.setPath("/");//设置cookie时,设置path为根路径
+        response.addCookie(emailCook);
+        System.out.println("保存cookie:" + emailCook.getValue());
+        return emailCook;
+    }
 
+    public static Cookie getSelectedCookie(Cookie[] cookies, String emaiCookieName, String cookieValue) {
+        System.out.println("cookie 不为空");
+        Cookie selectedCookie = null;
+        for (Cookie c : cookies) {
+            if (emaiCookieName.equals(c.getName())) {
+                selectedCookie = c;
+                break;
+            }
+        }
+        if (null == selectedCookie) {
+            return null;
+        }
+        System.out.println("找到了 " + emaiCookieName);
+        System.out.println("cookie的值为 " + selectedCookie.getValue());
+        if ((!ValueWidget.isNullOrEmpty(cookieValue))) {
+            try {
+                selectedCookie.setValue(URLEncoder.encode(cookieValue, SystemHWUtil.CHARSET_UTF));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+        return selectedCookie;
+    }
+
+    public static void setSessionIdCookie(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+        setSessionIdCookie(request, response, 96);//先设置cookie有效期为4天
+    }
     /***
      * 解决关闭浏览器之后需要重新登录的问题
      *
@@ -583,12 +611,11 @@ public final class WebServletUtil {
      * @param response
      * @throws UnsupportedEncodingException
      */
-    public static void setSessionIdCookie(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+    public static void setSessionIdCookie(HttpServletRequest request, HttpServletResponse response, int hours) throws UnsupportedEncodingException {
         //解决关闭浏览器之后需要重新登录的问题
         Cookie c = new Cookie(Constant2.COOKIE_KEY_JSESSIONID, URLEncoder.encode(request.getSession().getId(), "utf-8"));
         c.setPath("/");
-        //先设置cookie有效期为4天
-        c.setMaxAge(96 * 60 * 60);
+        c.setMaxAge(hours * 60 * 60);
         response.addCookie(c);
     }
 
@@ -808,8 +835,11 @@ public final class WebServletUtil {
 			return ip;
 		}
 		ip = request.getHeader("X-Forwarded-For");
-		if (null != ip && !"".equals(ip.trim())
-				&& !"unknown".equalsIgnoreCase(ip)) {
+        if (!(null != ip && !"".equals(ip.trim())
+                && !"unknown".equalsIgnoreCase(ip))) {
+            return request.getRemoteAddr();
+        }
+
 			// get first ip from proxy ip
 			int index = ip.indexOf(',');
 			if (index != -1) {
@@ -818,8 +848,6 @@ public final class WebServletUtil {
 				return ip;
 			}
 		}
-		return request.getRemoteAddr();
-	}
 	public static String getRealPath(HttpServletRequest request) {
 		return getRealPath(request,  "\\");
 	}
@@ -844,8 +872,11 @@ public final class WebServletUtil {
 			userAgent=request.getHeader("User-Agent");
 		}
 		ClientOsInfo info= HeaderUtil.getMobilOS(userAgent);
-		info.setUserAgent(userAgent);
-		return info;
+        //设备标示（device token or clientid） 用于消息推送时,定位设备
+        String deviceId = request.getParameter("deviceId");
+        info.setUserAgent(userAgent);
+        info.setDeviceId(deviceId);
+        return info;
 	}
 	/***
 	 * spring MVC下载文件设置的Content-Disposition
@@ -855,10 +886,9 @@ public final class WebServletUtil {
 	 */
 	public static String getContentDisposition(boolean isInline,String fileName){
 		String downloadType=null;
-		if(isInline){
+        downloadType = Constant2.CONTENT_DISPOSITION_ATTACHMENT;
+        if(isInline){
 			downloadType=Constant2.CONTENT_DISPOSITION_INLINE;
-		}else{
-			downloadType=Constant2.CONTENT_DISPOSITION_ATTACHMENT;
 		}
 		if(ValueWidget.isNullOrEmpty(fileName)){
 			fileName="name_not_specified";
@@ -890,7 +920,20 @@ public final class WebServletUtil {
         StringBuffer sbuffer = new StringBuffer();
         for(Object obj:parameterMap.keySet()){
         	Object valObj=parameterMap.get(obj);
-        	sbuffer.append(obj).append("=").append(valObj==null?SystemHWUtil.EMPTY:valObj).append("&");
+            String key = (String) obj;
+            if (null != valObj && (valObj instanceof String)) {
+                try {
+                    valObj = HttpSocketUtil.decryptHttpParameter((String) valObj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                key = HttpSocketUtil.decryptHttpParameter(key);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            sbuffer.append(key).append("=").append(valObj == null ? SystemHWUtil.EMPTY : valObj).append("&");
         }
         String result=sbuffer.toString();
         return result.replaceAll("(.*)&[\\s]*$", "$1");
@@ -942,13 +985,14 @@ public final class WebServletUtil {
 
     /***
      * 是否需要URL编码<br>
-     * http请求参数中含有&,则必须URL编码
+     * http请求参数中含有& 或者空格,或者中文字符,则必须URL编码
      *
      * @param value
      * @return
      */
     public static boolean isShouldURLEncode(String value) {
-        return !ValueWidget.isNullOrEmpty(value) && value.contains("&");
+        return !ValueWidget.isNullOrEmpty(value) && (value.contains("&") || RegexUtil.contain2(value, "[\\s]")
+                || SystemHWUtil.isHasChinses(value));
     }
 
     /***
@@ -980,8 +1024,8 @@ public final class WebServletUtil {
      * @return
      */
     public static String getRelativeUrl(HttpServletRequest request, String relativePath, String finalFileName) {
-        String rootPath = request.getContextPath();
-        if (!rootPath.endsWith("/")) {
+        String rootPath = request.getContextPath();//有可能为空字符串
+        if (!ValueWidget.isNullOrEmpty(rootPath) && !rootPath.endsWith("/")) {
             rootPath = rootPath + "/";
         }
         if (relativePath.endsWith("/")) {
@@ -1001,5 +1045,16 @@ public final class WebServletUtil {
     }
 
 
+    /***
+     * 组装http应答response
+     * @param header
+     * @param body
+     * @return
+     */
+    public static String assembleResponsePackets(String header, String body) {
+        return header + SystemHWUtil.CRLF_WINDOW +
+                SystemHWUtil.CRLF_WINDOW +
+                body + SystemHWUtil.CRLF_LINUX;
+    }
 
 }

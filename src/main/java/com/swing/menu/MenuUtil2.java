@@ -1,6 +1,7 @@
  package com.swing.menu;
 
  import com.common.dict.Constant2;
+ import com.common.util.RequestUtil;
  import com.common.util.SystemHWUtil;
  import com.common.util.WebServletUtil;
  import com.common.util.WindowUtil;
@@ -13,9 +14,10 @@
  import com.swing.component.MyNamePanel;
  import com.swing.component.TextCompUtil2;
  import com.swing.dialog.toast.ToastMessage;
- import org.codehaus.jackson.JsonParseException;
 
  import javax.swing.*;
+ import javax.swing.event.ChangeEvent;
+ import javax.swing.event.ChangeListener;
  import javax.swing.event.MouseInputAdapter;
  import javax.swing.event.MouseInputListener;
  import javax.swing.text.JTextComponent;
@@ -248,6 +250,9 @@
         JMenuItem and2CRFL = new JMenuItem("& --> 换行");
         JMenuItem showHtml = new JMenuItem("以HTML显示");
         JMenuItem formatJsonHtml = new JMenuItem("格式化json");
+        JMenuItem formatJsonDeepHtml = new JMenuItem("转化为json");
+        JMenuItem deleteQuoteBracketsBetter = new JMenuItem("删除中括号两边的引号(优化)");
+        JMenuItem deleteJsonExtraComma = new JMenuItem("删除json中多余逗号");
         JMenuItem openBrowserM = new JMenuItem(ACTION_STR_OPEN_BROWSER);
         
         JMenuItem searchM = new JMenuItem(ACTION_STR_SEARCH);
@@ -291,6 +296,10 @@
         and2CRFL.addActionListener(myMenuListener);
         showHtml.addActionListener(myMenuListener);
         formatJsonHtml.addActionListener(myMenuListener);
+        formatJsonDeepHtml.addActionListener(myMenuListener);
+        deleteQuoteBracketsBetter.addActionListener(myMenuListener);
+
+        deleteJsonExtraComma.addActionListener(myMenuListener);
         openBrowserM.addActionListener(myMenuListener);
         searchM.addActionListener(myMenuListener);
         exitM.addActionListener(myMenuListener);
@@ -331,6 +340,9 @@
         textMenu.add(and2CRFL);
         textMenu.add(showHtml);
         textMenu.add(formatJsonHtml);
+        textMenu.add(formatJsonDeepHtml);
+        textMenu.add(deleteQuoteBracketsBetter);
+        textMenu.add(deleteJsonExtraComma);
         textMenu.add(openBrowserM);
         textMenu.add(searchM);
         textMenu.add(exitM);
@@ -392,7 +404,7 @@
                                 timer = null;
                                 textMenu.show(e.getComponent(), e.getX() + 10, e.getY());
                             }
-                        }, 300);
+                        }, /*300*/Constant2.RIGHT_CLICK_DELAY);
                     }
 //                	addPopupMenuItem(field2,textMenu);
 //
@@ -476,6 +488,9 @@
 
                     JMenuItem openBrowserM = new JMenuItem(
                             MenuUtil2.ACTION_STR_OPEN_BROWSER);
+
+                    JMenuItem uploadM = new JMenuItem("upload");
+
                     copy22M.addActionListener(myMenuListener);
                     cleanUpM.addActionListener(myMenuListener);
                     exportM.addActionListener(myMenuListener);
@@ -484,6 +499,7 @@
                     paste22M.addActionListener(myMenuListener);
                     readQRCodeM.addActionListener(myMenuListener);
                     openBrowserM.addActionListener(myMenuListener);
+                    uploadM.addActionListener(myMenuListener);
                     textMenu.add(cleanUpM);
                     textMenu.add(copy22M);
                     textMenu.add(paste22M);
@@ -493,6 +509,7 @@
                     textMenu.add(reduceM);
                     textMenu.add(readQRCodeM);
                     textMenu.add(openBrowserM);
+                    textMenu.add(uploadM);
                     textMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -536,7 +553,7 @@
 //				return;
         }
         Map requestMap = new HashMap();
-        SystemHWUtil.setArgumentMap(requestMap, selectContent, true, null, null, false, true);
+        RequestUtil.setArgumentMap(requestMap, selectContent, true, null, null, false, true);
         String jsonResult = HWJacksonUtils.getJsonP(requestMap);
 
         if (!ValueWidget.isNullOrEmpty(jsonResult)) {
@@ -559,7 +576,6 @@
             selectContent = area2.getText();
         }
         Map map;
-        try {
             map = (Map) HWJacksonUtils.deSerialize(selectContent, Map.class);
             String jsonResult = WebServletUtil.getRequestBodyFromMap(map);
             if (!ValueWidget.isNullOrEmpty(jsonResult)) {
@@ -570,9 +586,6 @@
                     area2.setText(jsonResult);
                 }
             }
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void searchPopupMenu(JFrame frame, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, JMenuItem cancelM, Point point, int delta) {
@@ -612,29 +625,7 @@
     public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, JComponent tc) {
         searchResultList(frame, tabbedPane_2, searchResult, tc, SystemHWUtil.NEGATIVE_ONE);
     }
-    /***
-     * 生成搜索结果下拉菜单<br>与下面的方式重载,99%的代码是相同的,只有倒数第二个参数类型不同.
-     * @param frame
-     * @param tabbedPane_2
-     * @param searchResult
-     * @param tc
-     * @param delta
-     */
-    public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, Set<Integer> searchResult, JComponent tc, int delta) {
-        JPopupMenu textPopupMenu = new JPopupMenu();
-        textPopupMenu.setForeground(Color.red);
-        textPopupMenu.setBackground(Color.blue);
-        textPopupMenu.setOpaque(false);//透明度
-        SearchPopupMenuListener searchPopupMenuListener = new SearchPopupMenuListener(tabbedPane_2);
-        boolean needSelected = true;
-        for (Iterator<Integer> it = searchResult.iterator(); it.hasNext(); ) {
-            int select = it.next();
-            needSelected = addSearchPopupMenu(tabbedPane_2, textPopupMenu, searchPopupMenuListener, needSelected, select);
-        }
-        JMenuItem cancelM = new JMenuItem("取消");
-        Point point = tc.getLocation();
-        searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, cancelM, point, delta);
-    }
+
 
     /***
      * 生成搜索结果下拉菜单<br><br>与上面的方式重载,99%的代码是相同的,只有倒数第二个参数类型不同.
@@ -660,8 +651,15 @@
         searchPopupMenu(frame, textPopupMenu, searchPopupMenuListener, cancelM, point, delta);
     }
     public static boolean addSearchPopupMenu(JTabbedPane tabbedPane_2, JPopupMenu textPopupMenu, SearchPopupMenuListener searchPopupMenuListener, boolean needSelected, int select) {
+//        System.out.println("select:"+select);
+//        System.out.println(tabbedPane_2.getTabCount());
+        if (select >= tabbedPane_2.getTabCount()) {//解决删除请求panel之后,tabbed索引越界的问题
+            return false;
+        }
         Component comp = tabbedPane_2.getComponentAt(select);
-        if (comp instanceof MyNamePanel) {
+        if (!(comp instanceof MyNamePanel)) {
+            return needSelected;
+        }
             MyNamePanel requestPanel = (MyNamePanel) comp;
             String requestName = requestPanel.getRequestName();
             if (ValueWidget.isNullOrEmpty(requestName)) {
@@ -669,7 +667,26 @@
             } else {
                 requestName = requestName + "(" + select + ")";
             }
-            JMenuItem openFolderM = new JMenuItem(requestName);
+        requestName = "<html> <span style=\"color: #ff4646;font-weight: bolder;\">" + requestName + "</span>";
+        if (!ValueWidget.isNullOrEmpty(requestPanel.getActionName())) {
+            requestName = requestName + " | " + requestPanel.getActionName();
+        }
+        JMenuItem openFolderM = new JMenuItem(requestName + "</html>");
+        ChangeListener cl = new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (e.getSource() instanceof JMenuItem) {
+                    JMenuItem item = (JMenuItem) e.getSource();
+//                        System.out.println("e:" + e);
+                    if (item.isArmed()) {
+                        System.out.println("item :" + item.getText());
+//                            System.out.println("item :" + item.isSelected() + "," + item.isArmed());
+                    }
+                }
+            }
+        };
+        openFolderM.addChangeListener(cl);
+//            openFolderM.setToolTipText(requestPanel.getActionName());
             openFolderM.setActionCommand(String.valueOf(select));
             openFolderM.addActionListener(searchPopupMenuListener);
             textPopupMenu.add(openFolderM);
@@ -677,8 +694,6 @@
                 openFolderM.setSelected(true);
                 needSelected = false;
             }
-//				textPopupMenu.addSeparator();
-        }
         return needSelected;
     }
 
@@ -721,6 +736,18 @@
                 }
             }
         }
+        if (searchResult.size() == 0) {
+            //通过接口名称搜索
+            for (int i = 0; i < size; i++) {
+                Component comp = tabbedPane_2.getComponentAt(i);
+                if (comp instanceof MyNamePanel) {
+                    MyNamePanel requestPanel = (MyNamePanel) comp;
+                    if (null != requestPanel.getRequetId() && RegexUtil.contain2(requestPanel.getRequetId(), keyWord)) {
+                        searchResult.add(i);
+                    }
+                }
+            }
+        }
         return searchResult;
     }
 
@@ -738,5 +765,30 @@
                 tc.setBackground(tfDefaultColor);
             }
         }, 2000);
+    }
+
+    public static void processEvent(MouseEvent e, JComponent component) {
+        // Right-click on
+        if (!((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0)) {
+            // System.out.println(e.getModifiers());
+            // System.out.println("Right-click on");
+            return;
+        }
+        int modifiers = e.getModifiers();
+        modifiers -= MouseEvent.BUTTON3_MASK;
+        modifiers |= MouseEvent.BUTTON1_MASK;
+        MouseEvent ne = new MouseEvent(e.getComponent(), e.getID(),
+                e.getWhen(), modifiers, e.getX(), e.getY(),
+                e.getClickCount(), false);
+        component.dispatchEvent(ne);// in order to trigger Left-click
+        // the event
+    }
+
+    public static void deleteQuoteBracketsBetter(JTextComponent area2) {
+        String content = area2.getText();
+        if (!ValueWidget.isNullOrEmpty(content)) {
+            StringBuffer sb = RegexUtil.deleteQuoteBracketsBetter(content);
+            area2.setText(sb.toString());
+        }
     }
 }

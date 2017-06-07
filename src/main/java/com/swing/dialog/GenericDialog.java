@@ -29,8 +29,11 @@ public class GenericDialog extends AbstractDialog {
      */
 	@Override
 	public void layout3(Container contentPane) {
-		
-	}
+    }
+
+    @Override
+    protected void saveConfig() {
+    }
 
 	@Override
 	public void dragResponse(List<File> list, Component component) {

@@ -75,11 +75,14 @@ public class OpenDirTextField extends AssistPopupTextField {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (EventHWUtil.isJustShiftDown(e)) {
-					if (lastTimeMillSencond == 0) {
+                if (!EventHWUtil.isJustShiftDown(e)) {
+                    return;
+                }
+                if (lastTimeMillSencond == 0) {
 						lastTimeMillSencond = System.currentTimeMillis();
-					} else {
-						long currentTime = System.currentTimeMillis();
+                        return;
+                    }
+                long currentTime = System.currentTimeMillis();
 						if (MenuUtil2.isDoubleClick(currentTime
 								- lastTimeMillSencond)) {
 							popupMenu(e);
@@ -88,8 +91,6 @@ public class OpenDirTextField extends AssistPopupTextField {
 							lastTimeMillSencond = System.currentTimeMillis();
 						}
 					}
-				}
-			}
 		});
 	}
 }

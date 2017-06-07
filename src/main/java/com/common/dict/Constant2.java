@@ -60,7 +60,8 @@ public class Constant2 {
 	 * 登录成功的标识
 	 */
 	public static final String SESSION_KEY_LOGINED_FLAG="logined";
-	public static final String COOKIE_KEY_USEREMAIL="userEmail";//记住用户名
+    public static final String REDIS_KEY_ACCESS_TOKEN = "token";
+    public static final String COOKIE_KEY_USEREMAIL="userEmail";//记住用户名
 	/***
 	 * cookie中密码的key
 	 */
@@ -85,9 +86,13 @@ public class Constant2 {
 	 */
 	public static final String HTTP_REQUESTMETHOD_POST="POST";
 	/***
-	 * 内联显示,内嵌显示
-	 */
-	public static final String CONTENT_DISPOSITION_INLINE="inline";
+     * 表示空或者不选择,不修改
+     */
+    public static final String NULL = "n u l l";
+    /***
+     * 内联显示,内嵌显示
+     */
+    public static final String CONTENT_DISPOSITION_INLINE="inline";
 	/***
 	 * 作为单独的附件下载
 	 */
@@ -109,8 +114,8 @@ public class Constant2 {
 	/***
 	 * 当前是第几页
 	 */
-	public static final String JSON_RETURN_CURRENTPAGE="currentpage";
-	/***
+    public static final String JSON_RETURN_CURRENTPAGE = "currentPage";
+    /***
 	 * 每页最多显示多少条
 	 */
 	public static final String JSON_RETURN_RECORDSPERPAGE="records_perpage";
@@ -212,7 +217,8 @@ public class Constant2 {
 	public static final int REQUEST_METHOD_OPTIONS=5;
 	public static final int REQUEST_METHOD_HEAD=6;
 	public static final ListOrderedMap REQUEST_METHOD_MAP=new ListOrderedMap();
-	/***
+    public static final ListOrderedMap REQUEST_METHOD_MAP_DISPLAY_NAME = new ListOrderedMap();
+    /***
 	 * 删除CIA返回的无用的前缀
 	 */
 	public static final String REGEX_DELETE_FRONT_OF_CIA_RESPONSE_STRICT="^.*<<[\\s]*\"[\\s]*(.*)\"[\\s]*$";
@@ -246,17 +252,22 @@ public class Constant2 {
 	public static final String YES = "yes";
 	public static final String KEY_LABEL = "label";
 	public static final String KEY_CURRENT_TIME = "currentTime";
-	public static final String Slash = "/";
-	public static final String stub_folder_no_Slash = "stub";
+    public static final String SLASH = "/";
+    public static final String STUB_FOLDER_NO_SLASH = "stub";
+    /***
+     * 鼠标右键的延迟时间,为了实现右键双击<br />
+     * 单位:毫秒
+     */
+    public static final int RIGHT_CLICK_DELAY = 400;
     /***
      * stub/
      */
-    public static final String stub_folder = stub_folder_no_Slash + Constant2.Slash;
+    public static final String STUB_FOLDER = STUB_FOLDER_NO_SLASH + Constant2.SLASH;
     /***
      * .json
      */
-    public static final String stub_file_Suffix = ".json";
-	/***
+    public static final String STUB_FILE_SUFFIX = ".xml";
+    /***
 	 * 用户名不存在
 	 */
 	public static final int LOGIN_RESULT_USERNAME_INVALID = 2;
@@ -314,13 +325,52 @@ public class Constant2 {
      * 鼠标中键按下事件
      */
     public static final String EVENT_MIDDLE_MOUSE = "middle_mouse";
+    /***
+     * 被GenericController引用
+     */
+    public static final String SESSION_KEY_CLIENT_OS_INFO = "clientOsInfo520";
+    public static final String HttP_REQUEST_HEADER_HOST = "Host";
+    public static final String PARAMETER_SAME_FILE_NAME = "sameFileName";
+    public static final String PARAMETER_VALUE_ON = "1";
 
     static {
         REQUEST_METHOD_MAP.put("GET", REQUEST_METHOD_GET);
-		REQUEST_METHOD_MAP.put("POST", REQUEST_METHOD_POST);
-		REQUEST_METHOD_MAP.put("PUT", REQUEST_METHOD_PUT);
+        REQUEST_METHOD_MAP.put(Constant2.HTTP_REQUESTMETHOD_POST, REQUEST_METHOD_POST);
+        REQUEST_METHOD_MAP.put("PUT", REQUEST_METHOD_PUT);
 		REQUEST_METHOD_MAP.put("DELETE", REQUEST_METHOD_DELETE);
 		REQUEST_METHOD_MAP.put("OPTIONS", REQUEST_METHOD_OPTIONS);
 		REQUEST_METHOD_MAP.put("HEAD", REQUEST_METHOD_HEAD);
-	}
+
+        REQUEST_METHOD_MAP_DISPLAY_NAME.put("GET", "com.common.dict.Constant2.REQUEST_METHOD_GET");
+        REQUEST_METHOD_MAP_DISPLAY_NAME.put(Constant2.HTTP_REQUESTMETHOD_POST, "com.common.dict.Constant2.REQUEST_METHOD_POST");
+        REQUEST_METHOD_MAP_DISPLAY_NAME.put("PUT", "com.common.dict.Constant2.REQUEST_METHOD_PUT");
+        REQUEST_METHOD_MAP_DISPLAY_NAME.put("DELETE", "com.common.dict.Constant2.REQUEST_METHOD_DELETE");
+        REQUEST_METHOD_MAP_DISPLAY_NAME.put("OPTIONS", "com.common.dict.Constant2.REQUEST_METHOD_OPTIONS");
+        REQUEST_METHOD_MAP_DISPLAY_NAME.put("HEAD", "com.common.dict.Constant2.REQUEST_METHOD_HEAD");
+    }
+    /************ 请求类型 start  **************/
+    /**
+     * 添加页面,不会修改数据
+     */
+    public static final int REQUEST_TYPE_ADD = 1;
+    /***
+     * 保存到数据库,结果:新增一条记录
+     */
+    public static final int REQUEST_TYPE_ADD_SAVE = 2;
+    public static final int REQUEST_TYPE_DETAIL = 3;
+    public static final int REQUEST_TYPE_DELETE = 4;
+    /***
+     * 修改原有数据的编辑页面,不会真正影响数据库
+     */
+    public static final int REQUEST_TYPE_EDIT = 6;
+    /***
+     * 保存数据
+     */
+    public static final int REQUEST_TYPE_UPDATE = 7;
+    /**
+     * 列表或搜索
+     */
+    public static final int REQUEST_TYPE_LIST = 8;
+    /************ 请求类型 end **************/
+    public static final String PROGRESSINITSTR = "100%";
 }

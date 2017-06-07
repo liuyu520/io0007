@@ -3,6 +3,7 @@ package com.test;
 import com.common.bean.FindTxtResultBean;
 import com.common.bean.ParameterIncludeBean;
 import com.common.util.AssembleUtil;
+import com.common.util.RequestUtil;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.RegexUtil;
@@ -330,7 +331,7 @@ public class UnitTest4 {
     @Test
     public void test_queryString() {
         String url = "http://store.chanjet.com/order/startPay?orderId=INTE2016031701837=&payType=chanpay&orgId=90001001032&callack= ";
-        Map<String, Object> argMap = SystemHWUtil.parseQueryString(url);
+        Map<String, Object> argMap = RequestUtil.parseQueryString(url);
         Assert.assertEquals(argMap.toString(), "{orgId=90001001032, callack= , payType=chanpay, orderId=INTE2016031701837=}");
         System.out.println(argMap);
     }

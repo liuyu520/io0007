@@ -1,9 +1,9 @@
 package com.io.hw.json;
 
+import com.common.bean.exception.LogicBusinessException;
 import com.string.widget.util.ValueWidget;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
@@ -114,7 +114,7 @@ public class HWJacksonUtils {
 	 * @param clazz
 	 * @return
 	 */
-    public static Object deSerialize(String jsonInput, Class clazz) throws org.codehaus.jackson.JsonParseException {
+    public static Object deSerialize(String jsonInput, Class clazz) {
         if (ValueWidget.isNullOrEmpty(jsonInput)) {
             return null;
         }
@@ -127,13 +127,18 @@ public class HWJacksonUtils {
 			return obj;
         } catch (org.codehaus.jackson.JsonParseException e) {
             e.printStackTrace();
-            throw e;
+            System.out.println("jsonInput :" + jsonInput);
+            logger.error("ObjectMapper.readValue(" + jsonInput + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
         } catch (JsonMappingException e) {
             e.printStackTrace();
+            logger.error("ObjectMapper.readValue(" + jsonInput + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
         } catch (IOException e) {
             e.printStackTrace();
+            logger.error("ObjectMapper.readValue(" + jsonInput + ") error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
         }
-		return obj;
 	}
 	
 	/***
@@ -154,13 +159,41 @@ public class HWJacksonUtils {
 		}
 		return obj;
 	}
-	
-	public static Object unSerialize(String jsonInput,Class clazz){
+
+    public static Map deSerializeMap(String jsonInput, Class clazz) {
+        return deSerializeMap(jsonInput, String.class, clazz);
+    }
+
+    /***
+     * 反序列化复杂map
+     * @param jsonInput
+     * @param clazz
+     * @return
+     */
+    public static Map deSerializeMap(String jsonInput, Class key, Class clazz) {
+        Map obj = null;
         try {
-            return deSerialize(jsonInput, clazz);
-        } catch (JsonParseException e) {
+            ObjectMapper mapper = getObjectMapper();
+            JavaType javaType = getCollectionType(mapper, HashMap.class, key, clazz);
+            obj = mapper.readValue(jsonInput, javaType);
+            return obj;
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return obj;
+    }
+
+    /***
+     * Map 反序列化,key是Integer
+     * @param jsonInput
+     * @param clazz
+     * @return
+     */
+    public static Map deSerializeMapIntKey(String jsonInput, Class clazz) {
+        return deSerializeMap(jsonInput, Integer.class, clazz);
+    }
+
+    public static Object unSerialize(String jsonInput, Class clazz) throws JsonMappingException {
+        return deSerialize(jsonInput, clazz);
     }
 }

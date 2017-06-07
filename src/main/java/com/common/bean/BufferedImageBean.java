@@ -7,18 +7,21 @@ public class BufferedImageBean {
 	/***
 	 * 是否是RGB模式
 	 */
-	private boolean isRGB;
+    private boolean beRGB;
+
 	public BufferedImage getImage() {
 		return image;
 	}
 	public void setImage(BufferedImage image) {
 		this.image = image;
 	}
-	public boolean isRGB() {
-		return isRGB;
-	}
-	public void setRGB(boolean isRGB) {
-		this.isRGB = isRGB;
-	}
+
+    public boolean isBeRGB() {
+        return beRGB;
+    }
+
+    public void setBeRGB(boolean isRGB) {
+        this.beRGB = isRGB;
+    }
 	
 }

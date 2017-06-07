@@ -1,12 +1,13 @@
 package com.cmd.dos.hw;
 
+import com.common.util.SystemHWUtil;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.common.util.SystemHWUtil;
 
 public class ExeCmd01
 {
@@ -29,8 +30,13 @@ public class ExeCmd01
                 e.printStackTrace();
             }
             String line = null;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p
-                    .getInputStream()));
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new InputStreamReader(p
+                        .getInputStream(), SystemHWUtil.CHARSET_UTF));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             try
             {
                 while ((line = reader.readLine()) != null)

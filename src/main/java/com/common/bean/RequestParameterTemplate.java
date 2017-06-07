@@ -12,6 +12,11 @@ public class RequestParameterTemplate implements Serializable {
     private static final long serialVersionUID = 8400239923270285633L;
     private String displayName;
     private ListOrderedMap parameters;
+    /***
+     * 服务器ip,例如:<br />
+     * "store2.chanjet.com"
+     */
+    private String serverIp;
 
     public String getDisplayName() {
         return displayName;
@@ -41,5 +46,12 @@ public class RequestParameterTemplate implements Serializable {
     public String toString() {
         return "RequestParameterTemplate [" + displayName + ": parameters=" + parameters + "]";
     }
-    
+
+    public String getServerIp() {
+        return serverIp;
+    }
+
+    public void setServerIp(String serverIp) {
+        this.serverIp = serverIp;
+    }
 }

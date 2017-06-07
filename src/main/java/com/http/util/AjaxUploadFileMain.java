@@ -14,9 +14,12 @@ public class AjaxUploadFileMain {
 
         if (ValueWidget.isNullOrEmpty(args)) {
             System.out.println(ERROR_TIPS);
-        } else if (args.length < 1) {
+            return;
+        }
+        if (args.length < 1) {
             System.out.println(ERROR_TIPS);
-        } else {
+            return;
+        }
             String fileName = null;
             String filePathStr = args[0];
             if (args.length > 1) {
@@ -36,8 +39,9 @@ public class AjaxUploadFileMain {
                     System.out.println("文件不存在:" + filePathStr);
                     return;
                 }
+                Map<String, String> parameters = null;
                 String result = HttpSocketUtil.uploadFile("http://blog.yhskyc.com/convention2/ajax_image/upload",
-                        ins, fileName);
+                        ins, parameters, fileName);
 
                 Map map = (Map) HWJacksonUtils.deSerialize(result, Map.class);
                 System.out.println(map.get("fullUrl"));
@@ -47,6 +51,5 @@ public class AjaxUploadFileMain {
                 e.printStackTrace();
             }
         }
-    }
 
 }

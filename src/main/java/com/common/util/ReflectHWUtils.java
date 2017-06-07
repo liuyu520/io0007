@@ -1,46 +1,77 @@
 package com.common.util;
 
+import com.common.bean.exception.LogicBusinessException;
 import com.string.widget.util.ValueWidget;
 import com.time.util.TimeHWUtil;
+import org.apache.log4j.Logger;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.*;
 
 public class ReflectHWUtils {
+    protected static Logger logger = Logger.getLogger(ReflectHWUtils.class);
 
 	/***
-	 * get all field ,including fields in father/super class
-	 * 
-	 * @param clazz
-	 * @return
-	 */
-	public static List<Field> getAllFieldList(Class<?> clazz) {
-		if (clazz == null) {
-			return null;
-		}
-		List<Field> fieldsList = new ArrayList<Field>();// return object
-		Class<?> superClass = clazz.getSuperclass();// father class
-		if(ValueWidget.isNullOrEmpty(superClass)){
-			return null;
-		}
-		if (!superClass.getName().equals(Object.class.getName()))/*
+     * 根据方法名称(字符串)获取方法
+     * @param clazz
+     * @param methodName
+     * @param annotation
+     * @return
+     */
+    public static Method getMethod(Class<?> clazz, String methodName, Class annotation) {
+        Method[] methods = clazz.getMethods();//包括父类(基类)的方法
+        if (ValueWidget.isNullOrEmpty(methods)) {
+            return null;
+        }
+        int length = methods.length;
+        for (int i = 0; i < length; i++) {
+            Method method = methods[i];
+            if (method.getName().equals(methodName)) {
+                if (null == annotation) {
+                    return method;
+                }
+                if (method.getAnnotation(annotation) != null) {
+                    return method;
+                }
+            }
+        }
+        return null;
+    }
+
+    /***
+     * get all field ,including fields in father/super class
+     *
+     * @param clazz
+     * @return
+     */
+    public static List<Field> getAllFieldList(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+        List<Field> fieldsList = new ArrayList<Field>();// return object
+        Class<?> superClass = clazz.getSuperclass();// father class
+        if(ValueWidget.isNullOrEmpty(superClass)){
+            return null;
+        }
+        if (!superClass.getName().equals(Object.class.getName()))/*
 																 * java.lang.Object
 																 */{
 
-			// System.out.println("has father");
-			fieldsList.addAll(getAllFieldList(superClass));// Recursive
-		}
-		Field[] fields = clazz.getDeclaredFields();
-		for (int i = 0; i < fields.length; i++) {
-			Field field = fields[i];
-			// 排除因实现Serializable 接口而产生的属性serialVersionUID
-			if (!field.getName().equals("serialVersionUID")) {
-				fieldsList.add(field);
-			}
-		}
-		return fieldsList;
-	}
+            // System.out.println("has father");
+            fieldsList.addAll(getAllFieldList(superClass));// Recursive
+        }
+        Field[] fields = clazz.getDeclaredFields();
+        for (int i = 0; i < fields.length; i++) {
+            Field field = fields[i];
+            // 排除因实现Serializable 接口而产生的属性serialVersionUID
+            if (!field.getName().equals("serialVersionUID")) {
+                fieldsList.add(field);
+            }
+        }
+        return fieldsList;
+    }
 
 	/***
 	 * 设置对象的属性值。
@@ -53,15 +84,10 @@ public class ReflectHWUtils {
 	 * @param isIgnoreNull : 是否强制设置,不管<code>propertyValue</code>是否为null<br>
 	 * true:不设置  ; false:设置
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
 	public static void setObjectValue(Object obj, Object propertyName,
-			Object propertyValue,boolean isIgnoreNull) throws SecurityException,
-			IllegalArgumentException,
-			IllegalAccessException {
-		if (ValueWidget.isNullOrEmpty(propertyName)
+                                      Object propertyValue, boolean isIgnoreNull) {
+        if (ValueWidget.isNullOrEmpty(propertyName)
 				|| ValueWidget.isNullOrEmpty (obj)) {
 			return;
 		}
@@ -76,9 +102,8 @@ public class ReflectHWUtils {
 			name=(Field)propertyName;
 		}
 		if(!ValueWidget.isNullOrEmpty(name)){
-			name.setAccessible(true);
-			name.set(obj, propertyValue);
-		}
+            setAccessibleAndVal(obj, name, propertyValue);
+        }
 	}
 	/***
 	 * 当propertyValue 为null 时,忽略
@@ -86,15 +111,10 @@ public class ReflectHWUtils {
 	 * @param propertyName
 	 * @param propertyValue
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
 	public static void setObjectValue(Object obj, Object propertyName,
-			Object propertyValue) throws SecurityException,
-			NoSuchFieldException, IllegalArgumentException,
-			IllegalAccessException {
-		setObjectValue(obj, propertyName, propertyValue, true);
+                                      Object propertyValue) {
+        setObjectValue(obj, propertyName, propertyValue, true);
 	}
 	/***
 	 * 利用反射设置对象的属性值. 注意:属性可以没有setter 方法.
@@ -102,14 +122,9 @@ public class ReflectHWUtils {
 	 * @param obj
 	 * @param params
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void setObjectValue(Object obj, Map<String, Object> params)
-			throws SecurityException,
-			IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
-		if(ValueWidget.isNullOrEmpty(obj)){
+    public static void setObjectValue(Object obj, Map<String, Object> params) {
+        if(ValueWidget.isNullOrEmpty(obj)){
 			return;
 		}
 		if (ValueWidget.isNullOrEmpty(params)) {
@@ -126,9 +141,8 @@ public class ReflectHWUtils {
 			}
 			Field name = getSpecifiedField(clazz, key);
 			if (name != null) {
-				name.setAccessible(true);
-				name.set(obj, propertyValue);
-			}
+                setAccessibleAndVal(obj, name, propertyValue);
+            }
 		}
 
 	}
@@ -169,13 +183,8 @@ public class ReflectHWUtils {
 	 *            :Field
 	 * @return
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static Object getObjectValue(Object obj, Field name)
-			throws SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+    public static Object getObjectValue(Object obj, Field name) {
 
 		// Field f = getSpecifiedField(obj.getClass(), name.getName());
 		if (name == null) {
@@ -184,8 +193,14 @@ public class ReflectHWUtils {
 			return null;
 		}
 		name.setAccessible(true);
-		return name.get(obj);
-	}
+        try {
+            return name.get(obj);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            logger.error("Field .get(obj) error", e);
+            throw new LogicBusinessException(e.getMessage());
+        }
+    }
 
 	/***
 	 * 获取指定对象的属性值
@@ -194,14 +209,9 @@ public class ReflectHWUtils {
 	 * @param propertyName
 	 * @return
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static Object getObjectValue(Object obj, String propertyName)
-			throws SecurityException, NoSuchFieldException,
-			IllegalArgumentException, IllegalAccessException {
-		if (ValueWidget.isNullOrEmpty(obj)||ValueWidget.isNullOrEmpty(propertyName)) {
+    public static Object getObjectValue(Object obj, String propertyName) {
+        if (ValueWidget.isNullOrEmpty(obj)||ValueWidget.isNullOrEmpty(propertyName)) {
 			return null;
 		}
 		Class<?> clazz = obj.getClass();
@@ -226,17 +236,15 @@ public class ReflectHWUtils {
 	 * @param propertyName
 	 * @return
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static int getObjectIntValue(Object obj, String propertyName) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		Object val=getObjectValue(obj, propertyName);
+    public static int getObjectIntValue(Object obj, String propertyName) {
+        Object val=getObjectValue(obj, propertyName);
 		if(val instanceof Integer){
 			int id=(Integer)val;
 			return id;
-		}else if(val instanceof Long){
-			Long id=(Long)val;
+        }
+        if (val instanceof Long) {
+            Long id=(Long)val;
 			return id.intValue();
 		}
 		return Integer.parseInt((String)val);
@@ -247,15 +255,9 @@ public class ReflectHWUtils {
 	 * @param obj
 	 * @param isExcludeZero :true:数值类型的值为0,则当做为空;<br>----false:数值类型的值为0,则不为空
 	 * @return
-	 * @throws SecurityException
-	 * @throws IllegalArgumentException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalAccessException
 	 */
-	public static boolean isNullObject(Object obj, boolean isExcludeZero)
-			throws SecurityException, IllegalArgumentException,
-			NoSuchFieldException, IllegalAccessException {
-		return isNullObject(obj, false/*ignoreNumber*/, isExcludeZero);
+    public static boolean isNullObject(Object obj, boolean isExcludeZero) {
+        return isNullObject(obj, false/*ignoreNumber*/, isExcludeZero);
 	}
 	/***
 	 * Determine whether the object's fields are empty
@@ -266,14 +268,9 @@ public class ReflectHWUtils {
 	 * @param ignoreNumber :当值为true时,isExcludeZero 无效.
 	 * @return
 	 * @throws SecurityException
-	 * @throws IllegalArgumentException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalAccessException
 	 */
-	public static boolean isNullObject(Object obj, boolean ignoreNumber,boolean isExcludeZero)
-			throws SecurityException, IllegalArgumentException,
-			IllegalAccessException, NoSuchFieldException {
-		if(ValueWidget.isNullOrEmpty(obj)){//对象本身就为null
+    public static boolean isNullObject(Object obj, boolean ignoreNumber, boolean isExcludeZero) {
+        if(ValueWidget.isNullOrEmpty(obj)){//对象本身就为null
 			return true;
 		}
 		List<Field> fieldList = ReflectHWUtils.getAllFieldList(obj.getClass());
@@ -283,8 +280,10 @@ public class ReflectHWUtils {
 			Object propertyValue = null;
 			propertyValue = getObjectValue(obj, f);
 
-			if (!ValueWidget.isNullOrEmpty(propertyValue)) {// 字段不为空
-				if(ignoreNumber){
+            if (ValueWidget.isNullOrEmpty(propertyValue)) {// 字段不为空
+                continue;
+            }
+            if(ignoreNumber){
 					if (propertyValue instanceof Integer||propertyValue instanceof Long||propertyValue instanceof Double||propertyValue instanceof Float||propertyValue instanceof Short){
 						continue;
 					}
@@ -319,7 +318,6 @@ public class ReflectHWUtils {
 					break;
 				}
 			}
-		}
 		return isNull;
 	}
 
@@ -330,14 +328,9 @@ public class ReflectHWUtils {
 	 * @param obj2
 	 * @return
 	 * @throws SecurityException
-	 * @throws IllegalArgumentException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalAccessException
 	 */
-	public static boolean isSamePropertyValue(Object obj1, Object obj2)
-			throws SecurityException, IllegalArgumentException,
-			NoSuchFieldException, IllegalAccessException {
-		List<String> exclusiveProperties = null;
+    public static boolean isSamePropertyValue(Object obj1, Object obj2) {
+        List<String> exclusiveProperties = null;
 		return isSamePropertyValue(obj1, obj2, exclusiveProperties);
 	}
 
@@ -350,15 +343,10 @@ public class ReflectHWUtils {
 	 *            or String[]
 	 * @return
 	 * @throws SecurityException
-	 * @throws IllegalArgumentException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalAccessException
 	 */
 	public static boolean isSamePropertyValue(Object obj1, Object obj2,
-			String... exclusiveProperty) throws SecurityException,
-			IllegalArgumentException, NoSuchFieldException,
-			IllegalAccessException {
-		List<String> exclusiveProperties = new ArrayList<String>();
+                                              String... exclusiveProperty) {
+        List<String> exclusiveProperties = new ArrayList<String>();
 		exclusiveProperties.addAll(Arrays.asList(exclusiveProperty));
 		return isSamePropertyValue(obj1, obj2, exclusiveProperties);
 	}
@@ -372,23 +360,20 @@ public class ReflectHWUtils {
 	 *            : 要过滤的属性
 	 * @return
 	 * @throws SecurityException
-	 * @throws IllegalArgumentException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalAccessException
 	 */
 	public static boolean isSamePropertyValue(Object obj1, Object obj2,
-			List<String> exclusiveProperties) throws SecurityException,
-			IllegalArgumentException, NoSuchFieldException,
-			IllegalAccessException {
-		if(!SystemHWUtil.checkSameByNull(obj1, obj2)){
+                                              List<String> exclusiveProperties) {
+        if(!SystemHWUtil.checkSameByNull(obj1, obj2)){
 			return false;
 		}
 		if((obj1 instanceof List)&&!(obj2 instanceof List)){
 			return false;
-		}else if((obj2 instanceof List)&&!(obj1 instanceof List)){
-			return false;
-		}else if(obj1 instanceof List){
-			List list1=(List)obj1;
+        }
+        if ((obj2 instanceof List) && !(obj1 instanceof List)) {
+            return false;
+        }
+        if (obj1 instanceof List) {
+            List list1=(List)obj1;
 			List list2=(List)obj2;
 			if(list1.size()!=list2.size()){
 				System.out.println("list 长度不同");
@@ -406,10 +391,12 @@ public class ReflectHWUtils {
 		}
 		if((obj1 instanceof Map)&&!(obj2 instanceof Map)){
 			return false;
-		}else if((obj2 instanceof Map)&&!(obj1 instanceof Map)){
-			return false;
-		}else if(obj1 instanceof Map){
-			Map map1=(Map)obj1;
+        }
+        if ((obj2 instanceof Map) && !(obj1 instanceof Map)) {
+            return false;
+        }
+        if (obj1 instanceof Map) {
+            Map map1=(Map)obj1;
 			Map map2=(Map)obj2;
 			if(map1.size()!=map2.size()){
 				System.out.println("map 长度不同");
@@ -440,12 +427,12 @@ public class ReflectHWUtils {
 					System.out.println(obj1);
 					return false;
 				}
-			}else{
-				if(!isSamePropertyValue(propertyValue1, propertyValue2,exclusiveProperties)){//复杂对象
+                continue;
+            }
+            if(!isSamePropertyValue(propertyValue1, propertyValue2,exclusiveProperties)){//复杂对象
 //					System.out.println(propertyValue1);
 					return false;
 				}
-			}
 			
 		}
 		return true;
@@ -459,20 +446,27 @@ public class ReflectHWUtils {
 	public static boolean isSimpleType(Object obj1){
 		if (obj1 instanceof Integer) {// int
 			return true;
-		} else if (obj1 instanceof Double) {// double
-			return true;
-		} else if (obj1 instanceof Number) {// Number
-			return true;
-		}else if (obj1 instanceof Boolean) {// Boolean
-			return true;
-		} else if (obj1 instanceof String) {
-			return true;
-		} else if (obj1 instanceof Timestamp) {
-			return true;
-		} else if (obj1 instanceof java.util.Date) {
-			return true;
-		} else if (obj1 instanceof java.sql.Date) {
-			return true;
+        }
+        if (obj1 instanceof Double) {// double
+            return true;
+        }
+        if (obj1 instanceof Number) {// Number
+            return true;
+        }
+        if (obj1 instanceof Boolean) {// Boolean
+            return true;
+        }
+        if (obj1 instanceof String) {
+            return true;
+        }
+        if (obj1 instanceof Timestamp) {
+            return true;
+        }
+        if (obj1 instanceof java.util.Date) {
+            return true;
+        }
+        if (obj1 instanceof java.sql.Date) {
+            return true;
 		}
 		return false;
 	}
@@ -493,20 +487,24 @@ public class ReflectHWUtils {
 			Integer int1 = (Integer) obj1;
 			Integer int2 = (Integer) obj2;
 			return int1.intValue() == int2.intValue();
-		} else if (obj1 instanceof Float) {// 
-			Float int1 = (Float) obj1;
+        }
+        if (obj1 instanceof Float) {//
+            Float int1 = (Float) obj1;
 			Float int2 = (Float) obj2;
 			return int1.compareTo(int2) == 0;
-		} else if (obj1 instanceof Double) {// double
-			Double double1 = (Double) obj1;
+        }
+        if (obj1 instanceof Double) {// double
+            Double double1 = (Double) obj1;
 			Double double2 = (Double) obj2;
 			return double1.compareTo(double2) == 0;
-		} else if (obj1 instanceof Boolean) {// double
-			Boolean boolean1 = (Boolean) obj1;
+        }
+        if (obj1 instanceof Boolean) {// double
+            Boolean boolean1 = (Boolean) obj1;
 			Boolean boolean2 = (Boolean) obj2;
 			return boolean1.compareTo(boolean2) == 0;
-		} else if (obj1 instanceof String) {
-			String str1 = (String) obj1;
+        }
+        if (obj1 instanceof String) {
+            String str1 = (String) obj1;
 			String str2 =null;
 			if(obj2 instanceof String){
 				str2 =(String) obj2;
@@ -515,16 +513,19 @@ public class ReflectHWUtils {
 			}
 			
 			return str1.equals(str2);
-		} else if (obj1 instanceof Timestamp) {
-			Timestamp time1 = (Timestamp) obj1;
+        }
+        if (obj1 instanceof Timestamp) {
+            Timestamp time1 = (Timestamp) obj1;
 			Timestamp time2 = (Timestamp) obj2;
 			return time1.compareTo(time2) == 0;
-		} else if (obj1 instanceof java.util.Date) {
-			java.util.Date time1 = (java.util.Date) obj1;
+        }
+        if (obj1 instanceof java.util.Date) {
+            java.util.Date time1 = (java.util.Date) obj1;
 			java.util.Date time2 = (java.util.Date) obj2;
 			return time1.compareTo(time2) == 0;
-		} else if (obj1 instanceof java.sql.Date) {
-			java.sql.Date time1 = (java.sql.Date) obj1;
+        }
+        if (obj1 instanceof java.sql.Date) {
+            java.sql.Date time1 = (java.sql.Date) obj1;
 			java.sql.Date time2 = (java.sql.Date) obj2;
 			return time1.compareTo(time2) == 0;
 		}
@@ -536,13 +537,9 @@ public class ReflectHWUtils {
 	 * 即去掉首尾的空格
 	 * @param obj
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void trimObject(Object obj) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException
-	{
-		if(obj==null){
+    public static void trimObject(Object obj) {
+        if(obj==null){
 			return;
 		}
 		List<Field> fieldsList =getAllFieldList(obj.getClass());
@@ -552,9 +549,8 @@ public class ReflectHWUtils {
 			if(f.getType().getName().equals(String.class.getName()/*"java.lang.String"*/) && (vObj instanceof String) ){
 				String str=(String)vObj;
 				str=str.trim();
-				f.setAccessible(true);
-				f.set(obj, str);
-			}
+                setAccessibleAndVal(obj, f, str);
+            }
 		}
 	}
 	/***
@@ -563,34 +559,43 @@ public class ReflectHWUtils {
 	 * @param prefix
 	 * @param suffix
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void modifyObject(Object obj,String prefix,String suffix) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		if(obj==null){
-			return;
-		}
-		List<Field> fieldsList =getAllFieldList(obj.getClass());
-		for(int i=0;i<fieldsList.size();i++){
-			Field f=fieldsList.get(i);
-			Object vObj=getObjectValue(obj,f );
-			if(f.getType().getName().equals(String.class.getName()/*"java.lang.String"*/) /*&& (vObj instanceof String)*/ ){
-				String str=(String)vObj;
-				if(str==null){
-					str=SystemHWUtil.EMPTY;
-				}
-				if(!ValueWidget.isNullOrEmpty(prefix)){
-					str=prefix+str;
-				}
-				if(!ValueWidget.isNullOrEmpty(suffix)){
-					str=str+suffix;
-				}
-				f.setAccessible(true);
-				f.set(obj, str);
-			}
-		}
-	}
+    public static void modifyObject(Object obj, String prefix, String suffix) {
+        if(obj==null){
+            return;
+        }
+        List<Field> fieldsList =getAllFieldList(obj.getClass());
+        for(int i = 0; i<fieldsList.size(); i++){
+            Field f=fieldsList.get(i);
+            Object vObj=getObjectValue(obj,f );
+            if (!(f.getType().getName().equals(String.class.getName()/*"java.lang.String"*/) /*&& (vObj instanceof String)*/)) {
+                continue;
+            }
+            String str=(String)vObj;
+            if(str==null){
+                str=SystemHWUtil.EMPTY;
+            }
+            if(!ValueWidget.isNullOrEmpty(prefix)){
+                str=prefix+str;
+            }
+            if(!ValueWidget.isNullOrEmpty(suffix)){
+                str=str+suffix;
+            }
+            setAccessibleAndVal(obj, f, str);
+        }
+    }
+
+    public static void setAccessibleAndVal(Object obj, Field f, Object str) {
+        f.setAccessible(true);
+        try {
+            f.set(obj, str);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            logger.error("Field.set(obj, str) error", e);
+            throw new LogicBusinessException(e.getMessage());
+        }
+    }
+
 	/***
 	 * 遍历List,给其中每个对象,指定字段值增加前缀和后缀
 	 * @param list
@@ -598,13 +603,9 @@ public class ReflectHWUtils {
 	 * @param prefix
 	 * @param suffix
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void modifyObjectFromList(List<?> list,String fieldName,String prefix,String suffix) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException
-	{
-		if(ValueWidget.isNullOrEmpty(list)){
+    public static void modifyObjectFromList(List<?> list, String fieldName, String prefix, String suffix) {
+        if(ValueWidget.isNullOrEmpty(list)){
 			return;
 		}
 		Object obj22=list.get(0);
@@ -627,9 +628,8 @@ public class ReflectHWUtils {
 			if(!ValueWidget.isNullOrEmpty(suffix)){
 				str=str+suffix;
 			}
-			f.setAccessible(true);
-			f.set(obj, str);
-		}
+            setAccessibleAndVal(obj, f, str);
+        }
 	}
 	
 	/***
@@ -637,13 +637,9 @@ public class ReflectHWUtils {
 	 * @param obj : 要修改的对象:java bean
 	 * @param isTrim : 是否清除成员变量的值前后的空格
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void convertEmpty2Null(Object obj,boolean isTrim) 
-			throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		if(obj==null){
+    public static void convertEmpty2Null(Object obj, boolean isTrim) {
+        if(obj==null){
 			return;
 		}
 		List<Field> fieldsList =getAllFieldList(obj.getClass());
@@ -653,23 +649,78 @@ public class ReflectHWUtils {
 		for(int i=0;i<fieldsList.size();i++){
 			Field f=fieldsList.get(i);
 			Object vObj=getObjectValue(obj,f );
-			if(f.getType().getName().equals(String.class.getName()/*"java.lang.String"*/) && (vObj instanceof String) ){
-				String str=(String)vObj;
+            if (!(f.getType().getName().equals(String.class.getName()/*"java.lang.String"*/) && (vObj instanceof String))) {
+                continue;
+            }
+            String str=(String)vObj;
 				if(isTrim){//清除首尾的空格
 					str=str.trim();//str can not be null
 				}
 				if(SystemHWUtil.EMPTY.equals(str)){
 //					System.out.println(f.getName());
 //					System.out.println(f.getType().getName());
-					f.setAccessible(true);
-					f.set(obj, null);
-				}else{
-					if(isTrim){//清除首尾的空格
+                    setAccessibleAndVal(obj, f, null);
+                    continue;
+                }
+            if(isTrim){//清除首尾的空格
 						f.setAccessible(true);
-						f.set(obj, str);
-					}
-				}
-			}
+                        setAccessibleAndVal(obj, f, str);
+                    }
+        }
+    }
+
+    /***
+     * 数值类型(比如Integer,Long)如果值为null,则自动设置为0
+     * @param obj
+     * @throws SecurityException
+     */
+    public static void convertNumberNull20(Object obj) {
+        if (obj == null) {
+            return;
+        }
+        List<Field> fieldsList = getAllFieldList(obj.getClass());
+        if (ValueWidget.isNullOrEmpty(fieldsList)) {
+            return;
+        }
+        for (int i = 0; i < fieldsList.size(); i++) {
+            Field f = fieldsList.get(i);
+            Object vObj = getObjectValue(obj, f);
+            String typeName = f.getType().getName();
+            if (vObj != null) {
+                continue;
+            }
+            if (typeName.equals("java.lang.Integer")
+                    || typeName.equals("java.lang.Short")) {
+                setAccessibleAndVal(obj, f, 0);
+            } else if (typeName.equals("java.lang.String")) {
+                setAccessibleAndVal(obj, f, "");
+            } else if (typeName.equals("java.lang.Long")) {
+                setAccessibleAndVal(obj, f, 0L);
+            }
+        }
+    }
+
+    /***
+     * 过滤hibernate懒加载的成员变量<br />
+     * org.codehaus.jackson.map.JsonMappingException: failed to lazily initialize a collection of role: com.girltest.entity.Test2Boy.conventions, could not initialize proxy - no Session (through reference chain: java.util.HashMap["recordList"]->java.util.ArrayList[0]->com.girltest.entity.Test2Boy["conventions"])
+     *
+     * @param obj
+     * @throws SecurityException
+     */
+    public static void skipHibernatePersistentBag(Object obj) {
+        if (obj == null) {
+            return;
+        }
+        List<Field> fieldsList = getAllFieldList(obj.getClass());
+        if (ValueWidget.isNullOrEmpty(fieldsList)) {
+            return;
+        }
+        for (int i = 0; i < fieldsList.size(); i++) {
+            Field f = fieldsList.get(i);
+            Object vObj = getObjectValue(obj, f);
+            if (null != vObj && vObj.getClass().getName().equals("org.hibernate.collection.internal.PersistentBag")) {
+                setAccessibleAndVal(obj, f, null);
+            }
 		}
 	}
 	
@@ -677,12 +728,9 @@ public class ReflectHWUtils {
 	 * 不trim
 	 * @param obj
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void convertEmpty2Null(Object obj) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		if(obj==null){
+    public static void convertEmpty2Null(Object obj) {
+        if(obj==null){
 			return;
 		}
 		convertEmpty2Null(obj, false/* isTrim */);
@@ -692,12 +740,9 @@ public class ReflectHWUtils {
 	 * @param obj
 	 * @return
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static Map<String,Object> parseObject(Object obj,List<String> excludeProperties) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		List<Field> fields=getAllFieldList(obj.getClass());
+    public static Map<String, Object> parseObject(Object obj, List<String> excludeProperties) {
+        List<Field> fields=getAllFieldList(obj.getClass());
 		Map<String,Object>map=new TreeMap<String, Object>();
 		for(int i=0;i<fields.size();i++){
 			Field field=fields.get(i);
@@ -709,13 +754,15 @@ public class ReflectHWUtils {
 		}
 		return map;
 	}
-	public static Map<String,Object> parseObject(Object obj,String excludeProperty) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		List<String> excludeProperties=new ArrayList<String>();
+
+    public static Map<String, Object> parseObject(Object obj, String excludeProperty) {
+        List<String> excludeProperties=new ArrayList<String>();
 		excludeProperties.add(excludeProperty);
 		return parseObject(obj, excludeProperties);
 	}
-	public static Map<String,Object> parseObject(Object obj) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		return parseObject(obj, (List<String>)null);
+
+    public static Map<String, Object> parseObject(Object obj) {
+        return parseObject(obj, (List<String>)null);
 	}
 	/***
 	 * 把List 转化为Map
@@ -758,9 +805,13 @@ public class ReflectHWUtils {
 				map.put((String)keyf.get(obj), valuef.get(obj));
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
-			} catch (IllegalAccessException e) {
+                logger.error("Field.get(obj) IllegalArgumentException error", e);
+                throw new LogicBusinessException(e.getMessage());
+            } catch (IllegalAccessException e) {
 				e.printStackTrace();
-			}
+                logger.error("Field.get(obj) IllegalAccessException error", e);
+                throw new LogicBusinessException(e.getMessage());
+            }
 		}
 		return map;
 	}
@@ -768,12 +819,9 @@ public class ReflectHWUtils {
 	 * 把对象中的列,类型为时间的都设置为当前时间
 	 * @param obj
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void fillTimeForObj(Object obj) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		List<Field> fieldsList=getAllFieldList(obj.getClass());
+    public static void fillTimeForObj(Object obj) {
+        List<Field> fieldsList=getAllFieldList(obj.getClass());
 		int size=fieldsList.size();
 		for(int i=0;i<size;i++){
 			Field f=fieldsList.get(i);
@@ -792,12 +840,9 @@ public class ReflectHWUtils {
 	 * @param editedObj
 	 * @param persistentObj
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void fillTimeForEditedObj(Object editedObj,Object persistentObj) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		if(!editedObj.getClass().getName().equals(persistentObj.getClass().getName())){
+    public static void fillTimeForEditedObj(Object editedObj, Object persistentObj) {
+        if(!editedObj.getClass().getName().equals(persistentObj.getClass().getName())){
 			throw new RuntimeException("Two object type should be the same ,but is different .");
 		}
 		List<Field> fieldsList=getAllFieldList(editedObj.getClass());
@@ -856,16 +901,24 @@ public class ReflectHWUtils {
 	 * @return
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
-	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
 	 */
-	public static Object convertMap2Obj(Map<String, Object> map,Class clazz) throws InstantiationException, IllegalAccessException, SecurityException, NoSuchFieldException, IllegalArgumentException{
-		if(ValueWidget.isNullOrEmpty(map)){
+    public static Object convertMap2Obj(Map<String, Object> map, Class clazz) {
+        if(ValueWidget.isNullOrEmpty(map)){
 			return null;
 		}
-		Object obj=clazz.newInstance();
-		setObjectValue(obj, map);
+        Object obj = null;
+        try {
+            obj = clazz.newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            logger.error("Class.newInstance() error", e);
+            throw new LogicBusinessException(e.getMessage());
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            logger.error("Class.newInstance() error", e);
+            throw new LogicBusinessException(e.getMessage());
+        }
+        setObjectValue(obj, map);
 		/*for(Iterator it=map.entrySet().iterator();it.hasNext();){
 			Map.Entry<String, Object> entry=(Map.Entry<String, Object>)it.next();
 			String key=entry.getKey();
@@ -881,11 +934,8 @@ public class ReflectHWUtils {
      * @param excludeZero : 是否过滤zero
      * @return
      * @throws SecurityException
-     * @throws NoSuchFieldException
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
      */
-    public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+    public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero) {
         Map map = new HashMap();
         List<Field> fieldsList = ReflectHWUtils.getAllFieldList(obj.getClass());
         for (int i = 0; i < fieldsList.size(); i++) {
@@ -895,25 +945,32 @@ public class ReflectHWUtils {
                 continue;
             }
             Object propertyValue = ReflectHWUtils.getObjectValue(obj, f);
-            if (excludeZero) {
-                if (propertyValue instanceof Integer) {
-                    int ii = (Integer) propertyValue;
-                    if (ii == 0) {
-                        continue;
-                    }
-                } else if (propertyValue instanceof Long) {
-                    int ii = ((Long) propertyValue).intValue();
-                    if (ii == 0) {
-                        continue;
-                    }
-                }
-            }
+            if (excludeZeroAction(excludeZero, propertyValue)) continue;
             if (!ValueWidget.isNullOrEmpty(propertyValue)) {
                 map.put(f.getName(), propertyValue);
             }
         }
         return map;
     }
+
+    public static boolean excludeZeroAction(boolean excludeZero, Object propertyValue) {
+        if (!excludeZero) {
+            return false;
+        }
+                if (propertyValue instanceof Integer) {
+                    int ii = (Integer) propertyValue;
+                    if (ii == 0) {
+                        return true;
+                    }
+                } else if (propertyValue instanceof Long) {
+                    int ii = ((Long) propertyValue).intValue();
+                    if (ii == 0) {
+                        return true;
+                    }
+                }
+        return false;
+            }
+
 	/***
 	 * 从List中删除指定的对象
 	 * @param list
@@ -934,34 +991,29 @@ public class ReflectHWUtils {
 	 * @param list
 	 * @param propertyColumn : 判断其值是否为null
 	 * @throws IllegalAccessException 
-	 * @throws IllegalArgumentException 
-	 * @throws NoSuchFieldException 
-	 * @throws SecurityException 
 	 */
-	public static void deleteNullEle4List(List<?>list,String propertyColumn) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		int length=list.size();
+    public static void deleteNullEle4List(List<?> list, String propertyColumn) {
+        int length=list.size();
 		for(int i=0;i<length;i++){
 			Object obj=list.get(i);
 			Object val=getObjectValue(obj, propertyColumn);
-			if(val==null){
-				list.remove(obj);
+            if (null != val) {
+                continue;
+            }
+            list.remove(obj);
 				length=length-1;
 				i=i-1;
 			}
 		}
-	}
 	
 	/***
 	 * 把指定属性都设置为null(空)
 	 * @param list
 	 * @param propertyColumn
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static void setNull4specified(List list,String propertyColumn) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		int size=list.size();
+    public static void setNull4specified(List list, String propertyColumn) {
+        int size=list.size();
 		for(int i=0;i<size;i++){
 			Object obj=list.get(i);
 			setObjectValue(obj, propertyColumn, null,false);
@@ -975,12 +1027,9 @@ public class ReflectHWUtils {
 	 * @param propertyName
 	 * @return
 	 * @throws SecurityException
-	 * @throws NoSuchFieldException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
 	 */
-	public static List search(List list,String keyWord,String propertyName) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
-		List resultList=new ArrayList();
+    public static List search(List list, String keyWord, String propertyName) {
+        List resultList=new ArrayList();
 		int length=list.size();
 		for(int i=0;i<length;i++){
 			Object obj=list.get(i);

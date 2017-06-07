@@ -2,8 +2,10 @@ package com.common.bean;
 
 import com.string.widget.util.ValueWidget;
 
-public class ClientOsInfo {
-	/***
+import java.io.Serializable;
+
+public class ClientOsInfo implements Serializable {
+    /***
 	 * 比如 Android_3.0
 	 */
 	private String osTypeVersion;
@@ -20,6 +22,11 @@ public class ClientOsInfo {
 	 */
 	private String version;
 	private String userAgent;
+    /***
+     * 设备标示（device token or clientid） 用于消息推送时,定位设备
+     */
+    private String deviceId;
+
 	public String getOsTypeVersion() {
 		return osTypeVersion;
 	}
@@ -63,4 +70,12 @@ public class ClientOsInfo {
 	public boolean isMobile(){
 		return (!ValueWidget.isNullOrEmpty(this.deviceType));
 	}
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
 }

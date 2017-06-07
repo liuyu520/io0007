@@ -8,4 +8,8 @@ public abstract class MyNamePanel extends GenericPanel {
     public abstract String getAlias();
 
     public abstract String getActionName();
+
+    public String getRequetId() {
+        return null;
+    }
 }

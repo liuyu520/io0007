@@ -38,12 +38,11 @@ public class HeaderUtil {
 	 */
 	public static boolean verifyClientVersion(String clientVersion) {
 		boolean result = Pattern.matches("[\\d\\.]+", clientVersion);
-		if (result) {
-			result = Pattern.matches("^\\d\\.\\d\\.\\d\\.\\d$", clientVersion);
+        if (!result) {
+            return false;
+        }
+        result = Pattern.matches("^\\d\\.\\d\\.\\d\\.\\d$", clientVersion);
 			return result;
-		} else {
-			return false;
-		}
 	}
 	
 	/**
@@ -115,11 +114,11 @@ public class HeaderUtil {
 			Matcher m = p.matcher(UA);
 			boolean rs = m.find();
 			if (rs) {
-				String osVersion= m.group(1).replace("_", ".");
-				osInfo.setVersion(osVersion);
+                String osVersion = m.group(1).replace(SystemHWUtil.UNDERLINE, SystemHWUtil.ENGLISH_PERIOD);
+                osInfo.setVersion(osVersion);
 //				System.out.println("Mobil OS is" + " IOS" +osVersion);
-				osInfo.setOsTypeVersion(OSTYPE_IOS+"_" + osVersion);
-			}else{
+                osInfo.setOsTypeVersion(OSTYPE_IOS + SystemHWUtil.UNDERLINE + osVersion);
+            }else{
 				System.out.println("IOS");
 				osInfo.setOsTypeVersion(OSTYPE_IOS);
 			}
@@ -139,11 +138,11 @@ public class HeaderUtil {
 			Matcher m = p.matcher(UA);
 			boolean rs = m.find();
 			if (rs) {
-				String version=m.group(1).replace("_", ".");
-				osInfo.setVersion(version);
+                String version = m.group(1).replace(SystemHWUtil.UNDERLINE, SystemHWUtil.ENGLISH_PERIOD);
+                osInfo.setVersion(version);
 				System.out.println("Mobil OS is " + OSTYPE_ANDROID + version);
-				osInfo.setOsTypeVersion(OSTYPE_ANDROID+"_" + version);
-			}else{
+                osInfo.setOsTypeVersion(OSTYPE_ANDROID + SystemHWUtil.UNDERLINE + version);
+            }else{
 				System.out.println("Android");
 				osInfo.setOsTypeVersion(OSTYPE_ANDROID);
 			}
@@ -164,8 +163,8 @@ public class HeaderUtil {
 				System.out.println("Mobil OS is" + " BLACKBERRY " + m.group(1));
 				String version=m.group(1);
 				osInfo.setVersion(version);
-				osInfo.setOsTypeVersion(OSTYPE_BLACKBERRY+"_" + version);
-			}else{
+                osInfo.setOsTypeVersion(OSTYPE_BLACKBERRY + SystemHWUtil.UNDERLINE + version);
+            }else{
 				System.out.println("BLACKBERRY");
 				osInfo.setOsTypeVersion(OSTYPE_BLACKBERRY);
 			}
@@ -192,8 +191,8 @@ public class HeaderUtil {
 		        	return osInfo;
 		        }else{
 		        	osInfo.setVersion(find_result);
-		        	osInfo.setOsTypeVersion(OSTYPE_ANDROID+"_"+find_result);
-		        	return osInfo;
+                    osInfo.setOsTypeVersion(OSTYPE_ANDROID + SystemHWUtil.UNDERLINE + find_result);
+                    return osInfo;
 		        }
 		}
 		
@@ -216,14 +215,13 @@ public class HeaderUtil {
 		        	osInfo.setOsTypeVersion(OSTYPE_IOS);
 		        	osInfo.setOsType(OSTYPE_IOS);
 		        	return osInfo;
-		        }else{
-		        	String version=find_result.replace("_", ".");
-		        	osInfo.setVersion(version);
-		        	osInfo.setOsTypeVersion(OSTYPE_IOS+"_"+version);
-		        	osInfo.setOsType(OSTYPE_IOS);
+                }
+            String version = find_result.replace(SystemHWUtil.UNDERLINE, SystemHWUtil.ENGLISH_PERIOD);
+            osInfo.setVersion(version);
+            osInfo.setOsTypeVersion(OSTYPE_IOS + SystemHWUtil.UNDERLINE + version);
+            osInfo.setOsType(OSTYPE_IOS);
 		        	return osInfo;
 		        }
-		}
 		return osInfo;
 	}
 
@@ -238,8 +236,8 @@ public class HeaderUtil {
 				System.out.println("Mobil OS is " + OSTYPE_WP + m.group(1));
 				String version = m.group(1);
 				osInfo.setVersion(version);
-				osInfo.setOsTypeVersion(OSTYPE_WP + "_" + version);
-			} else {
+                osInfo.setOsTypeVersion(OSTYPE_WP + SystemHWUtil.UNDERLINE + version);
+            } else {
 				System.out.println("WINDOWS PHONE");
 				osInfo.setOsTypeVersion(OSTYPE_WP);
 			}

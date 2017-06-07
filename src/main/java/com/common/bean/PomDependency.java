@@ -14,40 +14,45 @@ public class PomDependency {
         return groupId;
     }
 
-    public void setGroupId(String groupId) {
+    public PomDependency setGroupId(String groupId) {
         this.groupId = groupId;
+        return this;
     }
 
     public String getArtifactId() {
         return artifactId;
     }
 
-    public void setArtifactId(String artifactId) {
+    public PomDependency setArtifactId(String artifactId) {
         this.artifactId = artifactId;
+        return this;
     }
 
     public String getVersion() {
         return version;
     }
 
-    public void setVersion(String version) {
+    public PomDependency setVersion(String version) {
         this.version = version;
+        return this;
     }
 
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public PomDependency setType(String type) {
         this.type = type;
+        return this;
     }
 
     public String getPackaging() {
         return packaging;
     }
 
-    public void setPackaging(String packaging) {
+    public PomDependency setPackaging(String packaging) {
         this.packaging = packaging;
+        return this;
     }
 
     @Override

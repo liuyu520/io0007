@@ -22,12 +22,12 @@ public class ToastMessage extends JDialog {
 	private static final long serialVersionUID = 5556830959614382641L;
 	int miliseconds;
 
-	public ToastMessage(String toastString, int time,ToastCallback toastCallback)
-	{
-		this(toastString,time, null,toastCallback);
-	}
-	public ToastMessage(String toastString, int time, Color bgColor,final ToastCallback toastCallback) {
-		this.miliseconds = time;
+    public ToastMessage(String toastString, int time, ToastCallback toastCallback, Integer heightDelta) {
+        this(toastString, time, null, toastCallback, heightDelta);
+    }
+
+    public ToastMessage(String toastString, int time, Color bgColor, final ToastCallback toastCallback, Integer heightDelta) {
+        this.miliseconds = time;
 		setUndecorated(true);
 		getContentPane().setLayout(new BorderLayout(0, 0));
 
@@ -50,8 +50,12 @@ public class ToastMessage extends JDialog {
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		int y = dim.height / 2 - getSize().height / 2;
 		int half = y / 2;
-		setLocation(dim.width / 2 - getSize().width / 2, y + half);
-		panel.add(toastLabel);
+        int x1 = dim.width / 2 - getSize().width / 2;
+        if (null != heightDelta && heightDelta > 0) {
+            x1 += heightDelta;
+        }
+        setLocation(x1, y + half);
+        panel.add(toastLabel);
 		setVisible(false);
 
 		new Thread() {
@@ -75,22 +79,33 @@ public class ToastMessage extends JDialog {
 	 * @param time
 	 * @param bgColor
 	 */
-	public static void toast(String toastString, int time, Color bgColor,ToastCallback toastCallback){
-		ToastMessage toastMessage = new ToastMessage(toastString,time,bgColor,toastCallback);
+    public static void toast(String toastString, int time, Color bgColor, ToastCallback toastCallback, Integer heightDelta) {
+        ToastMessage toastMessage = new ToastMessage(toastString, time, bgColor, toastCallback, heightDelta);
         toastMessage.setVisible(true);
 	}
+
 	public static void toast(String toastString, int time, Color bgColor){
-		toast(toastString, time, bgColor, (ToastCallback)null);
-	}
+        toast(toastString, time, bgColor, (Integer) null);
+    }
+
+    public static void toast(String toastString, int time, Color bgColor, Integer heightDelta) {
+        toast(toastString, time, bgColor, (ToastCallback) null, heightDelta);
+    }
+
+    public static void toast(String toastString, int time) {
+        toast(toastString, time, (Integer) null);
+    }
+
 	/***
 	 * 弹框
 	 * @param toastString
 	 * @param time
 	 */
-	public static void toast(String toastString, int time){
-		toast(toastString, time, (Color)null,(ToastCallback)null);
-	}
-	public static void toast(String toastString, int time,ToastCallback toastCallback){
-		toast(toastString, time, (Color)null,toastCallback);
-	}
+    public static void toast(String toastString, int time, Integer heightDelta) {
+        toast(toastString, time, (Color) null, (ToastCallback) null, heightDelta);
+    }
+
+    public static void toast(String toastString, int time, ToastCallback toastCallback, Integer heightDelta) {
+        toast(toastString, time, (Color) null, toastCallback, heightDelta);
+    }
 }

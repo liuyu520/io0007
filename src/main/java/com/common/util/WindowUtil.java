@@ -32,19 +32,15 @@ public final class WindowUtil
             e1.printStackTrace();
         }
 
-        if (clipTf != null)
-        {
-            if (clipTf.isDataFlavorSupported(DataFlavor.stringFlavor))
-            {
-                try
-                {
-                    ret = (String) clipTf
-                            .getTransferData(DataFlavor.stringFlavor);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
+        if (clipTf == null) {
+            return ret;
+        }
+        if (clipTf.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            try {
+                ret = (String) clipTf
+                        .getTransferData(DataFlavor.stringFlavor);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -167,7 +163,7 @@ public final class WindowUtil
         }
         BufferedReader reader = null;
         InputStreamReader ireader = new InputStreamReader(process
-                .getInputStream());
+                .getInputStream(), SystemHWUtil.CHARSET_UTF);
         reader = new BufferedReader(ireader);
         String readedLine = null;
         StringBuffer strb = new StringBuffer();

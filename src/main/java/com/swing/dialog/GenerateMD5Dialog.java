@@ -13,8 +13,6 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 
 public class GenerateMD5Dialog extends GenericDialog {
 
@@ -96,19 +94,15 @@ public class GenerateMD5Dialog extends GenericDialog {
                 if (ValueWidget.isNullOrEmpty(charset)) {
                     charset = SystemHWUtil.CURR_ENCODING;
                 }
-                try {
                     String md5 = SystemHWUtil.getMD5(inputText, charset);
                     resultTextArea.setText(md5);
-                } catch (NoSuchAlgorithmException e1) {
-                    e1.printStackTrace();
-                } catch (UnsupportedEncodingException e1) {
-                    e1.printStackTrace();
-                }
 
             }
         });
         panel.add(generateMDbutton);
         resultTextArea = new AssistPopupTextArea();
+        resultTextArea.setLineWrap(true);
+        resultTextArea.setWrapStyleWord(true);
         JButton btnCopy = ComponentUtil.getCopyBtn(resultTextArea);
         panel.add(btnCopy);
 
