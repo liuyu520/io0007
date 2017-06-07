@@ -606,7 +606,7 @@ public class UnitTest3 {
         try {
             String content = FileUtils.getFullContent2(new File("E:\\tmp\\aa.txt"), "", true);
             System.out.println(content);
-            String sb = RegexUtil.deleteComment(content, "staticapp.chanjet.com");
+            String sb = RegexUtil.deleteComment(content, "staticapp.kunlunsoft.com");
             System.out.println(SystemHWUtil.DIVIDING_LINE);
             System.out.println(sb);
         } catch (IOException e) {

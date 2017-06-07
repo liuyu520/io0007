@@ -220,7 +220,7 @@ public class UnitTest4 {
         param.put("username","whuang");
 
         HTTPClient httpClient=new HTTPClient();
-        httpClient.setUrl("http://cia.chanapp.chanjet.com:80/internal_api/v1/webLoginAppAndAuthorizeApp");
+        httpClient.setUrl("http://cia.chanapp.kunlunsoft.com:80/internal_api/v1/webLoginAppAndAuthorizeApp");
         httpClient.setParam(param);//如果设置了param,则使用POST请求
         httpClient.setMethod();//GET/POST/PUT/DELETE
         httpClient.setAssertion(new Assertion(){
@@ -255,7 +255,7 @@ public class UnitTest4 {
 
     @Test
     public void test_stub() {
-//		String targetUrl="bsvc.chanapp.chanjet.com/api/v1/appstore/queryOrgBuyProductInfo";
+//		String targetUrl="bsvc.chanapp.kunlunsoft.com/api/v1/appstore/queryOrgBuyProductInfo";
 //		System.out.println(ValueWidget. getNginxDispatch(targetUrl,"www.yhskyc.com/"));
         System.out.println(10000000 / (60 * 60 * 24));
     }
@@ -330,7 +330,7 @@ public class UnitTest4 {
 
     @Test
     public void test_queryString() {
-        String url = "http://store.chanjet.com/order/startPay?orderId=INTE2016031701837=&payType=chanpay&orgId=90001001032&callack= ";
+        String url = "http://store.kunlunsoft.com/order/startPay?orderId=INTE2016031701837=&payType=chanpay&orgId=90001001032&callack= ";
         Map<String, Object> argMap = RequestUtil.parseQueryString(url);
         Assert.assertEquals(argMap.toString(), "{orgId=90001001032, callack= , payType=chanpay, orderId=INTE2016031701837=}");
         System.out.println(argMap);

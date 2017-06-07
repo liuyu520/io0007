@@ -14,7 +14,7 @@ public class RequestParameterTemplate implements Serializable {
     private ListOrderedMap parameters;
     /***
      * 服务器ip,例如:<br />
-     * "store2.chanjet.com"
+     * "store2.kunlunsoft.com"
      */
     private String serverIp;
 

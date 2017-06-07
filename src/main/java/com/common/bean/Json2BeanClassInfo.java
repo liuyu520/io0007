@@ -8,8 +8,8 @@ import java.util.List;
  */
 public class Json2BeanClassInfo {
     /***
-     * 类名,例如:/Users/whuanghkl/work/mygit/io0007_new/src/test/java/com/chanjet/gov/service/dto/ordernew/Value.java
-     /Users/whuanghkl/work/mygit/io0007_new/src/test/java/com/chanjet/gov/service/dto/ordernew/TestDto.java
+     * 类名,例如:/Users/whuanghkl/work/mygit/io0007_new/src/test/java/com/kunlunsoft/gov/service/dto/ordernew/Value.java
+     /Users/whuanghkl/work/mygit/io0007_new/src/test/java/com/kunlunsoft/gov/service/dto/ordernew/TestDto.java
      <br />
      */
     private List<String> classNameList;

@@ -2084,7 +2084,7 @@ public class HttpSocketUtil {
     }
 
     /***
-     * http://gzq.chanjet.com <br />
+     * http://gzq.kunlunsoft.com <br />
      * 不包括接口名称
      * @param requestInfoBean
      * @return
