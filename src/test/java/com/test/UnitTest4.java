@@ -220,7 +220,7 @@ public class UnitTest4 {
         param.put("username","whuang");
 
         HTTPClient httpClient=new HTTPClient();
-        httpClient.setUrl("http://cia.chanapp.kunlunsoft.com:80/internal_api/v1/webLoginAppAndAuthorizeApp");
+        httpClient.setUrl("http://login.kunlunsoft.com:80/internal_api/v1/login");
         httpClient.setParam(param);//如果设置了param,则使用POST请求
         httpClient.setMethod();//GET/POST/PUT/DELETE
         httpClient.setAssertion(new Assertion(){
