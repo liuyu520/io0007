@@ -255,7 +255,7 @@ public class UnitTest4 {
 
     @Test
     public void test_stub() {
-//		String targetUrl="bsvc.chanapp.kunlunsoft.com/api/v1/appstore/queryOrgBuyProductInfo";
+
 //		System.out.println(ValueWidget. getNginxDispatch(targetUrl,"www.yhskyc.com/"));
         System.out.println(10000000 / (60 * 60 * 24));
     }
