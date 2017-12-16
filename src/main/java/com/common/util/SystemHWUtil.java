@@ -199,6 +199,7 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 */
 	public static final byte BLANK_BYTE = (byte) 32;
 	public static final String KEY_HEADER_COOKIE = "Set-Cookie";
+    public static final String COOKIE_SET = KEY_HEADER_COOKIE;
 	/***
 	 * the unit of file size
 	 */
@@ -1043,8 +1044,8 @@ public final class SystemHWUtil<T> extends MapUtil {
 			e.printStackTrace();
 			return null;
 		}
-		BigInteger bigInt = new BigInteger(1, digest.digest());
-		return bigInt.toString(16);
+//        BigInteger bigInt = new BigInteger(1, digest.digest());
+        return SystemHWUtil.toHexString(digest.digest());// bigInt.toString(16);
 	}
 
     public static byte[] digest(byte srcBytes[], String algorithm) {
@@ -1076,7 +1077,7 @@ public final class SystemHWUtil<T> extends MapUtil {
             return getMD5(source.getBytes(charset));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            logger.error("getMD5 String.getBytes(" + charset + ") error", e);
+            logger.error("String.getBytes(" + charset + ") error", e);
             throw new LogicBusinessException(e.getMessage(), e);
         }
     }
@@ -2427,7 +2428,7 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 */
 	public static boolean isPrime(BigInteger num) {
 		boolean isPrime = true;
-		BigInteger bigIntTwo = BigInteger.valueOf(2l);
+        BigInteger bigIntTwo = BigInteger.valueOf(2L);
 		BigInteger bigIntOne = BIGINT1;
 		for (BigInteger i = bigIntTwo; num.divide(bigIntTwo).compareTo(i) >= 0; i = i
 				.add(bigIntOne)) {
