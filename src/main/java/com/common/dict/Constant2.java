@@ -63,9 +63,13 @@ public class Constant2 {
     public static final String REDIS_KEY_ACCESS_TOKEN = "token";
     public static final String COOKIE_KEY_USEREMAIL="userEmail";//记住用户名
 	/***
-	 * cookie中密码的key
-	 */
-	public static final String COOKIE_KEY_PASSWORD="password23";
+     * 配置文件"config/domain.properties"
+     */
+    public static final String PROPERTY_KEY_COOKIE = "cookie.domain";
+    /***
+     * cookie中密码的key
+     */
+    public static final String COOKIE_KEY_PASSWORD="password23";
 	/***
 	 * cookie中"自动登录"的key
 	 */
@@ -89,6 +93,10 @@ public class Constant2 {
      * 表示空或者不选择,不修改
      */
     public static final String NULL = "n u l l";
+    /***
+     * 用于查询
+     */
+    public static final String NULL_PARAMETER = "NULL";
     /***
      * 内联显示,内嵌显示
      */
@@ -116,6 +124,10 @@ public class Constant2 {
 	 */
     public static final String JSON_RETURN_CURRENTPAGE = "currentPage";
     /***
+     * 共有多少页
+     */
+    public static final String JSON_RETURN_totalRecords_size = "totalRecords";
+    /***
 	 * 每页最多显示多少条
 	 */
 	public static final String JSON_RETURN_RECORDSPERPAGE="records_perpage";
@@ -124,9 +136,14 @@ public class Constant2 {
 	 */
 	public static final String UPLOAD_FOLDER_NAME="upload";
 	/***
-	 * 请选择文件.
-	 */
-	public static final String ERROR_UPLOAD_FILE_NO_SELECTED_FILE="请选择文件.";
+     * 七牛<br />
+     * 参考:https://developer.qiniu.com/kodo/sdk/1239/java#simple-uptoken
+     */
+    public static final String UPLOAD_QINIU_BUCKET_NAME = "ujiayigou";
+    /***
+     * 请选择文件.
+     */
+    public static final String ERROR_UPLOAD_FILE_NO_SELECTED_FILE="请选择文件.";
 	public static final long UPLOAD_SIZE_DEFAULT=1000000L;
 	public static final String EDIT_FLAG="isEdit";
 	public static final String REQUEST_HEADER_CONTENT_TYPE="Content-Type";
@@ -204,6 +221,8 @@ public class Constant2 {
 	 */
 	public static final int LOGS_ACCESS_TYPE_LOGOUT = 9;
 	public static final String SESSION_KEY_LOGINED_USER="user";
+    public static final String SESSION_KEY_LOGINED_USER_ID = "userId_userId";
+    public static final String SESSION_KEY_LOGINED_USER_CLASS = "user_realclass";
 	/***
 	 * HTTP请求方式:GET
 	 */
@@ -288,17 +307,25 @@ public class Constant2 {
 	 */
 	public static final int ERROR_CODE_NEED_ARGUMENT = 7;
 	/***
-	 * 注册时,用户名已经存在
-	 */
-	public static final int REGISTER_RESULT_USERNAME_EXIST = 10;
+     * 重复操作
+     */
+    public static final String ERROR_CODE_Repeat_Operation = "56";
+    /***
+     * 注册时,用户名已经存在
+     */
+    public static final int REGISTER_RESULT_USERNAME_EXIST = 10;
 	/***
 	 * 注册时邮箱不能为空
 	 */
 	public static final int REGISTER_RESULT_EMAIL_EMPTY = 11;
 	/***
-	 * 用户还没有登录
-	 */
-	public static final int MODIFY_PASS_RESULT_NOT_LOGINED_YET = 21;
+     * 注册环信失败
+     */
+    public static final int REGISTER_EASEMOB_FAILED = 12;
+    /***
+     * 用户还没有登录
+     */
+    public static final int MODIFY_PASS_RESULT_NOT_LOGINED_YET = 21;
 	/***
 	 * 修改密码时,两次密码不能相同
 	 */
@@ -312,13 +339,27 @@ public class Constant2 {
 	 */
 	public static final int MODIFY_PASS_RESULT_OLD_PASS_WRONG = 24;
 	/***
-	 * 需要更新手机端的密码
-	 */
-	public static final int GET_PASS_RESULT_NEED_REFRESH = 30;
+     * 修改环信密码失败
+     */
+    public static final int MODIFY_PASS_RESULT_EASEMOD_FAILD = 25;
+    /***
+     * 修改密码发生未知错误
+     */
+    public static final int MODIFY_PASS_RESULT_UNKNOWN_ERROR = 26;
+    /***
+     * 需要更新手机端的密码
+     */
+    public static final int GET_PASS_RESULT_NEED_REFRESH = 30;
 	/***
 	 * 不需要更新手机端的密码
 	 */
 	public static final int GET_PASS_RESULT_ALREADY_NEWEST = 31;
+
+
+    /***
+     * 获取ocr接口失败
+     */
+    public static final int GET_OCR_RESULT_FAILED = 91;
 	public static final String COOKIE_KEY_JSESSIONID = "JSESSIONID";
     public static final String HEAD_KEY_CONTENT_LENGTH = "Content-Length";
     /***
@@ -332,6 +373,17 @@ public class Constant2 {
     public static final String HttP_REQUEST_HEADER_HOST = "Host";
     public static final String PARAMETER_SAME_FILE_NAME = "sameFileName";
     public static final String PARAMETER_VALUE_ON = "1";
+    public static final String COLUMN_PASSWORD = "password";
+    public static final int EXCEPTION_MESSAGE_LIMIT_LENGTH = 500;
+    public static final String CLASS_FullNAME_JAVA_LANG_OBJECT = "java.lang.Object";
+    public static final String COLUMN_IN_SPLIT = "_split";
+    public static final String COLUMN_ACCEPT_AGENT_IDS = "acceptAgentIds";
+    public static final String condition_between_Split = ",,";
+
+    /***
+     * 上传文件的结果
+     */
+    public static final String REDIS_KEY_UPLOAD_RESULT_22 = "upload_result22";
 
     static {
         REQUEST_METHOD_MAP.put("GET", REQUEST_METHOD_GET);
@@ -373,4 +425,91 @@ public class Constant2 {
     public static final int REQUEST_TYPE_LIST = 8;
     /************ 请求类型 end **************/
     public static final String PROGRESSINITSTR = "100%";
+    /*******  pay start*********/
+    /***
+     * 支付成功
+     */
+    public static final String CHANPAY_ORDER_RESULT_SUCCESS = "TRADE_SUCCESS";
+
+    /***
+     * 畅捷支付的结果
+     */
+    public static final String REDIS_KEY_CHANPAY_PAYRESULT = "payResult";
+    public static final String REDIS_KEY_CHANPAY_ORDERNO = "orderNo";
+    public static final String REDIS_KEY_USERID = "userId";
+    /***
+     * 1-提交、2-完成支付、3-已发货、4-已收货、5-退货中、6-退货确认、7-已退款、20-订单取消 支付中
+     */
+    public static final int ORDERSTATUS_ORDERS_SUBMITTED = 1;
+    /***
+     * 2-完成支付
+     */
+    public static final int ORDERSTATUS_PAID_ALREADY = 2;
+    /***
+     * 3-已发货
+     */
+    public static final int ORDERSTATUS_DELIVERED_ALREADY = 3;
+    /***
+     * 4-已收货
+     */
+    public static final int ORDERSTATUS_RECEIVED_ALREADY = 4;
+    /**
+     * 增购的原订单处于增购状态中
+     */
+    public static final int ORDERSTATUS_BUY_MORE = 10;
+    /***
+     * 支付中,发起了支付请求,但是还没有支付完成
+     */
+    public static final int ORDERSTATUS_PAYING_NOT_COMPLETE = 19;
+    /***
+     * 20-订单取消
+     */
+    public static final int ORDERSTATUS_CANCELLED = 20;
+    public static final String ORDERSTATUS_CANCELLED_TIPS = "已关闭";
+    /*******  pay end *********/
+
+    /*******  编号 start *********/
+    /***
+     * 房源编号
+     */
+    public static final String NO_HOUSEINFO = "HSI";
+    /**
+     * 抢单订单
+     */
+    public static final String NO_GRAB_ORDER = "GRB";
+    /***
+     * 验房订单
+     */
+    public static final String NO_INSPECTION_ORDER = "INS";
+    /***
+     * 交易流水号
+     */
+    public static final String NO_TRANSACTION_LOG = "tx";
+    /***
+     * 带看订单
+     */
+    public static final String NO_VISIT_ORDER = "VIS";
+    /**
+     * 合作订单
+     */
+    public static final String NO_COOPERATION_ORDER = "COO";
+    /***
+     * 代办订单<br />
+     * do sth. for sb.;
+     */
+    public static final String NO_COMMISSION_ORDER = "FOR";
+    /**
+     * 购房订单
+     */
+    public static final String NO_PURCHASE_HOUSE_ORDER = "BUY";
+    /**
+     * 贷款订单
+     */
+    public static final String NO_LOAN_ORDER = "LOA";
+    /**
+     * 申请退单(取消买卖订单)
+     */
+    public static final String NO_CANCEL_PURCHASE_ORDER = "CAN_BUY";
+    /*******  编号 end *********/
+    public static final String between_splitter = "--";
 }

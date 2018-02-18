@@ -3,9 +3,11 @@ package com.string.widget.util;
 import com.common.dict.Constant2;
 import com.common.util.ReflectHWUtils;
 import com.common.util.SystemHWUtil;
+import com.http.util.HttpSocketUtil;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -313,6 +315,19 @@ public class ValueWidget extends RegexUtil{
 
 		return true;
 	}
+
+    /***
+     * 判断数字是否相等
+     * @param number
+     * @param number2
+     * @return
+     */
+    public static boolean equals(Number number, Number number2) {
+        if (null == number || null == number2) {
+            return false;
+        }
+        return number.equals(number2) || (number.intValue() == number2.intValue());
+    }
 
 	public static ArrayList<?> getArr4Collection(Collection<?> coll) {
 		ArrayList<Object> arrs = new ArrayList<Object>();
@@ -751,6 +766,9 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 	 * @return 返回的字串
 	 */
 	public static String escapeHTML(String str) {
+        if (null == str) {
+            return null;
+        }
 		int length = str.length();
 		int newLength = length;
 		boolean someCharacterEscaped = false;
@@ -1000,7 +1018,22 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 	public static String getRequestBodyFromMap(Map parametersMap,boolean isUrlEncoding/*,String charset*/) {
 	    	StringBuffer sbuffer = new StringBuffer();
 	    	for(Object obj:parametersMap.keySet()){
-				String value=(String) parametersMap.get(obj);
+                Object val = parametersMap.get(obj);
+                String value = null;
+                if (val instanceof String) {
+                    value = (String) val;
+                } else {
+                    value = String.valueOf(val);
+                }
+
+                //以{DES}开头
+                if (!ValueWidget.isNullOrEmpty(value)) {
+                    try {
+                        value = HttpSocketUtil.decryptHttpParameter(value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
 				if(isUrlEncoding){
 					try {
 						value = URLEncoder.encode(value, SystemHWUtil.CHARSET_UTF);
@@ -1011,6 +1044,14 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 						e1.printStackTrace();
 					}
 				}
+                //以{DES}开头
+                if (null != obj && (obj instanceof String)) {
+                    try {
+                        obj = HttpSocketUtil.decryptHttpParameter((String) obj);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
 				sbuffer.append(obj).append("=").append(value).append("&");
 			}
 			return sbuffer.toString().replaceAll("&$", SystemHWUtil.EMPTY);
@@ -1033,6 +1074,16 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 		Arrays.sort(arr);
 		return SystemHWUtil.formatArr(arr, SystemHWUtil.EMPTY);
 	}
+
+    public static String formatBigDecimal(BigDecimal orderTotal) {
+        if (null == orderTotal) {
+            return "0";
+        }
+        orderTotal = orderTotal.setScale(2, BigDecimal.ROUND_HALF_UP);
+        java.text.DecimalFormat myformat = new java.text.DecimalFormat("0.00");
+        String orderTotalString = myformat.format(orderTotal);
+        return orderTotalString;
+    }
 
 	/**
 	 * if ( $uri ~* "^/user/loginInput$" ) {
@@ -1082,4 +1133,151 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 		String result = (input.replaceAll("(?i)java", replacement));
 //		Assert.assertEquals("I like cccc,cccc is very easy and cccc is so popular.", result);
 	}
+
+    /***
+     * 删除注释(//...)<br />
+     * 一定要过滤\ r,\ n,因为不能连下一行也删除
+     * @param source
+     * @return
+     */
+    public static String deleteComment(String source) {
+        return RegexUtil.sed(source, "//.*$", "");
+    }
+
+    /**
+     * 创建指定数量的随机字符串
+     *
+     * @param numberFlag 是否是数字
+     * @param length
+     * @return
+     */
+    public static String createRandom(boolean numberFlag, int length) {
+        String retStr = "";
+        String strTable = numberFlag ? "1234567890" : "1234567890abcdefghijkmnpqrstuvwxyz";
+        int len = strTable.length();
+        boolean bDone = true;
+        do {
+            retStr = "";
+            int count = 0;
+            for (int i = 0; i < length; i++) {
+                double dblR = Math.random() * len;
+                int intR = (int) Math.floor(dblR);
+                char c = strTable.charAt(intR);
+                if (('0' <= c) && (c <= '9')) {
+                    count++;
+                }
+                retStr += strTable.charAt(intR);
+            }
+            if (count >= 2) {
+                bDone = false;
+            }
+        } while (bDone);
+        return retStr;
+    }
+
+    /***
+     * 分割的条件:
+     * (1)以两个逗号分割
+     * (2)分割完之后,全为数字;
+     * (3)分割完之后,长度相差不超过2;
+     * @param input
+     * @return
+     */
+    public static String[] splitCondition(String input) {
+        if (input.contains(Constant2.condition_between_Split)) {
+            return input.split(Constant2.condition_between_Split);
+        }
+        String[] strings = null;
+        String splitter = ",";
+        if (input.contains(splitter)) {
+            strings = input.split(splitter);
+        } else {
+            return null;
+        }
+
+        boolean allNumber = checkAllNumber(strings);
+        System.out.println("allNumber :" + allNumber);
+
+        if (allNumber) {
+            return strings;
+        }
+        int maxLength = 0;
+        int minLength = strings[0].length();
+//        if(!allNumber){
+        for (int i = 0; i < strings.length; i++) {
+            String s = strings[i];
+            if (s.length() > maxLength) {
+                maxLength = s.length();
+            }
+            if (s.length() < minLength) {
+                minLength = s.length();
+            }
+        }
+        System.out.println("maxLength :" + maxLength);
+        System.out.println("minLength :" + minLength);
+        if (maxLength - minLength < 3) {
+            return strings;
+        }
+        return null;
+//        }
+    }
+
+    public static boolean checkAllNumber(String[] strings) {
+        if (null == strings) {
+            return false;
+        }
+        boolean allNumber = true;
+        int length = strings.length;
+        for (int i = 0; i < length; i++) {
+            String s = strings[i];
+            if (!ValueWidget.isNumeric(s)) {
+                allNumber = false;
+            }
+        }
+        return allNumber;
+    }
+
+    public static Object[] formatRSObjects(Object result) {
+        Object[] objs = null;
+        if (result instanceof Object[]) {
+            objs = (Object[]) result;
+        } else {//当只返回一个成员变量的时候
+            objs = new Object[]{result};
+        }
+        return objs;
+    }
+
+    /***
+     * 删除数字两边的双引号
+     * @param inp
+     * @return
+     */
+    public static String deleteQuotNumber(String inp) {
+        return inp.replaceAll("\"([\\d]+)\"", "$1").
+                replaceAll("'([\\d]+)'", "$1");
+    }
+
+
+    public static String[] list2Array(List<String> nullColumns) {
+        String[] ignoreProperties = new String[nullColumns.size()];
+        nullColumns.toArray(ignoreProperties);
+        return ignoreProperties;
+    }
+
+
+    /***
+     * 复制数组
+     * @param ignoreProperties
+     * @param props
+     * @return
+     */
+    public static String[] copyArray(String[] ignoreProperties, String[] props) {
+        int oldLength = ignoreProperties.length;
+        int delta = props.length;
+        ignoreProperties = Arrays.copyOf(ignoreProperties, oldLength + delta);
+        for (int i = 0; i < delta; i++) {
+            ignoreProperties[oldLength + i] = props[i];
+        }
+        return ignoreProperties;
+    }
 }

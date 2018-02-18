@@ -1,5 +1,7 @@
 package com.common.bean;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * 时间区间类 时间格式yyyyMMddHHmm 201705200101
  *
@@ -8,11 +10,22 @@ package com.common.bean;
 public class TimeInterval {
     private String startTime;
     private String endTime;
+    /***
+     * 单位:毫秒
+     */
+    private Long startTimestamp;
+    /***
+     * 单位:毫秒
+     */
+    private Long endTimestamp;
 
     public TimeInterval(String startTime, String endTime) {
         super();
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    public TimeInterval() {
     }
 
     public String getStartTime() {
@@ -40,6 +53,7 @@ public class TimeInterval {
         if (isAnyMoment(startTime) || isAnyMoment(endTime)) {
             return true;
         }
+        time = time.replace("  ", " ");//把两个空格转化为一个空格
         if (time.compareTo(startTime) > 0 && time.compareTo(endTime) < 0) {
             return true;
         }
@@ -57,5 +71,29 @@ public class TimeInterval {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("startTime", startTime)
+                .add("endTime", endTime)
+                .toString();
+    }
+
+    public Long getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(Long startTimestamp) {
+        this.startTimestamp = startTimestamp;
+    }
+
+    public Long getEndTimestamp() {
+        return endTimestamp;
+    }
+
+    public void setEndTimestamp(Long endTimestamp) {
+        this.endTimestamp = endTimestamp;
     }
 }

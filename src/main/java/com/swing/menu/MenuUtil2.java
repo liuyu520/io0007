@@ -16,6 +16,7 @@
  import com.swing.dialog.toast.ToastMessage;
 
  import javax.swing.*;
+ import javax.swing.border.Border;
  import javax.swing.event.ChangeEvent;
  import javax.swing.event.ChangeListener;
  import javax.swing.event.MouseInputAdapter;
@@ -188,6 +189,9 @@
             MenuUtil2.ACTION_STR_DELETE_CONTENT);
         JMenuItem deleteAllM = new JMenuItem(
             MenuUtil2.ACTION_STR_DELETE_ALL_CONTENT);
+        deleteAllM.setActionCommand(MenuUtil2.ACTION_STR_DELETE_ALL_CONTENT);
+        MenuUtil2.strongMenuItem(deleteAllM);
+        deleteAllM.setForeground(Color.red);
         JMenuItem selAllM = new JMenuItem(
             MenuUtil2.ACTION_STR_SELECT_ALL_CONTENT);
         JMenuItem lengthM = new JMenuItem(
@@ -243,6 +247,7 @@
   		
         JMenuItem queryString2Json = new JMenuItem(MenuUtil2.ACTION_QUERY_STRING2JSON);
         queryString2Json.setActionCommand(MenuUtil2.ACTION_QUERY_STRING2JSON);
+        MenuUtil2.strongMenuItem(queryString2Json);
         
         JMenuItem json2QueryString = new JMenuItem(MenuUtil2.ACTION_JSON2QUERY_STRING);
         json2QueryString.setActionCommand(MenuUtil2.ACTION_JSON2QUERY_STRING);
@@ -668,8 +673,12 @@
                 requestName = requestName + "(" + select + ")";
             }
         requestName = "<html> <span style=\"color: #ff4646;font-weight: bolder;\">" + requestName + "</span>";
+        String serverIP = "";
+        if (!ValueWidget.isNullOrEmpty(requestPanel.getServerIp())) {
+            serverIP = "<span style=\"color: #22ff00;font-weight: bolder;\">" + SystemHWUtil.splitAndFilterString(requestPanel.getServerIp(), 4, false) + ".. " + "</span>";
+        }
         if (!ValueWidget.isNullOrEmpty(requestPanel.getActionName())) {
-            requestName = requestName + " | " + requestPanel.getActionName();
+            requestName = requestName + " | " + serverIP + requestPanel.getActionName();
         }
         JMenuItem openFolderM = new JMenuItem(requestName + "</html>");
         ChangeListener cl = new ChangeListener() {
@@ -791,4 +800,13 @@
             area2.setText(sb.toString());
         }
     }
+
+    public static void strongMenuItem(JMenuItem copyPanelM) {
+        Border borderResultTAgur = BorderFactory.createEtchedBorder(Color.white,
+                new Color(255, 0, 0));
+        copyPanelM.setBorder(borderResultTAgur);
+        Font font = copyPanelM.getFont();
+        copyPanelM.setFont(new Font("", Font.BOLD, font.getSize()));
+    }
+
 }

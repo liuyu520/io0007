@@ -883,6 +883,9 @@ public final class FileUtils {
      * @throws IOException
      */
     public static String getFullContent2(InputStream in, String charset) throws IOException {
+        if (null == in) {
+            return null;
+        }
         if (ValueWidget.isNullOrEmpty(charset)) {
             charset = SystemHWUtil.CHARSET_UTF;
         }
@@ -942,7 +945,7 @@ public final class FileUtils {
             in.close();
         }
         if(ValueWidget.isNullOrEmpty(charset)){
-			charset="UTF-8";
+            charset = SystemHWUtil.CHARSET_UTF;
 		}
 		return new String(receData, 0, offset, charset);
 	}
@@ -967,7 +970,8 @@ public final class FileUtils {
 	 * @param fileName
 	 * @return
 	 */
-	public static String getFullContent(String fileName) {
+    @Deprecated
+    public static String getFullContent(String fileName) {
 		return getFullContent(fileName, SystemHWUtil.CHARSET_ISO88591);
 	}
 

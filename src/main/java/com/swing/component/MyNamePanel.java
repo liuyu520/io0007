@@ -9,6 +9,8 @@ public abstract class MyNamePanel extends GenericPanel {
 
     public abstract String getActionName();
 
+    public abstract String getServerIp();
+
     public String getRequetId() {
         return null;
     }
