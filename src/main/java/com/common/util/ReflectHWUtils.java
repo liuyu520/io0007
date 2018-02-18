@@ -3,10 +3,13 @@ package com.common.util;
 import com.common.bean.exception.LogicBusinessException;
 import com.string.widget.util.ValueWidget;
 import com.time.util.TimeHWUtil;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -14,6 +17,28 @@ public class ReflectHWUtils {
     protected static Logger logger = Logger.getLogger(ReflectHWUtils.class);
 
 	/***
+     * 专门获取无参方法
+     * @param clazz
+     * @param methodName
+     * @param annotation
+     * @return
+     */
+    public static Method getGetterMethod(Class<?> clazz, String methodName, Class annotation) {
+        try {
+            Method method = clazz.getMethod(methodName, null);
+            Annotation anno = method.getAnnotation(annotation);
+            if (null != anno) {
+                return method;
+            }
+        } catch (NoSuchMethodException e) {
+            logger.error("method " + methodName + " not exist.");
+            return null;
+//            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /***
      * 根据方法名称(字符串)获取方法
      * @param clazz
      * @param methodName
@@ -41,12 +66,38 @@ public class ReflectHWUtils {
     }
 
     /***
+     * 仅仅创建一个空对象而已,不涉及数据库操作
+     * @return
+     */
+    public static Object createEmptyObj(Class<?> clz) {
+        /*if(ValueWidget.isNullOrEmpty(clz)){
+            clz=SystemHWUtil.getGenricClassType(getClass());
+		}*/
+        try {
+            return clz.newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            logger.error("createEmptyObj error", e);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            logger.error("createEmptyObj error", e);
+        }
+        return null;
+    }
+
+    public static List<Field> getAllFieldList(Class<?> clazz) {
+        return getAllFieldList(clazz, false);
+    }
+
+    /***
      * get all field ,including fields in father/super class
      *
      * @param clazz
+     * @param onlyComplex : true:不会返回 int,long, 但是会返回 Integer,Long
+     *
      * @return
      */
-    public static List<Field> getAllFieldList(Class<?> clazz) {
+    public static List<Field> getAllFieldList(Class<?> clazz, boolean onlyComplex) {
         if (clazz == null) {
             return null;
         }
@@ -67,6 +118,14 @@ public class ReflectHWUtils {
             Field field = fields[i];
             // 排除因实现Serializable 接口而产生的属性serialVersionUID
             if (!field.getName().equals("serialVersionUID")) {
+                if (onlyComplex) {
+                    Class<?> fieldClazz = field.getType();
+                    boolean isSimpleType = org.springframework.beans.BeanUtils.isSimpleValueType(fieldClazz);
+                    if (!isSimpleType) {
+                        fieldsList.add(field);
+                    }
+                    continue;
+                }
                 fieldsList.add(field);
             }
         }
@@ -74,37 +133,101 @@ public class ReflectHWUtils {
     }
 
 	/***
-	 * 设置对象的属性值。
-	 * 
-	 * @param obj
-	 * @param propertyName
-	 *            : property name
-	 * @param propertyValue
-	 *            : value of property<br> must be String or Field
-	 * @param isIgnoreNull : 是否强制设置,不管<code>propertyValue</code>是否为null<br>
-	 * true:不设置  ; false:设置
-	 * @throws SecurityException
-	 */
-	public static void setObjectValue(Object obj, Object propertyName,
+     * 如果查询时,实体类中有成员变量的类型是复杂对象(即实体类),那么设置值为 null
+     * @param object
+     * @param propertyToNull : 手动指定要设置为 null 的成员变量的名称,调用 <code>
+     *                       ReflectHWUtils.set2Null(customer,"houseInfos");
+     * </code>
+     */
+    public static void set2Null(Object object, String... propertyToNull) {
+        if (null == object) {
+            logger.error("object is null");
+            return;
+        }
+        List<Field> fields = getAllFieldList(object.getClass(), true);
+        if (!ValueWidget.isNullOrEmpty(fields)) {
+            int size = fields.size();
+            for (int i = 0; i < size; i++) {
+                Field field = fields.get(i);
+                if (ValueWidget.isNullOrEmpty(propertyToNull)) {
+                    setComplexVal2Null(object, field);
+                } else {
+                    if (ArrayUtils.contains(propertyToNull, field.getName())) {
+                        setVal2null(object, field);
+                    }
+                }
+
+            }
+        }
+    }
+
+    /***
+     * 用于 hibernate 关联查询时,设置成员变量为复杂对象时,设置成员变量的值为 null<br />
+     * 避免序列化为 json 时,无用内容太多
+     * @param object
+     * @param field
+     */
+    public static void setComplexVal2Null(Object object, Field field) {
+        String fieldTypeName = field.getType().getName();
+        if ("java.util.List".equals(fieldTypeName)
+                || "java.util.ArrayList".equals(fieldTypeName)) {
+            //要求jdk 1.8
+            String genericTypeName = field.getGenericType().getTypeName();//java.util.List<oa.entity.HouseInfo>
+            if (BeanHWUtil.isEntity(genericTypeName)) {
+                setVal2null(object, field);
+                return;
+            }
+        } else {
+            if (BeanHWUtil.isEntity(fieldTypeName)) {
+                setVal2null(object, field);
+                return;
+            }
+        }
+        Object val = getObjectValue(object, field);
+        if (null != val && !isSimpleType(val)) {
+            setVal2null(object, field);
+        }
+    }
+
+    public static void setVal2null(Object object, Field field) {
+        String msg = "set " + field.getName() + " to:null";
+        System.out.println(msg);
+        logger.warn(msg);
+        setObjectValue(object, field, null, false);
+    }
+
+    /***
+     * 设置对象的属性值。
+     *
+     * @param obj
+     * @param propertyName
+     *            : property name
+     * @param propertyValue
+     *            : value of property<br> must be String or Field
+     * @param isIgnoreNull : 是否强制设置,不管<code>propertyValue</code>是否为null<br>
+     * true:不设置  ; false:设置
+     * @throws SecurityException
+     */
+    public static void setObjectValue(Object obj, Object propertyName,
                                       Object propertyValue, boolean isIgnoreNull) {
         if (ValueWidget.isNullOrEmpty(propertyName)
-				|| ValueWidget.isNullOrEmpty (obj)) {
-			return;
-		}
-		if((propertyValue==null)&&isIgnoreNull){
-			return;
-		}
-		Class<?> clazz = obj.getClass();
-		Field name = null;
-		if(propertyName instanceof String){
-			name=getSpecifiedField(clazz, (String)propertyName);
-		}else{
-			name=(Field)propertyName;
-		}
-		if(!ValueWidget.isNullOrEmpty(name)){
+                || ValueWidget.isNullOrEmpty (obj)) {
+            return;
+        }
+        if((propertyValue==null)&&isIgnoreNull){
+            return;
+        }
+        Class<?> clazz = obj.getClass();
+        Field name = null;
+        if(propertyName instanceof String){
+            name=getSpecifiedField(clazz, (String)propertyName);
+        }else{
+            name=(Field)propertyName;
+        }
+        if(!ValueWidget.isNullOrEmpty(name)){
             setAccessibleAndVal(obj, name, propertyValue);
         }
-	}
+    }
 	/***
 	 * 当propertyValue 为null 时,忽略
 	 * @param obj
@@ -238,6 +361,9 @@ public class ReflectHWUtils {
 	 * @throws SecurityException
 	 */
     public static int getObjectIntValue(Object obj, String propertyName) {
+        if (null == obj) {
+            return SystemHWUtil.NEGATIVE_ONE;
+        }
         Object val=getObjectValue(obj, propertyName);
 		if(val instanceof Integer){
 			int id=(Integer)val;
@@ -308,15 +434,21 @@ public class ReflectHWUtils {
 						isNull = false;
 						break;
 					}
-				}else if (propertyValue instanceof Long) {// 是数字
-					if (!((Long) propertyValue == 0 && isExcludeZero)) {
-						isNull = false;
-						break;
-					}
-				} else {
-					isNull = false;
-					break;
-				}
+                }else if (propertyValue instanceof Long) {// 是数字
+                    if (!((Long) propertyValue == 0 && isExcludeZero)) {
+                        isNull = false;
+                        break;
+                    }
+                } else if (propertyValue instanceof BigDecimal) {// 是数字
+                    BigDecimal bigDecimal = (BigDecimal) propertyValue;
+                    if (!(bigDecimal.compareTo(BigDecimal.ZERO) == 0 && isExcludeZero)) {
+                        isNull = false;
+                        break;
+                    }
+                } else {
+                    isNull = false;
+                    break;
+                }
 			}
 		return isNull;
 	}
@@ -754,6 +886,31 @@ public class ReflectHWUtils {
 		}
 		return map;
 	}
+
+    /***
+     * 获取值为null的成员变量
+     * @param obj
+     * @param ignoreZero : true-返回值为0的成员变量
+     * @return
+     */
+    public static List<String> getNullColumns(Object obj, boolean ignoreZero) {
+        List<Field> fields = getAllFieldList(obj.getClass());
+        List<String> nullColumns = new ArrayList<>();
+        int size = fields.size();
+        for (int i = 0; i < size; i++) {
+            Field field = fields.get(i);
+            Object propertyValue = getObjectValue(obj, field);
+            if (null == propertyValue) {
+                nullColumns.add(field.getName());
+            } else if (ignoreZero && (propertyValue instanceof Number)) {
+                Number number = (Number) propertyValue;
+                if (number.doubleValue() == 0) {
+                    nullColumns.add(field.getName());
+                }
+            }
+        }
+        return nullColumns;
+    }
 
     public static Map<String, Object> parseObject(Object obj, String excludeProperty) {
         List<String> excludeProperties=new ArrayList<String>();

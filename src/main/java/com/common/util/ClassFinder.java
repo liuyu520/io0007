@@ -9,9 +9,9 @@ import java.util.List;
  * Created by whuanghkl on 17/5/31.
  */
 public class ClassFinder {
-    private static final char PKG_SEPARATOR = '.';
+    public static final char PKG_SEPARATOR = '.';
 
-    private static final char DIR_SEPARATOR = '/';
+    public static final char DIR_SEPARATOR = '/';
 
     private static final String CLASS_FILE_SUFFIX = ".class";
 
@@ -66,4 +66,10 @@ public class ClassFinder {
         return classes;
     }
 
+    public static String getJavaPackage(String path) {
+        String classPath = path.replaceAll("^.*" + "/src/main/java/", "");//"com/common/bean/Student.java"
+        System.out.println("classPath :" + classPath);
+        //com.common.bean.Student
+        return classPath.replace(".java", "").replaceAll(String.valueOf(ClassFinder.DIR_SEPARATOR), String.valueOf(ClassFinder.PKG_SEPARATOR));
+    }
 }

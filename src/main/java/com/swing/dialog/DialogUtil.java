@@ -157,8 +157,11 @@ public final class DialogUtil {
 		File selectedFile = file.getSelectedFile();
 		String dir = null;
 		File file4 = null;
-		
-		if (selectedFile != null) {
+
+        if (selectedFile == null) {
+            bean.setSuccess(false);
+            return bean;
+        }
 			dir = selectedFile.getAbsolutePath();
 			bean.setSelectedFile(selectedFile);
 			// int isOpen = JOptionPane.showConfirmDialog(null, dir, " ",
@@ -173,9 +176,7 @@ public final class DialogUtil {
 //				bool = true;
 //			}
 			bean.setSuccess(true);
-		} else {
-			bean.setSuccess(false);
-		}
+
 		return bean;
 	}
 
@@ -695,10 +696,10 @@ public final class DialogUtil {
         ImageIcon imageIcon = DialogUtil.getImageIcon(resourcePath, clazz);
         if (null != imageIcon) {
             jframe.setIconImage(imageIcon.getImage());
-            if (SystemHWUtil.isMacOSX) {//mac os
+            /*if (SystemHWUtil.isMacOSX) {//mac os
                 com.apple.eawt.Application.getApplication().setDockIconImage(
                         imageIcon.getImage());
-            }
+            }*/
         }
     }
 
@@ -839,6 +840,8 @@ public final class DialogUtil {
         fileTypeMap.put("py", "python Files");
         fileTypeMap.put("java", "Java Files");
         fileTypeMap.put("js", "Javascript Files");
+        fileTypeMap.put("properties", "Properties Files");
+        fileTypeMap.put("property", "Properties Files");
         String saveTips = fileTypeMap.get(picFormat);
         if (ValueWidget.isNullOrEmpty(saveTips)) {
             saveTips = "picture Files";
