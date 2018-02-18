@@ -1,8 +1,10 @@
 package com.common.util;
 
+import com.common.bean.beanutil.CopyPropsParam;
 import com.io.hw.file.util.FastByteArrayOutputStream;
 import com.string.widget.util.ValueWidget;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 
 import java.io.*;
 import java.util.List;
