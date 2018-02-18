@@ -14,3 +14,8 @@
 # 注意:
 1. java 编译级别必须是1.6,否则关于图形的类编译不通过
 2. 里面有mac 相关的代码,所以在window中编译会报错,需要把mac 相关的代码注释掉
+
+## 解决bug
+修改com/swing/table/TableUtil3.java 中的方法getParameterIncludeBeans
+![这里写链接内容](2017-08-17_08-47-48.jpg)
+
