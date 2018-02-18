@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.util.*;
 
 public class ReflectHWUtils {
+    public static final String COLUMN_MEANING = "- 的含义";
     protected static Logger logger = Logger.getLogger(ReflectHWUtils.class);
 
 	/***

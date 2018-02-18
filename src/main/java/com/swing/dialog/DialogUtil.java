@@ -2,6 +2,8 @@ package com.swing.dialog;
 
 import com.common.bean.DialogBean;
 import com.common.bean.FindTxtResultBean;
+import com.common.dict.Constant2;
+import com.common.util.ReflectHWUtils;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
@@ -488,7 +490,8 @@ public final class DialogUtil {
 	 * 按Alt+Enter时,用户名文本框聚焦,<br>按Esc 文本框失去焦点,并变为不可编辑
 	 * @param tf :密码输入框
 	 */
-	public static void addKeyListener22(final JTextComponent tf,final JTextComponent tf2){
+    @Deprecated
+    public static void addKeyListener22(final JTextComponent tf, final JTextComponent tf2){
 		tf.addKeyListener(new KeyListener() {
 			
 			@Override
@@ -523,7 +526,8 @@ public final class DialogUtil {
 	 * 按Esc 文本框失去焦点
 	 * @param tf
 	 */
-	public static void addKeyListener22(final JTextComponent tf){
+    @Deprecated
+    public static void addKeyListener22(final JTextComponent tf){
 		addKeyListener22(tf, null);
 	}
 	
@@ -625,21 +629,43 @@ public final class DialogUtil {
         }
     }
 
-	public static FindTxtResultBean searchText(JTextComponent area2, int startIndex, String keyword) {
-		String content = area2.getText();
+    /***
+     * 哪些情况会弹出搜索框:<br />
+     * 1,没有keyword;
+     * 2,searchText 返回null
+     * @param area2
+     * @param startIndex
+     * @param keyword
+     * @return
+     */
+    public static FindTxtResultBean searchText(JTextComponent area2, int startIndex, String keyword) {
+        String content = area2.getText();
         if (!ValueWidget.isNullOrEmpty(keyword)) {
-			FindTxtResultBean findTxtResultBean = SystemHWUtil.findStr(content, keyword, startIndex);
-			if (findTxtResultBean.getCount() > 0) {
-				area2.setSelectionStart(findTxtResultBean.getFoundIndex() - keyword.length());
-				area2.setSelectionEnd(findTxtResultBean.getFoundIndex());
-				findTxtResultBean.setKeyWord(keyword);
-				return findTxtResultBean;
-			} else {
-				ToastMessage.toast("没有搜索到:" + keyword, 1000, Color.red);
-			}
+            FindTxtResultBean findTxtResultBean = SystemHWUtil.findStr(content, keyword, startIndex);
+            if (findTxtResultBean.getCount() > 0) {
+                area2.setSelectionStart(findTxtResultBean.getFoundIndex() - keyword.length());
+                area2.setSelectionEnd(findTxtResultBean.getFoundIndex());
+                findTxtResultBean.setKeyWord(keyword);
+                return findTxtResultBean;
+            } else {
+                ToastMessage.toast("没有搜索到:" + keyword, 1000, Color.red);
+            }
         }
-		return null;
-	}
+        return null;
+    }
+
+    private static FindTxtResultBean searchAction(JTextComponent area2, int startIndex, String keyword, String content) {
+        FindTxtResultBean findTxtResultBean = SystemHWUtil.findStr(content, keyword, startIndex);
+        FindTxtResultBean findTxtResultBean2 = (FindTxtResultBean) ReflectHWUtils.getObjectValue(area2, Constant2.FINDTXTRESULTBEAN_FIELD);
+        if (!ValueWidget.isNullOrEmpty(keyword)) {
+            findTxtResultBean.setKeyWord(keyword);
+        }
+
+        if (null != findTxtResultBean2) {
+            findTxtResultBean.setHideDialog(findTxtResultBean2.getHideDialog());
+        }
+        return findTxtResultBean;
+    }
 
 	public static ImageIcon getImageIcon(String resourcePath, Class<?> clazz) throws IOException {
 		String slash="/";
@@ -686,21 +712,6 @@ public final class DialogUtil {
             return null;
         }
         return new ImageIcon(url);
-    }
-
-    /***
-     * @param resourcePath : "/com/pass/img/posterous_uploader.png"
-     * @throws IOException
-     */
-    public static void setIcon(JFrame jframe, String resourcePath, Class<?> clazz) throws IOException {
-        ImageIcon imageIcon = DialogUtil.getImageIcon(resourcePath, clazz);
-        if (null != imageIcon) {
-            jframe.setIconImage(imageIcon.getImage());
-            /*if (SystemHWUtil.isMacOSX) {//mac os
-                com.apple.eawt.Application.getApplication().setDockIconImage(
-                        imageIcon.getImage());
-            }*/
-        }
     }
 
     public static void showMaximizeDialog(final JComponent area2) {

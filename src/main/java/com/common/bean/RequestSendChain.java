@@ -30,6 +30,10 @@ public class RequestSendChain extends RequestInfoBean {
             preResponseResult = dependentRequest.request();
         }
         if (ValueWidget.isNullOrEmpty(preResponseResult)) {
+            if (null == dependentRequest) {
+                System.out.println("dependentRequest is null ");
+                return null;
+            }
             System.out.println(dependentRequest.getActionPath() + " return null");
             return null;
         }

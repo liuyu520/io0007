@@ -3,6 +3,7 @@ package com.io.hw.json;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.common.bean.json.ParseJsonInfo;
+import com.common.util.RequestUtil;
 import com.common.util.SystemHWUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -45,6 +46,7 @@ public class JSONHWUtil {
      * 最大限度地当做json 字符串解析<br />
      * 方案:"[...]" 转为[...],并且其中的\"-->"<br />
      * "{...}" 转为{...},并且其中的\"-->"<br />
+     * 深度格式化json,采用递归
      * @param jsonStr
      * @return
      */
@@ -103,8 +105,13 @@ public class JSONHWUtil {
                         parseArray(parseJsonInfo, jsonArray);
                         jsonObject.put(key, jsonArray);
                     } else {//--对象
-                        ParseJsonInfo parseJsonInfoTmp = toJsonObjectRecursive(JSONObject.parseObject(valString));
-                        jsonObject.put(key, parseJsonInfoTmp.getJsonObject());
+                        try {
+                            ParseJsonInfo parseJsonInfoTmp = toJsonObjectRecursive(JSONObject.parseObject(valString));
+                            jsonObject.put(key, parseJsonInfoTmp.getJsonObject());
+                        } catch (com.alibaba.fastjson.JSONException e) {
+                            e.printStackTrace();
+                        }
+
                     }
 
                     parseJsonInfo.setHasString(true);
@@ -186,6 +193,10 @@ public class JSONHWUtil {
 	}
 
     public static String formatJson(String json) {
+        return formatJson(json, false);
+    }
+
+    public static String formatJson(String json, boolean unescapeJava) {
         JsonElement jsonEle;
         JsonParser parser = new JsonParser();
         jsonEle = parser.parse(json);
@@ -196,7 +207,9 @@ public class JSONHWUtil {
             Gson gson = gb.create();
             String jsonStr = gson.toJson(jsonEle);
             if (jsonStr != null) {
-                jsonStr = StringEscapeUtils.unescapeJava(jsonStr);
+                if (unescapeJava) {
+                    jsonStr = StringEscapeUtils.unescapeJava(jsonStr);
+                }
 /*if(isFurther){
 jsonStr = optimizationJson(jsonStr);
                 }*/
@@ -277,44 +290,55 @@ formatJson(ta, false, jsonStr, isSuppressWarnings);
 	}
 
 	/***
-	 * convert json string to Map;e.g:{errorMessage=系统异常，请稍后再试！, id=, status=02, errorCode=error_default, method=}
-	 *
-	 * @param jsonResult
-	 * @return
-	 * @throws UnsupportedEncodingException
-	 * @throws JSONException
-	 * @throws org.json.JSONException
-	 */
-	public static Map<String, String> getMap(String jsonResult)
-			throws UnsupportedEncodingException, JSONException,
-			org.json.JSONException {
-		if (ValueWidget.isNullOrEmpty(jsonResult)) {
-			return null;
-		}
-		//callback({"auth_code":"v39hXq"})
-		jsonResult = deleteCallback(jsonResult, "callback");
-		Map<String, String> resultMap = null;
+     * json库是json_lib
+     * @param jsonInput
+     * @param clazz
+     * @return
+     */
+    public static Object parseObject(String jsonInput, Class clazz) {
+        net.sf.json.JSONObject js = net.sf.json.JSONObject.fromObject(jsonInput);
+        return net.sf.json.JSONObject.toBean(js, clazz);
+    }
+
+    /***
+     * convert json string to Map;e.g:{errorMessage=系统异常，请稍后再试！, id=, status=02, errorCode=error_default, method=}
+     *
+     * @param jsonResult
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws JSONException
+     * @throws org.json.JSONException
+     */
+    public static Map<String, String> getMap(String jsonResult)
+            throws UnsupportedEncodingException, JSONException,
+            org.json.JSONException {
+        if (ValueWidget.isNullOrEmpty(jsonResult)) {
+            return null;
+        }
+        //callback({"auth_code":"v39hXq"})
+        jsonResult = deleteCallback(jsonResult, "callback");
+        Map<String, String> resultMap = null;
         if (!jsonResult.trim().startsWith("{")) {
             return null;
         }
         Map obj = (Map) com.io.hw.json.JsonParser.parserRandomJsonFormat(jsonResult);
-		if (ValueWidget.isNullOrEmpty(obj)) {
-			return null;
-		}
-		List resultList = (List) obj.get("resultList");
-		if (ValueWidget.isNullOrEmpty(resultList)) {
-			resultMap = obj;
-		} else {
-			resultMap = new TreeMap<String, String>();//TreeMap 有固定的顺序
-			for (int i = 0; i < resultList.size(); i++) {
-				Map mp_tmp = (Map) resultList.get(i);
-				parseMap(resultMap, mp_tmp);
-			}
-		}
+        if (ValueWidget.isNullOrEmpty(obj)) {
+            return null;
+        }
+        List resultList = (List) obj.get("resultList");
+        if (ValueWidget.isNullOrEmpty(resultList)) {
+            resultMap = obj;
+        } else {
+            resultMap = new TreeMap<String, String>();//TreeMap 有固定的顺序
+            for (int i = 0; i < resultList.size(); i++) {
+                Map mp_tmp = (Map) resultList.get(i);
+                parseMap(resultMap, mp_tmp);
+            }
+        }
 
-		return resultMap;
+        return resultMap;
 
-	}
+    }
 
 	/***
 	 * convert mp_tmp to Map
@@ -371,5 +395,11 @@ formatJson(ta, false, jsonStr, isSuppressWarnings);
 //		JSONObject js=JSONObject.
 		System.out.println(addQuotationMarks(input));
 	}
+
+    public static String parameter2Json(String selectContent) {
+        Map requestMap = new HashMap();
+        RequestUtil.setArgumentMap(requestMap, selectContent, true, null, null, false, true);
+        return HWJacksonUtils.getJsonP(requestMap);
+    }
 
 }

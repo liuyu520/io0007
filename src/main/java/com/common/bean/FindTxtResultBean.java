@@ -17,6 +17,10 @@ public class FindTxtResultBean {
      * 搜索的关键字
      */
     private String keyWord;
+    /***
+     * 当查询到最后一个时,是否弹框
+     */
+    private Boolean isHideDialog;
 
     public int getCount() {
         return count;
@@ -48,4 +52,11 @@ public class FindTxtResultBean {
                 + foundIndex + "]";
     }
 
+    public Boolean getHideDialog() {
+        return isHideDialog;
+    }
+
+    public void setHideDialog(Boolean isHideDialog) {
+        this.isHideDialog = isHideDialog;
+    }
 }
