@@ -84,17 +84,27 @@ public final class SystemHWUtil<T> extends MapUtil {
 	public static final int SIZE_M=BUFF_SIZE_1024*BUFF_SIZE_1024;
 	public static final String KEY_ALGORITHM_RSA = "RSA";
 	public final static String KEY_ALGORITHM_DES = "DES";
-	public static final String KEY_ALGORITHM_SHA1withRSA = "SHA1withRSA";
+    /***
+     * 签名算法见 :com/common/enu/SignatureAlgorithm
+     */
+    public static final String KEY_ALGORITHM_SHA1withRSA = "SHA1withRSA";
 	public static final String KEY_SHA = "SHA";
 	public static final String KEY_SHA1 = "SHA-1";
 	public static final String KEY_MD5 = "MD5";
-	public static final String KEY_HMAC_SHA256 = "HMACSHA256";
-	public static final String KEY_HMAC_SHA1 = "HmacSHA1";
+    /***
+     * 签名算法见 :com/common/enu/SignatureAlgorithm
+     */
+    public static final String KEY_HMAC_SHA256 = "HMACSHA256";
+    /***
+     * 签名算法见 :com/common/enu/SignatureAlgorithm
+     */
+    public static final String KEY_HMAC_SHA1 = "HmacSHA1";
 	public static final String CERTIFICATEFACTORY_X509 = "X.509";
 	public static final char[] HEXCHAR = { '0', '1', '2', '3', '4', '5', '6',
 			'7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 	public static final String CONTENTTYPE_HTML = "text/html";
 	public static final String CONTENTTYPE_JSON = "application/json";
+    public static final String CONTENTTYPE_XML = "application/xml";
 	public static final String CONTENTTYPE_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
     /***
      * "application/x-www-form-urlencoded;charset=utf-8"
@@ -115,9 +125,13 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 */
 	public static final String RESPONSE_CONTENTTYPE_JSON_UTF = "application/json;charset=UTF-8";
 	/***
-	 * 应答(response)中的Content-Type:json,GBK编码
-	 */
-	public static final String RESPONSE_CONTENTTYPE_JSON_GBK = "application/json;charset=GBK";
+     * 应答(response)中的Content-Type:xml,UTF-8编码
+     */
+    public static final String RESPONSE_CONTENTTYPE_XML_UTF = "application/xml;charset=UTF-8";
+    /***
+     * 应答(response)中的Content-Type:json,GBK编码
+     */
+    public static final String RESPONSE_CONTENTTYPE_JSON_GBK = "application/json;charset=GBK";
     /**
      * 微软 excel的content type
      */
@@ -2016,6 +2030,26 @@ public final class SystemHWUtil<T> extends MapUtil {
 		}
 		return sb.toString();
 	}
+
+    /***
+     * base64字符串 转化为 十进制字符串
+     * @param privateText
+     * @return
+     */
+    public static String base64ToHexString(String privateText) {
+        privateText = SystemHWUtil.deleteAllCRLF(privateText);
+        byte[] base64Bytes = new byte[0];
+        try {
+            base64Bytes = SystemHWUtil.decodeBase64(privateText);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (null == base64Bytes) {
+            System.out.println("base64ToHexString is null privateText ");
+            return null;
+        }
+        return SystemHWUtil.toHexString(base64Bytes);
+    }
 	/***
 	 * convert byte array to hex(16) bit string
 	 * @param bytes
@@ -2793,8 +2827,8 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 */
 	public static String mergeTwoPath(String parent,String child){
 		String fullPath;
-		if (!child.startsWith("\\") && !parent.endsWith("\\")) {
-			fullPath = parent + "\\" + child;
+        if (!child.startsWith(File.separator) && !parent.endsWith(File.separator)) {
+            fullPath = parent + File.separator + child;
 		} else {
 			fullPath = parent + child;
 		}
@@ -3135,6 +3169,17 @@ public final class SystemHWUtil<T> extends MapUtil {
 		input = input.replaceAll("\"?([^\"]*)\"?", "$1");
 		return input;
 	}
+
+    /***
+     * 删除整个字符串两边的双引号
+     * @param input
+     * @return
+     */
+    public static String delEgdeDoubleQuotation(String input) {
+        input = input.replaceAll("^\"*(.*)\"$", "$1");
+        return input;
+    }
+
 	/***
 	 * 获取文件的后缀名，不包含句点.
 	 * 
@@ -3919,6 +3964,7 @@ public final class SystemHWUtil<T> extends MapUtil {
         if (ValueWidget.isNullOrEmpty(strArray) || ValueWidget.isNullOrEmpty(j)) {
             return index;
 		}
+        j = j.trim();
 		int length2=strArray.length;
 		for (int ii=0;ii<length2;ii++ ) {
 			String i =strArray[ii];
@@ -4227,7 +4273,7 @@ public final class SystemHWUtil<T> extends MapUtil {
 						if (0x80 <= read && read <= 0xBF) {
 							read = bis.read();
 							if (0x80 <= read && read <= 0xBF) {
-								charset = "UTF-8";
+                                charset = SystemHWUtil.CHARSET_UTF;
 								break;
 							} else
 								break;
@@ -4444,6 +4490,21 @@ public final class SystemHWUtil<T> extends MapUtil {
 		}
 		return sbuffer.toString();
 	}
+
+    public static String formatArr(Integer[] strs, String seperate) {
+        StringBuffer sbuffer = new StringBuffer();
+        int length = strs.length;
+        for (int i = 0; i < length; i++) {
+            if (!ValueWidget.isNullOrEmpty(strs[i])) {
+                sbuffer.append(strs[i]);
+                if (i < length - 1) {
+                    sbuffer.append(seperate);
+                }
+            }
+        }
+        return sbuffer.toString();
+    }
+
 	/***
 	 * convert "[243873,253305]" to List
 	 * @param tokenIds
@@ -4483,6 +4544,18 @@ public final class SystemHWUtil<T> extends MapUtil {
 		}
 		return sbuffer.toString();
 	}
+
+    public static String formatIntegerArr(List<Integer> strs, String seperate) {
+        StringBuffer sbuffer = new StringBuffer();
+        int length = strs.size();
+        for (int i = 0; i < length; i++) {
+            sbuffer.append(strs.get(i));
+            if (i < length - 1) {
+                sbuffer.append(seperate);
+            }
+        }
+        return sbuffer.toString();
+    }
 
 	/***
 	 * convert a byte to hex string.

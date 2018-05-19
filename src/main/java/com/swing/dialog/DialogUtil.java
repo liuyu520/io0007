@@ -10,6 +10,7 @@ import com.string.widget.util.ValueWidget;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.TextCompUtil2;
 import com.swing.component.inf.IPlaceHolder;
+import com.swing.dialog.callback.Callback2;
 import com.swing.dialog.inf.DialogInterface;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
@@ -46,6 +47,7 @@ public final class DialogUtil {
 		return browser3(field, selectMode, comp, null);
 
 	}
+
 
 	/***
 	 * open a save dialog.
@@ -187,7 +189,8 @@ public final class DialogUtil {
 	 * 
 	 * @param f_data
 	 */
-	public static void setWindowOpacity3(Window window, float f_data) {
+    @Deprecated
+    public static void setWindowOpacity3(Window window, float f_data) {
 		try {
 			Class clazz = Class.forName("com.sun.awt.AWTUtilities");
 			Method method3 = clazz.getDeclaredMethod("setWindowOpacity",
@@ -648,7 +651,14 @@ public final class DialogUtil {
                 findTxtResultBean.setKeyWord(keyword);
                 return findTxtResultBean;
             } else {
-                ToastMessage.toast("没有搜索到:" + keyword, 1000, Color.red);
+                if (null == findTxtResultBean.getHideDialog()
+                        || (!findTxtResultBean.getHideDialog())) {
+                    ToastMessage.toast("没有搜索到:" + keyword, 1000, Color.red);
+                } else {
+                    findTxtResultBean.setFoundIndex(0);
+
+                    return findTxtResultBean;
+                }
             }
         }
         return null;
@@ -788,6 +798,8 @@ public final class DialogUtil {
                 if(null!=frame){
 					frame.repaint();
 				}
+                //单击escape ,Dialog 自动关闭
+                DialogUtil.escape2CloseDialog(this);
 			}
 
             public void closeDialog() {
@@ -883,5 +895,64 @@ public final class DialogUtil {
         }
         return null;
     }
+
+    public static FileNameExtensionFilter getFileNameExtensionFilter(String title, String picFormat) {
+        Map<String, String> fileTypeMap = new HashMap();
+        fileTypeMap.put("py", "python Files");
+        fileTypeMap.put("java", "Java Files");
+        fileTypeMap.put("js", "Javascript Files");
+        fileTypeMap.put("properties", "Properties Files");
+        fileTypeMap.put("property", "Properties Files");
+        fileTypeMap.put("der", "RSA秘钥 Files");
+        String saveTips = fileTypeMap.get(picFormat);
+        if (ValueWidget.isNullOrEmpty(saveTips)) {
+            saveTips = "picture Files";
+        }
+        return new FileNameExtensionFilter(saveTips/* 文件类型提示 */, picFormat);
+    }
+
+    public static void escape2CloseDialog(JDialog dialog) {
+        escape2CloseDialog(dialog, null);
+    }
+
+    /***
+     * 单独按下escape,关闭对话框
+     * @param dialog
+     */
+    public static void escape2CloseDialog(JDialog dialog, Callback2 callback2) {
+        //按下escape 对话框关闭
+        dialog.getRootPane().registerKeyboardAction(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("ccccc :escape2CloseDialog");
+                dialog.dispose();
+                if (null != callback2) {
+                    callback2.callback(null, e);
+                }
+            }
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+    }
+
+    /***
+     * 展开JTree的所有节点<br />
+     * 递归调用
+     * @param tree
+     * @param startingIndex
+     * @param rowCount
+     */
+    private static void expandAllNodes(JTree tree, int startingIndex, int rowCount) {
+        for (int i = startingIndex; i < rowCount; ++i) {
+            tree.expandRow(i);
+        }
+
+        if (tree.getRowCount() != rowCount) {
+            expandAllNodes(tree, rowCount, tree.getRowCount());
+        }
+    }
+
+    public static void expandTreeCompletely(JTree tree) {
+        expandAllNodes(tree, 0, tree.getRowCount());
+    }
+
 }
 	

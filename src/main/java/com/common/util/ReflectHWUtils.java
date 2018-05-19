@@ -1,17 +1,22 @@
 package com.common.util;
 
+import com.common.annotation.ColumnDescription;
 import com.common.bean.exception.LogicBusinessException;
+import com.common.dict.Constant2;
 import com.string.widget.util.ValueWidget;
 import com.time.util.TimeHWUtil;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import java.awt.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.List;
 
 public class ReflectHWUtils {
     public static final String COLUMN_MEANING = "- 的含义";
@@ -1109,6 +1114,254 @@ public class ReflectHWUtils {
             }
         }
         return map;
+    }
+
+    public static boolean isIntervalSection(String fieldName) {
+        return fieldName.endsWith("_intervalSection") || fieldName.endsWith(Constant2.COLUMN_IN_SPLIT);
+    }
+
+    public static String getColumnDescription(Field f) {
+        String desc3 = null;
+        ColumnDescription columnDescription = f.getAnnotation(ColumnDescription.class);
+        if (null != columnDescription) {
+            desc3 = replaceColumnDescription(columnDescription);
+        }
+        return desc3;
+    }
+
+    private static String replaceColumnDescription(ColumnDescription columnDescription) {
+        return columnDescription.value().replace("<br>", SystemHWUtil.CRLF).replace("<br/>", SystemHWUtil.CRLF)
+                .replace("<br />", SystemHWUtil.CRLF)
+                .replaceAll("[\\s]+\\*[\\s]+", "," + SystemHWUtil.CRLF);
+    }
+
+    private static boolean isTransient(Class clazz, Field f) {
+        Annotation[] annotations = f.getDeclaredAnnotations();//注解@ Transient 在字段(成员变量)上
+
+        try {
+            if (ValueWidget.isNullOrEmpty(annotations)) {//注解@ Transient 在getter 方法上
+                annotations = clazz.getMethod("get" + ValueWidget.capitalize(f.getName()), null).getDeclaredAnnotations();
+            }
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            logger.error("isTransient getMethod error", e);
+        }
+        return isTransient(annotations);
+    }
+
+    private static boolean isTransient(Annotation[] annotations) {
+//        boolean isTransient = false;
+        if (ValueWidget.isNullOrEmpty(annotations)) {
+            return false;
+        }
+        int length = annotations.length;
+        for (int jj = 0; jj < length; jj++) {
+            if (annotations[jj].annotationType().getSimpleName().equals("Transient")) {
+                return true;
+            }
+        }
+        /*if(isTransient){
+            return true;
+        }*/
+        return false;
+    }
+
+    /***
+     * 获取实体类成员变量的描述/含义(实际上就是字段的注释)
+     * @param clazz
+     * @param excludeProperties
+     * @return
+     */
+    public static Map getEntityColumnDescription(Class clazz, String[] excludeProperties) {
+        Map map = new HashMap();
+        List<Field> fieldsList = ReflectHWUtils.getAllFieldList(clazz);
+        for (int i = 0; i < fieldsList.size(); i++) {
+            Field f = fieldsList.get(i);
+
+            if (SystemHWUtil.isContains(excludeProperties, f.getName())) {
+                continue;
+            }
+            ColumnDescription columnDescription = f.getAnnotation(ColumnDescription.class);
+            if (null != columnDescription) {
+                map.put(f.getName() + COLUMN_MEANING, replaceColumnDescription(columnDescription));
+            } else {
+                map.put(f.getName() + COLUMN_MEANING, "暂时还没有添加含义," + f.getName());
+            }
+        }
+        return map;
+    }
+
+    private static void setOne2NullInMany(Collection propertyValue, String objClassName) {
+        for (Object objElement : propertyValue) {
+            //对 多的一方进行遍历,把元素CooperationOrder中 Agent 设置为null
+//            System.out.println(" :" + objElement);//com.girltest.entity.CooperationOrder
+            List<Field> fieldsList2 = ReflectHWUtils.getAllFieldList(objElement.getClass());
+            int size2 = fieldsList2.size();
+            for (int j = 0; j < size2; j++) {
+                Field field = fieldsList2.get(j);
+                String typeName2 = field.getType().getName();
+                if (typeName2.equals(objClassName/*com.girltest.entity.Agent*/)) {//其实这里不是很严格,因为没有判断field 的id和obj的id是否相同
+                    Object object = null;
+                    try {
+                        Object agent = ReflectHWUtils.getObjectValue(objElement, field);
+                        if (null == agent) {
+                            continue;
+                        }
+                        object = Class.forName(typeName2).newInstance();
+                        Object realVal = ReflectHWUtils.getObjectValue(agent, Constant2.DB_ID);
+                        ReflectHWUtils.setObjectValue(object, Constant2.DB_ID, realVal);
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    ReflectHWUtils.setObjectValue(objElement, field, object, false);
+                }
+            }
+        }
+    }
+
+    /***
+     * com.apple.eawt.Application.getApplication()<br />
+     * 设置mac 电脑的Dock图标<br />
+     * see com/swing/image/SettingIconUtil.java
+     */
+    public static Object appleGetApplication() {
+        Class clazz = null;
+        try {
+            clazz = Class
+                    .forName("com.apple.eawt.Application");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            logger.error("Class.forName() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        Method mainMethod = null;
+        try {
+            mainMethod = clazz.getMethod("getApplication", null);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            logger.error("Class.getMethod() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        mainMethod.setAccessible(true);
+        Object retObj = null;
+        try {
+            retObj = mainMethod.invoke(null, null);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            logger.error("mainMethod.invoke() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+            logger.error("mainMethod.invoke() error", e);
+            throw new LogicBusinessException(e.getMessage(), e);
+        }
+        return retObj;
+    }
+
+    /***
+     * 设置mac 电脑的Dock图标<br />
+     * see com/swing/image/SettingIconUtil.java
+     * @param appleApplication
+     * @param image
+     */
+    public static void setDockIconImage(Object appleApplication, Image image) {
+        getReflectGetMethod(appleApplication, "setDockIconImage", image, Image.class);
+    }
+
+    /***
+     * 设置mac 电脑的Dock图标<br />
+     * see com/swing/image/SettingIconUtil.java
+     * @param image
+     */
+    public static void setDockIconImage(Image image) {
+        Object appleApplication = appleGetApplication();
+        setDockIconImage(appleApplication, image);
+    }
+
+    public static void setColumnVal(Object entity, String columnName, Object param) {
+        getReflectGetMethod(entity, "set" + ValueWidget.capitalize(columnName), param, null);
+    }
+
+    /***
+     *
+     * @param entity
+     * @param methodName
+     * @param param
+     * @param clazz2 : 方法参数的Class
+     * @return
+     */
+    public static Object getReflectGetMethod(Object entity, String methodName, Object param, Class clazz2) {
+        Class clazz = entity.getClass();
+        Object obj = null;
+        Method m;
+        try {
+            if (clazz2 == null && null != param) {
+                clazz2 = param.getClass();
+            }
+            if (null == clazz2) {
+                m = clazz.getMethod(methodName, new Class[]{});
+            } else {
+                m = clazz.getMethod(methodName, new Class[]{clazz2});
+            }
+            m.setAccessible(true);
+            if (null == param) {
+                obj = m.invoke(entity);
+            } else {
+                obj = m.invoke(entity, param);
+            }
+
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return obj;
+    }
+
+    /***
+     * 获取hibernate 懒加载对象的id
+     * @param typeName
+     * @param propertyValue
+     * @param containDetail: true -agent对象;<br />
+     *                     false -agentId
+     * @return
+     */
+    public static Object getHibernateLazyId(String typeName, Object propertyValue, boolean containDetail) {
+        if (null != propertyValue) {
+            if (typeName.equals(propertyValue.getClass().getName())) {
+                if (containDetail) {
+                    List<Field> fieldsList2 = ReflectHWUtils.getAllFieldList(propertyValue.getClass());
+                    int size2 = fieldsList2.size();
+                    for (int j = 0; j < size2; j++) {
+                        Field field = fieldsList2.get(j);
+                        String typeName2 = field.getType().getName();
+                        if ("java.util.List".equals(typeName2)) {
+                            ReflectHWUtils.setObjectValue(propertyValue, field, null, false);
+                        } else if (typeName2.contains(".entity.")) {
+                            ReflectHWUtils.setObjectValue(propertyValue, field, null, false);
+                        }
+                    }
+                } else {
+                    return ReflectHWUtils.getObjectValue(propertyValue, Constant2.DB_ID);
+                }
+            } else {
+                Object handlerObj = ReflectHWUtils.getObjectValue(propertyValue, "handler");
+                if (null != handlerObj) {
+                    return ReflectHWUtils.getObjectValue(handlerObj, Constant2.DB_ID);
+                }
+            }
+        }
+        return null;
     }
 
     public static boolean excludeZeroAction(boolean excludeZero, Object propertyValue) {

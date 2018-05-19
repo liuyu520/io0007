@@ -5,6 +5,7 @@ import com.string.widget.util.ValueWidget;
 import com.swing.dialog.inf.DialogInterface;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
+import com.swing.image.SettingIconUtil;
 import com.swing.menu.MenuUtil2;
 
 import javax.swing.*;
@@ -49,7 +50,7 @@ public abstract class AbstractFrame extends JFrame implements DialogInterface{
 
 
     public void setIcon(String resourcePath, Class<?> clazz) throws IOException {
-        DialogUtil.setIcon(this, resourcePath, clazz);
+        SettingIconUtil.setIcon(this, resourcePath, clazz);
     }
 
 	/***

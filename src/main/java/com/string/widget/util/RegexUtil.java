@@ -731,4 +731,34 @@ public class RegexUtil {
         String result = m.replaceAll("$1");
         return result;
     }
+
+    /***
+     * 获取复杂字符串中的数字
+     * @param input
+     * @return
+     */
+    public static String getDigitAnyWhere(String input) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return null;
+        }
+        Pattern p = Pattern.compile("[^\\d]*([\\d]+)[^\\d]*", Pattern.DOTALL);
+        Matcher m = p.matcher(input);
+        String result = m.replaceAll("$1");
+        return result;
+    }
+
+    /***
+     * 从url链接地址中获取id(数字)
+     * @param input
+     * @return
+     */
+    public static String getDigitFromServletPath(String input) {
+        if (ValueWidget.isNullOrEmpty(input)) {
+            return null;
+        }
+        Pattern p = Pattern.compile("^.*/([\\d]+)(/.*)?$", Pattern.DOTALL);
+        Matcher m = p.matcher(input);
+        String result = m.replaceAll("$1");
+        return result;
+    }
 }

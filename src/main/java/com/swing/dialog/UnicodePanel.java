@@ -296,4 +296,9 @@ public class UnicodePanel extends MyNamePanel {
     public String getActionName() {
         return null;
     }
+
+    @Override
+    public String getServerIp() {
+        return null;
+    }
 }

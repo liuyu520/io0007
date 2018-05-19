@@ -4,17 +4,26 @@ import org.apache.commons.collections.map.ListOrderedMap;
 
 public class Constant2 {
 	/***
-	 * TLV 中表示长度的那个字节的上限
-	 */
-	public static final byte TLV_LENGTH_LIMIT_BYTE=(byte) 0x80;
+     * 被UrlEncryptUtil 所用
+     */
+    public static final int DECODED_URL_MAX_LENGTH = 19;
+    /***
+     * TLV 中表示长度的那个字节的上限
+     */
+    public static final byte TLV_LENGTH_LIMIT_BYTE=(byte) 0x80;
 	/***
 	 * TLV 中表示长度的那个字节的上限
 	 */
 	public static final int TLV_LENGTH_LIMIT_INT=(int) 0x80;
 	/***
-	 * 群发
-	 */
-	public static final String PUSH_MESSAGE_MODE_BULK="bulk";
+     * 被 share项目的com/yunma/encrypt/CustomEncryptPanel.java 调用<br />
+     * 目的:防止 不断调用"加密自身"
+     */
+    public static final byte[] CUSTOM_ENCRYPT_PREFIX_BYTE = new byte[]{(byte) 27, (byte) 91};
+    /***
+     * 群发
+     */
+    public static final String PUSH_MESSAGE_MODE_BULK="bulk";
 	/***
 	 * 定点推送
 	 */
@@ -158,11 +167,11 @@ public class Constant2 {
 	 */
 	public static final int NEWS_STATUS_OFF=2;
 	/***
-	 * 新闻的状态:打开
+     * 新闻的状态:打开,value:1
 	 */
 	public static final int STATUS_ON=NEWS_STATUS_ON;
 	/***
-	 * 新闻的状态:关闭
+     * 新闻的状态:关闭,value:2
 	 */
 	public static final int STATUS_OFF=NEWS_STATUS_OFF;
 	/***
@@ -220,6 +229,95 @@ public class Constant2 {
 	 * <br />8,登录<br />9,注销/退出
 	 */
 	public static final int LOGS_ACCESS_TYPE_LOGOUT = 9;
+    /***
+     * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+     * <br />8,登录<br />9,注销/退出;<br />10:发送短信;<br />11:验证短信
+     */
+    public static final int LOGS_ACCESS_TYPE_SMS_SEND = 10;
+    /***
+     * 1:访问页面;<br>2:离开页面 ;<br>3,上传文件;<br>4,下载文件<br>5,删除记录<br>6,修改记录
+     * <br />8,登录<br />9,注销/退出;<br />10:发送短信;<br />11:验证短信
+     * ;<br />12:执行SQL 语句
+     * ;<br />13:获取七牛 token
+     * ;<br />14:创建七牛 存储空间
+     */
+    public static final int LOGS_ACCESS_TYPE_SMS_VALIDATE = 11;
+    /***
+     * 执行SQL 语句
+     */
+    public static final int LOGS_ACCESS_TYPE_SQL_EXECUTE = 12;
+    /***
+     * 获取七牛 token
+     */
+    public static final int LOGS_ACCESS_TYPE_QINIU_TOKEN_GET = 13;
+    /***
+     * 创建七牛 存储空间
+     */
+    public static final int LOGS_ACCESS_TYPE_QINIU_BUCKET_CREATE = 14;
+    /***
+     * 申请提现(刚申请,还没到账)
+     */
+    public static final int LOGS_ACCESS_TYPE_CASH_ASK_NOT_ARRIVE_YET = 17;
+    /***
+     * 提现到账
+     */
+    public static final int LOGS_ACCESS_TYPE_CASH_ARRIVED = 18;
+    /***
+     * 提现取消/被拒
+     */
+    public static final int LOGS_ACCESS_TYPE_CASH_CANCEL = 19;
+    /***
+     * 身份证识别
+     */
+    public static final int LOGS_ACCESS_TYPE_OCR_IDCARD = 21;
+    public static final int LOGS_ACCESS_TYPE_OCR_COMPARE = 23;
+    /***
+     * 银行卡类型
+     */
+    public static final int LOGS_ACCESS_TYPE_OCR_BANK_CARD = 24;
+    /***
+     * 银行卡四要素
+     */
+    public static final int LOGS_ACCESS_TYPE_OCR_BANK_CARD4 = 25;
+    /***
+     * 账户余额充值
+     */
+    public static final int LOGS_ACCESS_TYPE_ACCOUNT_RECHARGE = 27;
+
+    /***
+     * 经纪人抢单
+     */
+    public static final int LOGS_ACCESS_TYPE_AGENT_GRAB = 30;
+    /***
+     * 指派拒单<br />
+     * 操作人是经纪人
+     */
+    public static final int LOGS_ACCESS_TYPE_APPOINT_REFUSE = 31;
+    /**
+     * 指派接单<br />
+     * 操作人是经纪人
+     */
+    public static final int LOGS_ACCESS_TYPE_APPOINT_ACCEPT = 32;
+    /***
+     * 房主发布抢单订单<br />
+     * 操作人是customer
+     */
+    public static final int LOGS_ACCESS_TYPE_HOUSE_OWNER_PUBLISH_GRAB = 33;
+    /***
+     * 推送消息到经纪人客户端
+     */
+    public static final int LOGS_ACCESS_TYPE_PUSH_GRAB_TO_AGENT = 34;
+
+
+    /***
+     * 验房订单状态的转换
+     */
+    public static final int LOGS_ACCESS_TYPE_INSPECT_ORDER_STATUS_CHANGE = 40;
+    /***
+     * 带看订单状态的转换
+     */
+    public static final int LOGS_ACCESS_TYPE_VISIT_ORDER_STATUS_CHANGE = 41;
+
 	public static final String SESSION_KEY_LOGINED_USER="user";
     public static final String SESSION_KEY_LOGINED_USER_ID = "userId_userId";
     public static final String SESSION_KEY_LOGINED_USER_CLASS = "user_realclass";
@@ -512,4 +610,12 @@ public class Constant2 {
     public static final String NO_CANCEL_PURCHASE_ORDER = "CAN_BUY";
     /*******  编号 end *********/
     public static final String between_splitter = "--";
+
+    public static final int NUMBER_TYPE_INTEGER = 1;
+    public static final int NUMBER_TYPE_LONG = 2;
+    public static final int NUMBER_TYPE_BigInteger = 3;
+    public static final int NUMBER_TYPE_BigDecimal = 4;
+    /***
+     * 用于socket 传输信息,表示换行
+     */
 }

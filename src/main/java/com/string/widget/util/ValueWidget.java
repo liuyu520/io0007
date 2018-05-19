@@ -15,13 +15,23 @@ import java.util.regex.Pattern;
 
 public class ValueWidget extends RegexUtil{
 	/**
-	 * 
-	 * @param input
-	 * @return
-	 */
-	public static boolean isMargin(String input) {
-		return null != input && "".endsWith(input);
-	}
+     * exponent1:
+     * 20:c9:5d:ff:23:49:04:97:16:68:16:0d:70:3d:5d:
+     * 3d:8c:e5:67:0d:57:4a:1f:12:50:1a:7f:76:18:d2:
+     * 2e:a9:07:9d:e3:fa:3f:91:a7:66:26:59:59:8a:a8:
+     * 29:61:cc:8a:41:85:26:72:33:60:9f:de:33:06:cb:
+     * e9:f2:52:37
+     */
+    public static final String deltaSpace = "    ";
+
+    /**
+     *
+     * @param input
+     * @return
+     */
+    public static boolean isMargin(String input) {
+        return null != input && "".endsWith(input);
+    }
 
 	/**
 	 * 
@@ -532,7 +542,9 @@ public class ValueWidget extends RegexUtil{
 		int number22 = (int) c;
 //		System.out.println(number22);
 		return number22 == 32/*空格*/ || number22 == 9/*Tab*/
-				|| number22 == 10/*\n*/ || number22 == 13;
+                || number22 == 10/*\n*/ || number22 == 13/*CR */
+                || number22 == 12288/* 全角空格, 参考:https://my.oschina.net/u/2312705/blog/832438 */
+                || number22 == 160/* 不间断空格, 参考:https://my.oschina.net/u/2312705/blog/832438 */;
 	}
 	
 	/***
@@ -593,6 +605,7 @@ public class ValueWidget extends RegexUtil{
 		if(ValueWidget.isNullOrEmpty(input)){
 			return input;
 		}
+        input = input.trim();
 		String regex="<!--"+otherwise22("-->")+"-->";
 		return input.replaceAll(regex, "");
 	}
@@ -862,7 +875,8 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
 			return null;
 		}
 		return input.replaceAll("&lt;", "<").replaceAll("&gt;", ">")
-				.replaceAll("&amp;", "&").replaceAll("&quot;", "\"");
+                .replaceAll("&amp;", "&").replaceAll("&quot;", "\"")
+                .replaceAll("&apos;", "'");
 	}
 	/***
 	 * 校验手机号格式<br>
@@ -1279,5 +1293,61 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
             ignoreProperties[oldLength + i] = props[i];
         }
         return ignoreProperties;
+    }
+
+    public static String getString(Map queryStringMap, String key) {
+        if (queryStringMap.containsKey(key)) {
+            String val = (String) queryStringMap.get(key);
+            if (!isNullOrEmpty(val) && !isNullOrEmpty(val.trim())) {
+                return val.trim();
+            }
+        }
+        return null;
+    }
+
+    /***
+     * 获取长度一定的名称,例如:001,002,003...010,011
+     * @param index
+     * @param maxLength
+     * @return
+     */
+    public static String getIndexNoFormattd(int index, int maxLength) {
+        String start = String.valueOf(index);
+        int length = maxLength - start.length();
+        for (int i = 0; i < length; i++) {
+            start = "0" + start;
+        }
+        return start;
+    }
+
+    public static String getBsvcOrderNo(String orderId) {
+        if (null == orderId) {
+            return orderId;
+        }
+        if (orderId.contains("_")) {
+            orderId = orderId.split("_")[0];
+        } else if (orderId.contains("__")) {
+            orderId = orderId.split("__")[0];
+        }
+        return orderId;
+    }
+
+    /***
+     * "aabbccdd"-->"aa:bb:cc:dd"
+     * @param hexInput
+     * @return
+     */
+    public static String formatHex(String hexInput) {
+        hexInput = hexInput.replaceAll("([\\w]{2})(?=\\w)", "$1:");
+        return hexInput;
+    }
+
+    public static String formStrByBlank(String input, int diveLength) {
+//        int diveLength=4;
+        return input.replaceAll("([\\w]{" + diveLength + "})(?=\\w)", "$1 ");
+    }
+
+    public static String formStrByBr(String input, int diveLength) {
+        return input.replaceAll("([^\\s]{" + diveLength + "})(?=\\w)", "$1" + SystemHWUtil.CRLF + deltaSpace);
     }
 }
