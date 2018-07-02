@@ -617,7 +617,7 @@ public class ValueWidget extends RegexUtil{
 		String regex="/\\*"+otherwise22("*/")+"\\*/";
 //		System.out.println(regex);
         return input.replaceAll(regex, "")
-                .replaceAll("/\\*[^*/]\\*/", "");
+                .replaceAll("/\\*[^*/]*\\*/", "");
 	}
 	/***
 	 * replaceAll,忽略大小写<br>
