@@ -4,8 +4,10 @@ import com.common.bean.ParameterIncludeBean;
 import com.common.bean.RequestInfoBean;
 import com.common.bean.ResponseResult;
 import com.common.bean.TableDataBean;
+import com.common.util.RequestUtil;
 import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
+import com.google.common.base.Splitter;
 import com.io.hw.awt.color.CustomColor;
 import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.ValueWidget;
@@ -14,8 +16,13 @@ import com.swing.component.AssistPopupTextArea;
 import com.swing.component.GenerateJsonTextArea;
 import com.swing.component.RadioButtonPanel;
 import com.swing.component.inf.IPlaceHolder;
+import com.swing.config.ConfigParam;
+import com.swing.menu.MenuUtil2;
+import com.swing.table.callback.TableCellMidClickCallback;
+import com.swing.table.callback.TableRightClickCallback;
 
 import javax.swing.*;
+import javax.swing.event.MouseInputListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -177,8 +184,14 @@ public class TableUtil3 {
 		Object[][] data2 = getParameter4Table(parameterTable_1/*,isTextComponent*/).getOnlyStringValue();
 		return getTableParameters(data2);
     }
+
+    /***
+     * 删除请求参数中的注释
+     * @param data2
+     * @return
+     */
     public static List<ParameterIncludeBean> getTableParameters(Object[][] data2) {
-    	List<ParameterIncludeBean> parameters=new ArrayList<ParameterIncludeBean>();
+        List<ParameterIncludeBean> parameters=new ArrayList<ParameterIncludeBean>();
         if (data2.length > 0) {
             for (int rowIndex = 0; rowIndex < data2.length; rowIndex++) {
                 ParameterIncludeBean parameterIncludeBean = new ParameterIncludeBean();
@@ -186,7 +199,8 @@ public class TableUtil3 {
                     Object key = data2[rowIndex][0];
                     String keyStr=(String)key;
                     if(null!=keyStr){//trim 掉key的空格
-                    	keyStr=keyStr.trim();
+                        keyStr=keyStr.trim();
+                        keyStr = deleteComments(keyStr);//删除请求参数中的注释
                     }
                     //过滤掉相同的key
                     if (!ValueWidget.isNullOrEmpty(key)&&!isContain(parameters, keyStr)) {
@@ -198,6 +212,7 @@ public class TableUtil3 {
                         } else {
                             val = (String) valueObj;
                             val=val.trim();//参数值trim
+                            val = deleteComments(val);//删除请求参数中的注释
                         }
                         parameterIncludeBean.setValue(val);
                         RadioButtonPanel radioButtonPanel = (RadioButtonPanel) data2[rowIndex][2];
@@ -212,6 +227,21 @@ public class TableUtil3 {
 //        System.out.println(parameters.size());
         return parameters;
     }
+
+    /***
+     * 删除请求参数中的注释<br />
+     * 例如:cc/aa /
+     * @param keyStr
+     * @return
+     */
+    public static String deleteComments(String keyStr) {
+        if (null == keyStr) {
+            return keyStr;
+        }
+        keyStr = keyStr.replaceAll("/\\*.*\\*/", SystemHWUtil.EMPTY);
+        return keyStr;
+    }
+
     /***
      * 判断parameters 中是否包含 key
      *
@@ -306,8 +336,8 @@ public class TableUtil3 {
 		if (!ValueWidget.isNullOrEmpty(key)) {
 			if (key.contains("=") || key.contains(":")) {
 				String[] strs = key.split("[:=]",2);//解决黏贴时,冒号后面被截断的问题
-				parameterIncludeBean.setKey(strs[0]);
-				parameterIncludeBean.setValue(strs[1]);
+                parameterIncludeBean.setKey(SystemHWUtil.deleteQuotes(strs[0]));
+                parameterIncludeBean.setValue(SystemHWUtil.deleteQuotesStrict(strs[1].trim()));
 			} else {
 				parameterIncludeBean.setKey(key);
 			}
@@ -320,19 +350,72 @@ public class TableUtil3 {
         if (ValueWidget.isNullOrEmpty(key)) {
             return null;
         }
+        key = key.trim();
         List<ParameterIncludeBean> beans = new ArrayList<ParameterIncludeBean>();
-        /***
-         * windows	\r\n
-         linux	\n
-         */
-        String[] keyVals = key.split("(\n)|(\r\n)");
-        int length = keyVals.length;
-        for (int i = 0; i < length; i++) {
-            ParameterIncludeBean parameterIncludeBean = getParameterIncludeBean(keyVals[i]);
-            beans.add(parameterIncludeBean);
+
+        if (key.startsWith("{")) {//如果剪切板内容是json格式字符串
+            Map map = parseParam2Map(key);
+            for (Object key2 : map.keySet()) {
+                ParameterIncludeBean parameterIncludeBean = new ParameterIncludeBean();
+                parameterIncludeBean.setKey((String) key2);
+                parameterIncludeBean.setValue(ValueWidget.getStr4Obj(map.get(key2)));
+                beans.add(parameterIncludeBean);
+            }
+        } else {
+            String[] keyVals = null;
+            if (key.contains("&") && (!key.contains("\n"))) {//支持:"currentPage=1&recordsPerPage=20"
+                keyVals = key.split("&");
+            } else {
+                /***
+                 * windows	\r\n
+                 linux	\n
+                 */
+                keyVals = key.split("(\n)|(\r\n)");
+            }
+            int length = keyVals.length;
+            for (int i = 0; i < length; i++) {
+                ParameterIncludeBean parameterIncludeBean = getParameterIncludeBean(keyVals[i]);
+                beans.add(parameterIncludeBean);
+            }
         }
+
         return beans;
     }
+
+    public static Map parseParam2Map(String key) {
+        Map map = null;
+        if (key.contains("=") && (!key.contains("=\\\""))) {//map.toString,//{"appKey":"8669cfcf-93b9-4911-b855-4d6bc87d75df","appSecret":"sdxpke","clientId":"8669cfcf-93b9-4911-b855-4d6bc87d75df","client_secret":"sdxpke","id":"store","key":"spare_header","val":"<meta name=\"renderer\" content=\"webkit\">"}
+            String key2 = SystemHWUtil.deleteCurlyBraces(key);
+            try {
+                map = Splitter.on(",").withKeyValueSeparator("=").split(key2);
+            } catch (IllegalArgumentException e) {
+//                e.printStackTrace();
+                if (key.contains("[")
+                        && key.contains("]")) {
+//                    MultiValueMap<String, String> formParameters = HWJacksonUtils.deSerializeMultiValueMap(key, String.class, String.class);
+                    map = convertMultiValueMapToMap(key);
+                } else {
+                    map = ValueWidget.splitToMap(key, ",", "=");
+                }
+            }
+        } else {
+            map = (Map) HWJacksonUtils.deSerialize(key, Map.class);//反序列化为Map
+        }
+        return map;
+    }
+
+    /***
+     *  ( {"body":["xx服务"],"subject":["xx服务"],"sign_type":["RSA2"] }) 转化常规的mapc
+     * @param key
+     * @return
+     */
+    public static Map convertMultiValueMapToMap(String key) {
+        Map map;
+        Map<String, String[]> formParameters = HWJacksonUtils.deSerializeMap(key, String[].class);
+        map = RequestUtil.parseFormParameters(formParameters);
+        return map;
+    }
+
 
     public static TreeMap getParameterMap(List<ParameterIncludeBean> parameters, boolean isUrlEncoding, String requestCharset) {
 		TreeMap map = new TreeMap();
@@ -354,7 +437,10 @@ public class TableUtil3 {
         return map;
    }
 
-    public static void setTableData3(JTable parameterTable_1, Map requestMap, boolean hasTextField, boolean isTF_table_cell, String[] columnNames, final Map<String, ActionCallback> actionCallbackMap) {
+    public static void setTableData3(JTable parameterTable_1, Map requestMap, ConfigParam configParam, final Map<String, ActionCallback> actionCallbackMap) {
+        if (null == requestMap) {
+            return;
+        }
         int length = requestMap.size();
         if (length > 0) {
             Object[][] datas = new Object[length][];
@@ -363,12 +449,14 @@ public class TableUtil3 {
                 Object val = requestMap.get(obj);
                 Object[] objs = new Object[3];
                 RadioButtonPanel panel = new RadioButtonPanel();
-                panel.init(hasTextField);
+                panel.init(configParam.isHasTextField());
                 objs[2] = panel;
                 Color backColor=CustomColor.getMoreLightColor();
 //		    		objs[2]="c"+i;
-                if(isTF_table_cell){
-                    JTextArea keyTA = new AssistPopupTextArea(String.valueOf(obj), actionCallbackMap);
+                if (configParam.isTF_table_cell()) {
+                    AssistPopupTextArea assistPopupTextArea = new AssistPopupTextArea(String.valueOf(obj), actionCallbackMap);
+                    assistPopupTextArea.setEditable(!configParam.isTableCellReadonly());
+                    JTextArea keyTA = assistPopupTextArea;
                     keyTA.setBackground(backColor);
                 	objs[0] = new JScrollPane(keyTA);
                 }else{
@@ -379,7 +467,7 @@ public class TableUtil3 {
                 		|| val.equals("undefined")) {//配置文件中保存的是"null",而不是null
                     val = SystemHWUtil.EMPTY;
                 }
-                if(isTF_table_cell){
+                if (configParam.isTF_table_cell()) {
                 	String valString=null;
                 	if(val instanceof Map){//val有可能是LinkedHashMap
                 		valString=HWJacksonUtils.getJsonP(val);
@@ -387,6 +475,7 @@ public class TableUtil3 {
                 		valString=String.valueOf(val);
                 	}
                     JTextArea valTA = new GenerateJsonTextArea(valString, actionCallbackMap);
+                    valTA.setEditable(!configParam.isTableCellReadonly());
                     valTA.setBackground(backColor);
                 	objs[1] = new JScrollPane(valTA);
                 }else{
@@ -397,7 +486,7 @@ public class TableUtil3 {
                 count++;
             }//for
 //            setTableData2(parameterTable_1,datas,columnNames);
-            appendTableData(parameterTable_1, datas, columnNames);
+            appendTableData(parameterTable_1, datas, configParam);
         }//if
 	}
 
@@ -411,10 +500,10 @@ public class TableUtil3 {
      * 追加,原有输入框仍保留,所以可以使用Ctrl+Z
      * @param datas
      */
-    public static void appendTableData(JTable parameterTable_1,Object[][] datas,String[]columnNames){
+    public static void appendTableData(JTable parameterTable_1, Object[][] datas, ConfigParam configParam) {
     	int rowCount=parameterTable_1.getRowCount();
     	if(rowCount<1){//如果表格本来为空
-    		setTableData2(parameterTable_1,datas,columnNames);
+            setTableData2(parameterTable_1, datas, configParam.getColumnNames());
 			if (isDetail) {
 				System.out.println("表格为空");
 			}
@@ -422,9 +511,10 @@ public class TableUtil3 {
 			if (isDetail) {
 				System.out.println("表格不为空,行数:" + rowCount);
 			}
+            //不能注释,因为rend之前请求参数表格有一行
 			for(int i=0;i<rowCount;i++){
-    			setTableValueAt(parameterTable_1,i, 0, datas);
-    			setTableValueAt(parameterTable_1,i, 1, datas);
+                setTableValueAt(parameterTable_1, i, 0, datas, configParam);
+                setTableValueAt(parameterTable_1, i, 1, datas, configParam);
     		}
     		DefaultTableModel tableModel = (DefaultTableModel) parameterTable_1.getModel();
     		for(int i=rowCount;i<datas.length;i++){
@@ -433,12 +523,12 @@ public class TableUtil3 {
     	}
 	}
 
-	public static void setTableValueAt(JTable parameterTable_1, int rowIndex, int columnIndex, Object[][] datas) {
+    public static void setTableValueAt(JTable parameterTable_1, int rowIndex, int columnIndex, Object[][] datas, ConfigParam configParam) {
 		if (rowIndex >= datas.length) {//防止数组越界
 			return;
 		}
 		Object keyObj = datas[rowIndex][columnIndex];
-		setTableValueAt(parameterTable_1, rowIndex, columnIndex, keyObj);
+        setTableValueAt(parameterTable_1, rowIndex, columnIndex, keyObj, configParam);
 	}
 
 	/***
@@ -447,9 +537,9 @@ public class TableUtil3 {
      * @param columnIndex
 	 * @param keyObj
 	 */
-    public static void setTableValueAt(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj){
+    public static void setTableValueAt(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj, ConfigParam configParam) {
         String key = null;
-        keyObj = getTableCellValStr(keyObj);
+        keyObj = getTableCellValStr(keyObj, configParam);
 
         if (keyObj instanceof String) {
             key = (String) keyObj;
@@ -457,14 +547,14 @@ public class TableUtil3 {
             key = String.valueOf(keyObj);
         }
         Object valueAtObj = parameterTable_1.getValueAt(rowIndex, columnIndex);
-        setTableCellVal(parameterTable_1, rowIndex, columnIndex, keyObj, key, valueAtObj);
-
+        setTableCellVal(parameterTable_1, rowIndex, columnIndex, keyObj, key, valueAtObj, configParam);
     }
 
-    public static String getTableCellValStr(Object keyObj) {
+    public static String getTableCellValStr(Object keyObj, ConfigParam configParam) {
         if(keyObj instanceof JScrollPane){
             JScrollPane js=(JScrollPane)keyObj;
             JTextComponent tf=(JTextComponent)js.getViewport().getComponent(0);
+            tf.setEditable(!configParam.isTableCellReadonly());
             keyObj = tf.getText();
         }
         String key=null;
@@ -476,13 +566,14 @@ public class TableUtil3 {
         return key;
     }
 
-    public static void setTableCellVal(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj, String key, Object valueAtObj) {
+    public static void setTableCellVal(JTable parameterTable_1, int rowIndex, int columnIndex, Object keyObj, String key, Object valueAtObj, ConfigParam configParam) {
         if (valueAtObj instanceof JScrollPane) {
             JScrollPane keyScrollPane = (JScrollPane) valueAtObj;
             JTextArea keyTA = (JTextArea) keyScrollPane.getViewport().getComponent(0);
             keyTA.setText(key);
         } else if (valueAtObj instanceof JTextComponent) {
             JTextComponent jTextComponent = (JTextComponent) valueAtObj;
+            jTextComponent.setEditable(!configParam.isTableCellReadonly());
             jTextComponent.setText(key);
         } else {
             if (null != keyObj) {
@@ -497,20 +588,20 @@ public class TableUtil3 {
      * @param rowIndex
      * @param columnIndex
      */
-    private static void cleanTableValue(JTable parameterTable_1,int rowIndex,int columnIndex){
+    private static void cleanTableValue(JTable parameterTable_1, int rowIndex, int columnIndex, ConfigParam configParam) {
     	Object valueAtObj=parameterTable_1.getValueAt(rowIndex, columnIndex);
-        setTableCellVal(parameterTable_1, rowIndex, columnIndex, null, SystemHWUtil.EMPTY, valueAtObj);
+        setTableCellVal(parameterTable_1, rowIndex, columnIndex, null, SystemHWUtil.EMPTY, valueAtObj, configParam);
     }
     /***
      * 清空表格数据<br>
      * @param parameterTable_1
      */
-    public static void cleanTableData(JTable parameterTable_1){
+    public static void cleanTableData(JTable parameterTable_1, ConfigParam configParam) {
     	int rowCount=parameterTable_1.getRowCount();
     	if(rowCount>0){
     		for(int i=0;i<rowCount;i++){
-    			cleanTableValue(parameterTable_1,i, 0);
-    			cleanTableValue(parameterTable_1,i, 1);
+                cleanTableValue(parameterTable_1, i, 0, configParam);
+                cleanTableValue(parameterTable_1, i, 1, configParam);
     		}
     	}
     }
@@ -561,7 +652,7 @@ public class TableUtil3 {
         return responseMapLogin.get(preRequestKey);
     }
 
-    public static void tableCellMidClick(MouseEvent e, JTable jTable) {
+    public static void tableCellMidClick(MouseEvent e, JTable jTable, ConfigParam configParam) {
         //按下鼠标中键,把剪切板内容黏贴到文本框中
         String text = WindowUtil.getSysClipboardText();
         if (!ValueWidget.isNullOrEmpty(text)) {
@@ -570,8 +661,94 @@ public class TableUtil3 {
 //                        System.out.println(row+":"+col);
             Object selectedChk = jTable.getValueAt(row, col);
 //                        System.out.println("selectedChk:"+selectedChk);
-            TableUtil3.setTableCellVal(jTable, row, col, null, text, selectedChk);
+            TableUtil3.setTableCellVal(jTable, row, col, null, text, selectedChk, configParam);
             jTable.updateUI();
         }
     }
+
+    public static MouseInputListener getMouseInputListener(final JTable jTable, TableRightClickCallback tableRightClickCallback, TableCellMidClickCallback tableCellMidClickCallback) {
+
+        return new MouseInputListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                /*if(e.getClickCount()==1){
+                    final int rowCount = jTable.getSelectedRow();
+                	final int columnCount=jTable.getSelectedColumn();
+            		int modifiers = e.getModifiers();
+            		modifiers -= MouseEvent.BUTTON3_MASK;
+                	modifiers |= MouseEvent.FOCUS_EVENT_MASK;
+                	MouseEvent ne = new MouseEvent(e.getComponent(), e.getID(),
+    						e.getWhen(), modifiers, e.getX(), e.getY(),
+    						2, false);
+//                	processEvent(ne);
+                	jTable.editCellAt(rowCount, columnCount,ne);
+//                	CellEditor cellEditor=jTable.getCellEditor(rowCount, columnCount);
+//                	cellEditor.shouldSelectCell(ne);
+                	jTable.dispatchEvent(ne);
+            	}*/
+//                System.out.println("mouseClicked" + (count++));
+                MenuUtil2.processEvent(e, jTable);
+
+            }
+
+            /***
+             * in order to trigger Left-click the event
+             */
+            public void mousePressed(MouseEvent e) {
+                MenuUtil2.processEvent(e, jTable);// is necessary!!!
+//                System.out.println("mousePressed"+(count++));
+            }
+
+            public void mouseReleased(final MouseEvent e) {
+                //
+                final int rowCount = jTable.getSelectedRow();
+                final int columnCount = jTable.getSelectedColumn();
+
+                if (e.getButton() == MouseEvent.BUTTON3) {// right click,右键菜单
+//                	processEvent(e);
+                    tableRightClickCallback.callback(jTable, e, null);
+//                    rightClickAction2(e, rowCount, columnCount);
+//                    processEvent(e);
+                } else if (e.getButton() == MouseEvent.BUTTON2) {//鼠标中键
+                    tableCellMidClickCallback.callback(jTable, e, null);
+                }
+
+                /*else if (e.getButton() == MouseEvent.BUTTON1&& e.getClickCount()==1){
+                    System.out.println("左键");
+                	int modifiers = e.getModifiers();
+                	modifiers |= MouseEvent.FOCUS_EVENT_MASK;
+                	MouseEvent ne = new MouseEvent(e.getComponent(), e.getID(),
+							e.getWhen(), modifiers, e.getX(), e.getY(),
+							2, false);
+
+//                	processEvent(ne);
+//                	jTable.editCellAt(rowCount, columnCount,ne);
+//                	CellEditor cellEditor=jTable.getCellEditor(rowCount, columnCount);
+//                	cellEditor.shouldSelectCell(ne);
+                	jTable.dispatchEvent(ne);
+                }*/
+            }
+
+
+            public void mouseEntered(MouseEvent e) {
+                MenuUtil2.processEvent(e, jTable);
+            }
+
+            public void mouseExited(MouseEvent e) {
+                MenuUtil2.processEvent(e, jTable);
+            }
+
+            public void mouseDragged(MouseEvent e) {
+                MenuUtil2.processEvent(e, jTable);
+            }
+
+            public void mouseMoved(MouseEvent e) {
+                MenuUtil2.processEvent(e, jTable);
+            }
+
+        };
+    }
+
+
 }

@@ -1,9 +1,21 @@
 package com.encrypt;
 
+import com.common.bean.PrivPubKeyBean;
+import com.common.bean.RSAFormatConf;
+import com.common.enu.SignatureAlgorithm;
+import com.common.util.SystemHWUtil;
+import com.string.widget.util.RegexUtil;
+import com.string.widget.util.ValueWidget;
+import com.swing.dialog.toast.ToastMessage;
+import sun.security.rsa.RSAPrivateCrtKeyImpl;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -53,7 +65,12 @@ public class RSAUtils {
      * RSA最大解密密文大小
      */
     private static final int MAX_DECRYPT_BLOCK = 128;
-
+    public static final String comment_begin_publicKey = "-----BEGIN PUBLIC KEY-----";
+    public static final String comment_end_publicKey = "-----END PUBLIC KEY-----";
+    public static final String comment_begin_privateKey = "-----BEGIN PRIVATE KEY-----";
+    public static final String comment_end_privateKey = "-----END PRIVATE KEY-----";
+    public static final String publicKey_comment = comment_begin_publicKey + SystemHWUtil.CRLF + "%s" + SystemHWUtil.CRLF + comment_end_publicKey;
+    public static final String privateKey_comment = comment_begin_privateKey + SystemHWUtil.CRLF + "%s" + SystemHWUtil.CRLF + comment_end_privateKey;
     /**
      * 生成密钥对(公钥和私钥)
      * @return  Map<String, Object>
@@ -314,6 +331,210 @@ public class RSAUtils {
             throws Exception {
         Key key = (Key) keyMap.get(PUBLIC_KEY);
         return Base64Utils.encode(key.getEncoded());
+    }
+
+
+    /***
+     * 去掉:"-----BEGIN PRIVATE KEY-----"<br />
+     * "-----BEGIN PUBLIC KEY-----"
+     * @param pubKeyTxt
+     * @return
+     */
+    public static String deleteKeyComment(String pubKeyTxt) {
+        if (pubKeyTxt.startsWith("-----BEGIN")) {
+            pubKeyTxt = RegexUtil.sed(pubKeyTxt, "^----.*----$", SystemHWUtil.EMPTY);
+        }
+        return pubKeyTxt;
+    }
+
+    public static String formatBase64ToMultiple(String inputKey) {
+        return formatBase64ToMultiple(inputKey, (RSAFormatConf) null);
+    }
+
+    public static String formatBase64ToMultiple(String inputKey, RSAFormatConf rsaFormatConf) {
+        if (SystemHWUtil.findStr3(inputKey, SystemHWUtil.CRLF).getCount() > 1) {
+            System.out.println("已经执行过换行 :");
+            return inputKey;
+        }
+        inputKey = inputKey.replaceAll("(.{64})", "$1" + SystemHWUtil.CRLF);
+        if (null == rsaFormatConf || (!rsaFormatConf.isAppendComment())) {
+            return inputKey;
+        }
+        if (rsaFormatConf.isPrivate()) {
+            return String.format(RSAUtils.privateKey_comment, inputKey);
+        } else {
+            return String.format(RSAUtils.publicKey_comment, inputKey);
+        }
+    }
+
+    public static PrivPubKeyBean getPrivPubKeyBean(String saltKeyInfo, Integer keysize) {
+        if (null == saltKeyInfo) {
+            saltKeyInfo = "whuang";//TODO 抽取为常量
+        }
+        KeyPair kp = null;
+        try {
+            kp = SystemHWUtil.getKeyPair(saltKeyInfo, SystemHWUtil.KEY_ALGORITHM_RSA, keysize);
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+            ToastMessage.toast(e1.getMessage(), 3000, Color.RED);
+            return null;
+        } catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+            ToastMessage.toast(e1.getMessage(), 3000, Color.RED);
+            return null;
+        }
+        PublicKey publicKey = kp.getPublic();
+        PrivateKey privateKey = kp.getPrivate();
+        String publicKeyStr = null;
+        String privateKeyStr = null;
+        PrivPubKeyBean privPubKeyBean = new PrivPubKeyBean();
+        privPubKeyBean.setPrivateKeyBytes(privateKey.getEncoded());
+        privPubKeyBean.setPrivKey(privateKey);
+        privPubKeyBean.setPublicKeyBytes(publicKey.getEncoded());
+        privPubKeyBean.setPublKey(publicKey);
+        return privPubKeyBean;
+    }
+
+    public static Integer getRSAKeySize(int selectedIndex) {
+        Integer keysize = 1024;
+        switch (selectedIndex) {
+            case 0:
+                keysize = 512;
+                break;
+            case 1:
+                keysize = 1024;
+                break;
+            case 2:
+                keysize = 2048;
+                break;
+            case 3:
+                keysize = 4096;
+                break;
+        }
+        return keysize;
+    }
+
+    public static String rsaEncrypt(String privateKeyBase64, byte[] source) {
+        String encryptedStr = null;
+        try {
+            byte[] encrypted = SystemHWUtil.encryptByPrivateKeyBase64(source, privateKeyBase64, "RSA");
+            encryptedStr = org.springframework.util.Base64Utils.encodeToString(encrypted);
+
+            System.out.println("encryptedStr :" + encryptedStr);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            ToastMessage.toast(e1.getMessage(), 3000, Color.RED);
+        }
+        return encryptedStr;
+    }
+
+    public static String rsaEncrypt(byte[] privateKeyBase64, byte[] source) {
+        String encryptedStr = null;
+        try {
+            Key privateKey = SystemHWUtil.convert2PrivateKey(privateKeyBase64, "RSA");
+            byte[] encrypted = SystemHWUtil.encrypt(source, privateKey);
+//            byte[] encrypted = SystemHWUtil.encryptByPrivateKeyBase64(source, privateKeyBase64, "RSA");
+            encryptedStr = org.springframework.util.Base64Utils.encodeToString(encrypted);
+
+            System.out.println("encryptedStr :" + encryptedStr);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            ToastMessage.toast(e1.getMessage(), 3000, Color.RED);
+        }
+        return encryptedStr;
+    }
+
+    public static String getPrivateKeyBase64(String privateText) {
+        String errorParam = "私钥";
+        if (checkKeyNull(privateText, errorParam)) return null;
+        privateText = RSAUtils.deleteKeyComment(privateText);
+        return SystemHWUtil.deleteAllCRLF(privateText);
+    }
+
+    public static boolean checkKeyNull(String privateText, String errorParam) {
+        if (ValueWidget.isNullOrEmpty(privateText)) {
+            ToastMessage.toast(errorParam + "为空,请检查\"生成秘钥\"页签", 3000, Color.RED);
+//            this.tabbedPane1.setSelectedIndex(1);
+            return true;
+        }
+        return false;
+    }
+
+    /***
+     * 校验签名,验签
+     * @param sourceTxt
+     * @param algorithm
+     * @param result
+     * @param keyBytes
+     */
+    public static boolean verifySign(String sourceTxt, SignatureAlgorithm algorithm, String result, byte[] keyBytes) {
+        // 取得公钥
+        PublicKey publicKey = SystemHWUtil.convert2PublicKey(keyBytes);
+        boolean verifyResult = false;
+        try {
+            verifyResult = SystemHWUtil.verifySign(sourceTxt.getBytes(SystemHWUtil.CHARSET_UTF), SystemHWUtil.decodeBase64(result), publicKey, algorithm);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (verifyResult) {
+            ToastMessage.toast("校验签名成功", 2000);
+        } else {
+            ToastMessage.toast("校验签名失败", 3000, Color.RED);
+        }
+        return verifyResult;
+    }
+
+    public static StringBuffer getPrivateKeyDetailStringBuffer(RSAPrivateCrtKeyImpl privateKey) {
+        BigInteger modulus = privateKey.getModulus();
+        BigInteger privateExponent = privateKey.getPrivateExponent();
+        BigInteger exponent2 = privateKey.getPrimeExponentQ();
+        BigInteger exponent1 = privateKey.getPrimeExponentP();
+        BigInteger coefficient = privateKey.getCrtCoefficient();
+
+        String modulusHex = formatModulusHex(modulus);
+        String privateExponentHex = formatModulusHex(privateExponent);
+        String exponent2Hex = formatModulusHex(exponent2);//PrimeExponentQ
+        String exponent1Hex = formatModulusHex(exponent1);//PrimeExponentP
+        String coefficientHex = formatModulusHex(coefficient);
+//        privateKey.getEncoded();
+
+        System.out.println("modulusHex :" + SystemHWUtil.CRLF + modulusHex);
+        System.out.println("privateExponentHex :" + SystemHWUtil.CRLF + privateExponentHex);
+        System.out.println("exponent2 :" + SystemHWUtil.CRLF + exponent2Hex);
+        System.out.println("exponent1 :" + SystemHWUtil.CRLF + exponent1Hex);//PrimeExponentP
+        StringBuffer resultBuffer = new StringBuffer();
+        resultBuffer.append("modulus:").append(SystemHWUtil.CRLF)
+                .append(ValueWidget.deltaSpace)
+                .append("00:")
+                .append(modulusHex).append(SystemHWUtil.CRLF)
+
+                .append("privateExponent:").append(SystemHWUtil.CRLF)
+                .append(ValueWidget.deltaSpace)
+                .append(privateExponentHex).append(SystemHWUtil.CRLF)
+
+                .append("prime1:").append(SystemHWUtil.CRLF)
+                .append("").append(SystemHWUtil.CRLF)
+                .append("prime2:").append(SystemHWUtil.CRLF)
+                .append("").append(SystemHWUtil.CRLF)
+
+                .append("exponent1:").append(SystemHWUtil.CRLF)//PrimeExponentP
+                .append(ValueWidget.deltaSpace)
+                .append(exponent1Hex).append(SystemHWUtil.CRLF)
+
+                .append("exponent2:").append(SystemHWUtil.CRLF)//PrimeExponentQ
+                .append(ValueWidget.deltaSpace)
+                .append(exponent2Hex).append(SystemHWUtil.CRLF)
+
+                .append("coefficient:").append(SystemHWUtil.CRLF)
+                .append(ValueWidget.deltaSpace)
+                .append("00:")
+                .append(coefficientHex).append(SystemHWUtil.CRLF);
+        return resultBuffer;
+    }
+
+    public static String formatModulusHex(BigInteger modulus) {
+        return ValueWidget.formStrByBr(ValueWidget.formatHex(modulus.toString(16)), 45);
     }
 
 }

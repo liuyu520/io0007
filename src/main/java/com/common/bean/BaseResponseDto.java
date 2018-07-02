@@ -1,12 +1,16 @@
 package com.common.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.io.hw.json.HWJacksonUtils;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by David on 15/2/12.
  */
+@JsonIgnoreProperties(value = {"codeOfError", "msgOfError", "logger", "serialVersionUID"})
 public class BaseResponseDto implements Serializable {
 
     private static final long serialVersionUID = 2409850391232289737L;
@@ -23,6 +27,16 @@ public class BaseResponseDto implements Serializable {
     private Object value;
 
     public ErrorObject error;
+    private Object extraInfo;
+    /***
+     * cookie<br />
+     * 只有登录接口和注册接口  才会返回
+     */
+    private String conventionk;
+    /***
+     * 数据的版本
+     */
+    private Long version;
 
     public BaseResponseDto() {
 
@@ -32,6 +46,15 @@ public class BaseResponseDto implements Serializable {
         this.result = result;
     }
 
+    public BaseResponseDto put(String key, Object value) {
+        Map map = new HashMap();
+        map.put(key, value);
+        return setValue(map);
+    }
+
+    public static String jsonValue(Object value) {
+        return new BaseResponseDto(true).setValue(value).toJson();
+    }
     public BaseResponseDto(String errorCode, String errorMsg) {
         this.result = false;
         this.errorCode = errorCode;
@@ -49,6 +72,13 @@ public class BaseResponseDto implements Serializable {
         this.error.msg = this.errorMessage;
     }
 
+    public BaseResponseDto setHint(String hint) {
+        if (null == this.error) {
+            this.error = new ErrorObject();
+        }
+        this.error.hint = hint;
+        return this;
+    }
     public BaseResponseDto(boolean result, String errorCode, String param) {
         this.result = result;
         this.param = param;
@@ -105,11 +135,57 @@ public class BaseResponseDto implements Serializable {
 
     public BaseResponseDto setErrorCode(String errorCode) {
         this.errorCode = errorCode;
+        if (null == errorCode) {
+            return this;
+        }
+        if (null == this.error) {
+            this.error = new ErrorObject();
+        }
+        this.error.setCode(errorCode);
         return this;
     }
 
     public BaseResponseDto setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+        if (null == this.error) {
+            this.error = new ErrorObject();
+        }
+        this.error.setMsg(errorMessage);
+        return this;
+    }
+
+    public Object getExtraInfo() {
+        return extraInfo;
+    }
+
+    public BaseResponseDto setExtraInfo(Object extraInfo) {
+        this.extraInfo = extraInfo;
+        return this;
+    }
+
+    public String getConventionk() {
+        return conventionk;
+    }
+
+    public void setConventionk(String conventionk) {
+        this.conventionk = conventionk;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public BaseResponseDto setVersion(Long version) {
+        this.version = version;
+        return this;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public BaseResponseDto setResult(Boolean result) {
+        this.result = result;
         return this;
     }
 }

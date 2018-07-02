@@ -1,5 +1,6 @@
  package com.swing.menu;
 
+ import com.common.bean.ICompareCallback;
  import com.common.dict.Constant2;
  import com.common.util.RequestUtil;
  import com.common.util.SystemHWUtil;
@@ -14,6 +15,7 @@
  import com.swing.component.MyNamePanel;
  import com.swing.component.TextCompUtil2;
  import com.swing.dialog.toast.ToastMessage;
+ import me.xdrop.fuzzywuzzy.FuzzySearch;
 
  import javax.swing.*;
  import javax.swing.border.Border;
@@ -23,6 +25,7 @@
  import javax.swing.event.MouseInputListener;
  import javax.swing.text.JTextComponent;
  import java.awt.*;
+ import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
  import java.awt.event.MouseEvent;
  import java.io.UnsupportedEncodingException;
@@ -188,7 +191,7 @@
         JMenuItem deleteM = new JMenuItem(
             MenuUtil2.ACTION_STR_DELETE_CONTENT);
         JMenuItem deleteAllM = new JMenuItem(
-            MenuUtil2.ACTION_STR_DELETE_ALL_CONTENT);
+                MenuUtil2.ACTION_STR_DELETE_ALL_CONTENT + "(cmd+D)");
         deleteAllM.setActionCommand(MenuUtil2.ACTION_STR_DELETE_ALL_CONTENT);
         MenuUtil2.strongMenuItem(deleteAllM);
         deleteAllM.setForeground(Color.red);
@@ -605,10 +608,28 @@
         }
         textPopupMenu.show(frame, point.x + 10, y);
     }
+
+    /***
+     * showRecentList<br>
+     *     显示最近的请求
+     * @param frame
+     * @param tabbedPane_2
+     * @param tabIndexList
+     * @param tc
+     */
     public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, List<Integer> tabIndexList, JTextComponent tc) {
         searchResultList(frame, tabbedPane_2, tabIndexList, tc, SystemHWUtil.NEGATIVE_ONE);
     }
 
+    /***
+     * showRecentList<br>
+     *     显示最近的请求
+     * @param frame
+     * @param tabbedPane_2
+     * @param tabIndexList
+     * @param tc
+     * @param delta
+     */
     public static void searchResultList(JFrame frame, JTabbedPane tabbedPane_2, List<Integer> tabIndexList, JTextComponent tc, int delta) {
         JPopupMenu textPopupMenu = new JPopupMenu();
         textPopupMenu.setForeground(Color.red);
@@ -708,6 +729,19 @@
 
 
     /***
+     * 模糊比较<br />
+     * 参考:https://github.com/xdrop/fuzzywuzzy
+     * @param s
+     * @param s2
+     * @return
+     */
+    public static boolean similary(String s, String s2) {
+        if (null == s) {
+            return false;
+        }
+        return FuzzySearch.partialRatio(s, s2) > 85;
+    }
+    /***
      *
      * @param keyWord
      * @param tabbedPane_2
@@ -718,6 +752,15 @@
         int size = tabbedPane_2.getTabCount();
         if (size == 0) {
             return null;
+        }
+        String keyWord2 = null;//第一个和 servlet path 匹配,第二个和请求名称匹配
+        String spliter = "  ";//两个空格
+        if (!ValueWidget.isNullOrEmpty(keyWord) && keyWord.contains(spliter)) {
+            String[] keyWords = keyWord.split(spliter);
+            keyWord = keyWords[0];
+            if (keyWords.length > 1) {
+                keyWord2 = keyWords[1];
+            }
         }
         Set<Integer> searchResult = new HashSet<Integer>();
         for (int i = 0; i < size; i++) {
@@ -758,6 +801,28 @@
             }
         }
         return searchResult;
+    }
+
+    /***
+     * RegexUtil.contain2(requestPanel.getActionName(), keyWord) || similary(requestPanel.getActionName(), keyWord)
+     * @param keyWord
+     * @param tabbedPane_2
+     * @param keyWord2
+     * @param searchResult
+     * @param i
+     * @param comp
+     * @param compareCallback
+     */
+    public static void compare(String keyWord, JTabbedPane tabbedPane_2, String keyWord2, Set<Integer> searchResult, int i, Component comp
+            , ICompareCallback compareCallback) {
+        if (comp instanceof MyNamePanel) {
+            MyNamePanel requestPanel = (MyNamePanel) comp;
+            if (compareCallback.contain2(requestPanel.getActionName(), keyWord)) {
+                if (null == keyWord2 || (RegexUtil.contain2(tabbedPane_2.getTitleAt(i), keyWord2)
+                        || RegexUtil.contain2(requestPanel.getAlias(), keyWord2)))
+                    searchResult.add(i);
+            }
+        }
     }
 
     /***
@@ -802,11 +867,60 @@
     }
 
     public static void strongMenuItem(JMenuItem copyPanelM) {
+        strongMenuItem(copyPanelM, new Color(255, 0, 0));
+    }
+
+    public static void strongMenuItem(JMenuItem copyPanelM, Color color) {
         Border borderResultTAgur = BorderFactory.createEtchedBorder(Color.white,
-                new Color(255, 0, 0));
+                color);
         copyPanelM.setBorder(borderResultTAgur);
         Font font = copyPanelM.getFont();
         copyPanelM.setFont(new Font("", Font.BOLD, font.getSize()));
+    }
+
+    /***
+     * 表格的右键菜单,见/Users/whuanghkl/code/mygit/swing/ZooKeeperSwingApp/src/main/java/com/kunlunsoft/ZkEditorApp.java"<br>
+     *     的 buildMenuDto
+     * @param popupmenu
+     * @param menuDto
+     * @param jTable
+     */
+    public static void buildPopupMenu(JPopupMenu popupmenu, MenuDto menuDto, JTable jTable) {
+        Map<String, MenuCallback2> callback2Map = menuDto.getCallback2Map();
+        //右键菜单监听器
+        ActionListener menuListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String command = e.getActionCommand();
+                MenuCallback2 callback2 = callback2Map.get(command);
+                if (null != callback2) {
+                   /* JTable jTable;
+                    JComponent component=(JComponent)e.getSource();
+                    if ((component instanceof JTable)) {
+                        jTable=(JTable)component;
+                    } else {
+                        Container container = component.getParent();
+                        jTable=(JTable)container;
+                    }*/
+                    final int rowCount = jTable.getSelectedRow();
+                    final int columnCount = jTable.getSelectedColumn();
+                    TableInfo tableInfo = new TableInfo();
+                    tableInfo.setjTable(jTable)
+                            .setSelectedRow(rowCount)
+                            .setSelectedColumn(columnCount);
+                    callback2.actionPerformed(e, tableInfo);
+                }
+            }
+        };
+
+        //菜单子项
+        List<String> menuItemLabelList = menuDto.getMenuItemLabelList();
+        int size = menuItemLabelList.size();
+        for (int i = 0; i < size; i++) {
+            JMenuItem copyM = new JMenuItem(menuItemLabelList.get(i));
+            copyM.addActionListener(menuListener);
+            popupmenu.add(copyM);
+        }
     }
 
 }

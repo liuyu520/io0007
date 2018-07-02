@@ -10,11 +10,11 @@ import com.swing.component.AssistPopupTextArea;
 import com.swing.component.ComponentUtil;
 import com.swing.component.GenerateJsonTextArea;
 import com.swing.component.RadioButtonPanel;
+import com.swing.config.ConfigParam;
 import com.swing.table.MyButtonEditor;
 import com.swing.table.MyButtonRender;
 import com.swing.table.MyTextFieldEditor;
 import com.swing.table.TableUtil3;
-import org.codehaus.jackson.JsonParseException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -41,7 +41,7 @@ public class GenerateJsonPane extends GenericDialog {
 	/**
 	 * Create the frame.
 	 */
-	public GenerateJsonPane(JTextComponent targetTF, boolean isModal) {
+    public GenerateJsonPane(JTextComponent targetTF, boolean isModal, ConfigParam configParam) {
 		index++;
 		setTitle("第" + index + "个对话框");
 		setModal(isModal);
@@ -121,8 +121,7 @@ public class GenerateJsonPane extends GenericDialog {
                                                   final int rowCount = parameterTable_1.getSelectedRow();
                                                   final int columnCount = parameterTable_1.getSelectedColumn();
                                                   if (e.getButton() == MouseEvent.BUTTON2) {//鼠标中键
-                                                      TableUtil3.tableCellMidClick(e, parameterTable_1);
-
+                                                      TableUtil3.tableCellMidClick(e, parameterTable_1, configParam);
                                                   }
 
                 /*else if (e.getButton() == MouseEvent.BUTTON1&& e.getClickCount()==1){
@@ -215,7 +214,7 @@ public class GenerateJsonPane extends GenericDialog {
 		layoutTable();
 		rendTable();
 		if (!ValueWidget.isNullOrEmpty(this.targetTF)) {
-			readJson(this.targetTF.getText());
+            readJson(this.targetTF.getText(), configParam);
 		}
         /*MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
@@ -266,7 +265,7 @@ public class GenerateJsonPane extends GenericDialog {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -277,7 +276,7 @@ public class GenerateJsonPane extends GenericDialog {
 				}
 			}
 		});
-	}
+	}*/
 
 	private void getDataAction(){
 		String json=preview2();
@@ -288,7 +287,8 @@ public class GenerateJsonPane extends GenericDialog {
 		}
 		GenerateJsonPane.this.dispose();
 	}
-	private void readJson(String text) {
+
+    private void readJson(String text, ConfigParam configParam) {
         if (ValueWidget.isNullOrEmpty(text)) {
             return;
         }
@@ -298,7 +298,7 @@ public class GenerateJsonPane extends GenericDialog {
                 Map map = null;
                     map = (Map) HWJacksonUtils.deSerialize(text, Map.class);
                 if (null != map) {
-                    TableUtil3.setTableData3(parameterTable_1, map, false, true, columnNames, (Map<String, ActionCallback>) null);
+                    TableUtil3.setTableData3(parameterTable_1, map, configParam, (Map<String, ActionCallback>) null);
                     rendTable();
                 }
                 

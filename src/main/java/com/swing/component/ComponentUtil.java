@@ -5,6 +5,8 @@ import com.common.dict.Constant2;
 import com.common.util.*;
 import com.io.hw.file.util.FileUtils;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.ActionCallback;
+import com.swing.component.bean.PageDto;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.image.bean.BufferedImage2Bean;
 import com.swing.menu.MenuUtil2;
@@ -48,22 +50,57 @@ public final class ComponentUtil {
 	 * @return
 	 */
 	public static int getSelSum(List checkBoxes, int startIndex, int count) {
-		if (checkBoxes == null || checkBoxes.size() == 0) {
-			return 0;
-		} else {
-			JCheckBox[] chkArr = getCurrentPageChkbox(checkBoxes, startIndex,
-					count);
-			if (chkArr == null) {
-				return 0;
-			}
-			int tmp = 0;
-			for (int i = 0; i < chkArr.length; i++) {
-				JCheckBox array_element = chkArr[i];
-				tmp += TypeUtil.bool2int(array_element.isSelected());
-			}
-			return tmp;
-		}
-	}
+        if (checkBoxes == null || checkBoxes.size() == 0) {
+            return 0;
+        } else {
+            JCheckBox[] chkArr = getCurrentPageChkbox(checkBoxes, startIndex,
+                    count);
+            if (chkArr == null) {
+                return 0;
+            }
+            int tmp = 0;
+            for (int i = 0; i < chkArr.length; i++) {
+                JCheckBox array_element = chkArr[i];
+                tmp += TypeUtil.bool2int(array_element.isSelected());
+            }
+            return tmp;
+        }
+    }
+
+    public static int getSelSum(PageDto pageDto) {
+        return getSelSum(pageDto.getCheckBoxes(), pageDto.getStartIndex(), pageDto.getCount());
+    }
+
+    /**
+     * 处理多选复选框,批量操作,比如批量删除
+     *
+     * @param callback2
+     * @param callback2
+     */
+    public static void dealMultiSelect(PageDto pageDto, ActionCallback callback2) {
+        int sum_sel = ComponentUtil.getSelSum(pageDto);
+        if (sum_sel > 0) {
+            int result = JOptionPane.showConfirmDialog(
+                    null,
+                    "<html>Are you sure to remove "
+                            + String.format(SystemHWUtil.SWING_DIALOG_RED,
+                            sum_sel) + " record(s)?</html>",
+                    "question", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                if (null != callback2) {
+                    callback2.actionPerformed(null, null);
+                }
+            }
+        } else {
+            pleaseSelectOne();
+        }
+    }
+
+    public static void pleaseSelectOne() {
+        JOptionPane.showMessageDialog(null, "Please select one", "warning",
+                JOptionPane.WARNING_MESSAGE);
+    }
+
 
 	/***
 	 * 
@@ -416,6 +453,17 @@ public final class ComponentUtil {
 		}
 		Document doc = resultTextArea.getDocument();
 		int length = doc.getLength();
+        /*if(length>7){ 参考方法:
+		ComponentUtil.appendResult(resultTextArea, "来自服务器端的提示信息:", HTML_RED,true);
+            try {
+                String suffix= doc.getText(length-7,7);
+                if(null!= suffix&&suffix.endsWith("</html>")){
+                    length=length-7;
+                }
+            } catch (BadLocationException e) {
+                e.printStackTrace();
+            }
+        }*/
 		try {
 			doc.insertString(length, result, null);
 			length = length + result.length();
@@ -741,9 +789,9 @@ public final class ComponentUtil {
 	 * @param ta
 	 * @return
 	 */
-	public static int getImageHeight(JTextComponent ta){
-		String newName = JOptionPane.showInputDialog(ta.getParent()/*应该是JFrame*/,
-				"请输入图片高度:", ta.getHeight());
+    public static int getImageHeight(JTextComponent ta, String placeholder) {
+        String newName = JOptionPane.showInputDialog(ta == null ? null : ta.getParent()/*应该是JFrame*/,
+                placeholder, ta == null ? null : ta.getHeight());
 		if (newName != null)
 		{
 			if (newName.equals("")) {
@@ -765,7 +813,7 @@ public final class ComponentUtil {
 	public static void copyImage(JTextComponent ta,boolean isSpecifyHeight){
 		Integer specifiedHeight=null;
 		if(isSpecifyHeight){//ta.getHeight()
-			int inputHeight=getImageHeight(ta);
+            int inputHeight = getImageHeight(ta, "请输入图片高度:");
 			if(inputHeight!=SystemHWUtil.NEGATIVE_ONE){//不等于-1,说明用户指定了高度
 				specifiedHeight=inputHeight;
 			}
@@ -773,7 +821,7 @@ public final class ComponentUtil {
         generateImageAndCopy(ta, specifiedHeight, -1, 4, true);
     }
 
-    public static BufferedImage2Bean generateImageAndCopy(JTextComponent ta, File destFile, Integer specifiedHeight, Integer specifiedWidth, int multiple) {
+    public static BufferedImage2Bean generateImageAndCopy(JComponent ta, File destFile, Integer specifiedHeight, Integer specifiedWidth, int multiple) {
         return generateImageAndCopy(ta, destFile, specifiedHeight, specifiedWidth, multiple, false);
     }
 
@@ -785,7 +833,7 @@ public final class ComponentUtil {
      * @param multiple
      * @return
      */
-    public static BufferedImage2Bean generateImageAndCopy(JTextComponent ta, Integer specifiedHeight, Integer specifiedWidth, int multiple, boolean isCope2Clip) {
+    public static BufferedImage2Bean generateImageAndCopy(JComponent ta, Integer specifiedHeight, Integer specifiedWidth, int multiple, boolean isCope2Clip) {
         return generateImageAndCopy(ta, null, specifiedHeight, specifiedWidth, multiple, isCope2Clip);
     }
     /***
@@ -794,7 +842,7 @@ public final class ComponentUtil {
      * @param specifiedHeight
      * @param specifiedWidth
      */
-    public static BufferedImage2Bean generateImageAndCopy(JTextComponent ta, File destFile, Integer specifiedHeight, Integer specifiedWidth, int multiple, boolean isCope2Clip) {
+    public static BufferedImage2Bean generateImageAndCopy(JComponent ta, File destFile, Integer specifiedHeight, Integer specifiedWidth, int multiple, boolean isCope2Clip) {
         BufferedImage2Bean img = ImageHWUtil.generateImage(ta, destFile, "jpg"/*picFormat*/, specifiedHeight, specifiedWidth, multiple);
         if(ValueWidget.isNullOrEmpty(img)){
             return null;
@@ -846,7 +894,7 @@ public final class ComponentUtil {
             }
             Integer specifiedHeight=null;
     		if(isSpecifyHeight){//ta.getHeight()
-    			int inputHeight=getImageHeight(ta);
+                int inputHeight = getImageHeight(ta, "请输入图片高度:");
     			if(inputHeight!=SystemHWUtil.NEGATIVE_ONE){//不等于-1,说明用户指定了高度
     				specifiedHeight=inputHeight;
     			}

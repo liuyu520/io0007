@@ -7,6 +7,7 @@ import com.common.dict.Constant2;
 import com.common.enu.SignatureAlgorithm;
 import com.io.hw.exception.MyException;
 import com.io.hw.file.util.FileUtils;
+import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 import com.time.util.TimeHWUtil;
 import org.apache.commons.lang.StringUtils;
@@ -19,10 +20,7 @@ import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.io.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.security.*;
@@ -1521,6 +1519,12 @@ public final class SystemHWUtil<T> extends MapUtil {
             throw new LogicBusinessException(e.getMessage(), e);
         }
         PrivateKey privateKey = null;
+        privateKey = generatePrivate(pkcs8KeySpec, keyFactory);
+        return privateKey;
+    }
+
+    protected static PrivateKey generatePrivate(KeySpec pkcs8KeySpec, KeyFactory keyFactory) {
+        PrivateKey privateKey;
         try {
             privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
         } catch (InvalidKeySpecException e) {
@@ -1529,7 +1533,7 @@ public final class SystemHWUtil<T> extends MapUtil {
             throw new LogicBusinessException(e.getMessage(), e);
         }
         return privateKey;
-	}
+    }
 
 	/***
 	 * 
@@ -1562,6 +1566,10 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 * @throws Exception
 	 */
     public static byte[] decrypt(byte[] message, Key key) {
+        if (null == message) {
+            System.out.println("密文为空 ");
+            return null;
+        }
         Cipher cipher = null;
         try {
             cipher = Cipher.getInstance(SystemHWUtil.KEY_ALGORITHM_RSA);
@@ -1604,6 +1612,29 @@ public final class SystemHWUtil<T> extends MapUtil {
         return SystemHWUtil.decrypt(SystemHWUtil.hexStrToBytes(message), key);
 	}
 
+    public static byte[] decryptByPublicKeyBase64(byte[] data, String publicKeyStr,
+                                                  String algorithm) {
+        if (ValueWidget.isNullOrEmpty(data)) {
+            return null;
+        }
+        byte[] keyBytes = decodeBase64(publicKeyStr);
+        // 取得公钥
+        PublicKey publicKey = SystemHWUtil.convert2PublicKey(keyBytes);
+
+        return SystemHWUtil.decrypt(data, publicKey);
+    }
+
+    /***
+     *
+     * @param sourceTxt : base64编码的字符串
+     * @param publicKeyBytes
+     * @return
+     */
+    public static byte[] decryptByPublicKeyBase64(String sourceTxt, byte[] publicKeyBytes) {
+        PublicKey publicKey = SystemHWUtil.convert2PublicKey(publicKeyBytes);
+        return SystemHWUtil.decrypt(SystemHWUtil.decodeBase64(sourceTxt), publicKey);
+    }
+
 	/**
 	 * 解密<br>
 	 * 用私钥解密
@@ -1623,6 +1654,19 @@ public final class SystemHWUtil<T> extends MapUtil {
 		return SystemHWUtil.decrypt(data, publicKey);
 	}
 
+    /***
+     *
+     * @param data
+     * @param privateKeyStr : base64 编码
+     * @param algorithm
+     * @return
+     */
+    public static byte[] decryptByPrivateKeyBase64(byte[] data, String privateKeyStr,
+                                                   String algorithm) throws Exception {
+        byte[] keyBytes = decodeBase64(privateKeyStr);
+        return decryptByPrivateKey(data, keyBytes, algorithm);
+    }
+    
 	/**
 	 * decrypt use private key to decrypt http://www.5a520.cn
 	 * http://www.feng123.com
@@ -1790,6 +1834,20 @@ public final class SystemHWUtil<T> extends MapUtil {
 		return encryptByPublicKey(data.getBytes(charSet), publicKeyStr);
 	}
 
+    /***
+     *
+     * @param data
+     * @param privateKeyStr : base64
+     * @param algorithm
+     * @return
+     * @throws Exception
+     */
+    public static byte[] encryptByPrivateKeyBase64(byte[] data, String privateKeyStr, String algorithm) throws Exception {
+        byte[] keyBytes = decodeBase64(privateKeyStr);
+        Key privateKey = SystemHWUtil.convert2PrivateKey(keyBytes, algorithm);
+        return SystemHWUtil.encrypt(data, privateKey);
+    }
+    
 	/**
 	 * encrypt use private key
 	 * 
@@ -2023,6 +2081,10 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 * @return hex(16) bit string
 	 */
 	public static String toHexString(byte[] b) {
+        if (null == b) {
+            System.out.println("toHexString is null b ");
+            return null;
+        }
 		StringBuilder sb = new StringBuilder(b.length * 2);
 		for (int i = 0; i < b.length; i++) {
 			sb.append(HEXCHAR[(b[i] & 0xf0) >>> 4]);
@@ -2189,12 +2251,21 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 * @throws NoSuchAlgorithmException
 	 * @throws UnsupportedEncodingException
 	 */
+    public static KeyPair getKeyPair(String keyInfo, String algorithm, Integer keysize)
+            throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        return getKeyPair(keyInfo.getBytes(SystemHWUtil.CHARSET_ISO88591),
+                algorithm, keysize);
+    }
+
 	public static KeyPair getKeyPair(String keyInfo, String algorithm)
 			throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		return getKeyPair(keyInfo.getBytes(SystemHWUtil.CHARSET_ISO88591),
-				algorithm);
-	}
+        return getKeyPair(keyInfo, algorithm, null);
+    }
 
+    public static KeyPair getKeyPair(byte[] keyInfo, String algorithm)
+            throws NoSuchAlgorithmException {
+        return getKeyPair(keyInfo, algorithm, null);
+    }
 	/***
 	 * 
 	 * @param keyInfo
@@ -2204,13 +2275,16 @@ public final class SystemHWUtil<T> extends MapUtil {
 	 * @throws NoSuchAlgorithmException
 	 * @throws UnsupportedEncodingException
 	 */
-	public static KeyPair getKeyPair(byte[] keyInfo, String algorithm)
+    public static KeyPair getKeyPair(byte[] keyInfo, String algorithm, Integer keysize)
 			throws NoSuchAlgorithmException {
 		KeyPairGenerator keygen = KeyPairGenerator.getInstance(algorithm);
 		SecureRandom random = new SecureRandom();
 		random.setSeed(keyInfo);
 		// 初始加密，长度为512，必须是大于512才可以的
-		keygen.initialize(512, random);
+        if (null == keysize) {
+            keysize = 512;
+        }
+        keygen.initialize(keysize, random);
 		// 取得密钥对
 		KeyPair kp = keygen.generateKeyPair();
 		return kp;
@@ -2584,13 +2658,24 @@ public final class SystemHWUtil<T> extends MapUtil {
 	/***
 	 * decode by Base64
 	 */
-	public static byte[] decodeBase64(String input) throws Exception {
-		Class clazz = Class
-				.forName("com.sun.org.apache.xerces.internal.impl.dv.util.Base64");
-		Method mainMethod = clazz.getMethod("decode", String.class);
-		mainMethod.setAccessible(true);
-		Object retObj = mainMethod.invoke(null, input);
-		return (byte[]) retObj;
+    public static byte[] decodeBase64(String input) {
+        Object retObj = null;
+        try {
+            Class clazz = Class
+                    .forName("com.sun.org.apache.xerces.internal.impl.dv.util.Base64");
+            Method mainMethod = clazz.getMethod("decode", String.class);
+            mainMethod.setAccessible(true);
+            retObj = mainMethod.invoke(null, input);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return (byte[]) retObj;
 	}
 
 	/**
@@ -3043,6 +3128,16 @@ public final class SystemHWUtil<T> extends MapUtil {
 		input = input.replaceAll("\"?(.*)\"", "$1");
 		return input;
 	}
+
+    /***
+     * 严格模式
+     * @param input
+     * @return
+     */
+    public static String deleteQuotesStrict(String input) {
+        input = input.replaceAll("^\"?(.*)\"$", "$1");
+        return input;
+    }
 
 	/***
 	 * delete ( and )
@@ -5076,4 +5171,16 @@ public final class SystemHWUtil<T> extends MapUtil {
             return 0/*等于*/;
 		}
 	}
+
+    public static String getBase64FromPic(String picBase64) {
+        return RegexUtil.replaceAll2List(picBase64, new String[]{"data:image/png;base64,",
+                "data:image/jpg;base64,",
+                "data:image/jpg;base64,",
+                "data:image/jpeg;base64,",
+                "data:image/gif;base64,"}, "");
+        /*return picBase64.replace(, "")
+                .replace(, "")
+                .replace(, "")
+                .replace(, "");*/
+    }
 }

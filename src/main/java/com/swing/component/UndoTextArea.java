@@ -3,7 +3,6 @@ package com.swing.component;
 import com.common.bean.FindTxtResultBean;
 import com.swing.callback.ActionCallback;
 import com.swing.dialog.GenericDialog;
-import com.swing.listener.DoubleKeyAdapter;
 
 import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
@@ -12,7 +11,6 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.Map;
 
 /***
@@ -144,20 +142,22 @@ public class UndoTextArea extends JTextArea {
 
     protected void initlize(Map<String, ActionCallback> actionCallbackMap) {
         doc.addUndoableEditListener(new UndoableEditListener() {
-			public void undoableEditHappened(UndoableEditEvent e) {
-				undo.addEdit(e.getEdit());
-			}
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                undo.addEdit(e.getEdit());
+            }
 		});
 //		addActionMap();
         TextCompUtil2.addActionMap(this, undo, actionCallbackMap);
         final JTextComponent textField = this;
-        this.addKeyListener(new DoubleKeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
+        TextCompUtil2.bindKeyEvent(textField);
+        //增加鼠标悬浮时的提示
+        this.setToolTipText("Command+Shift+E :使文本框可编辑");
+       /* public void keyPressed(KeyEvent e) {
                 super.keyTyped(e);
                 TextCompUtil2.toggleUpperLowerCase(e, textField);
             }
-        });
+        });*/
     }
 
     protected void initlize() {

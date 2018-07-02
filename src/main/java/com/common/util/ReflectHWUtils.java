@@ -3,6 +3,7 @@ package com.common.util;
 import com.common.annotation.ColumnDescription;
 import com.common.bean.exception.LogicBusinessException;
 import com.common.dict.Constant2;
+import com.google.common.base.Joiner;
 import com.string.widget.util.ValueWidget;
 import com.time.util.TimeHWUtil;
 import org.apache.commons.lang.ArrayUtils;
@@ -42,6 +43,20 @@ public class ReflectHWUtils {
 //            e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean isMap(Object object) {
+        if (object instanceof Map) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isCollection(Object object) {
+        if (object instanceof Collection) {
+            return true;
+        }
+        return false;
     }
 
     /***
@@ -168,6 +183,31 @@ public class ReflectHWUtils {
     }
 
     /***
+     * 功能:把 对象object中List的复杂对象 都设置为null,<br />
+     * Agent 对象中有成员变量grabOrderList,则设置grabOrderList 为null
+     * @param object
+     * @param ignoreProperties
+     */
+    public static void setCollection2Null(Object object, String... ignoreProperties) {
+        List<Field> fields = getAllFieldList(object.getClass(), true);
+        if (!ValueWidget.isNullOrEmpty(fields)) {
+            int size = fields.size();
+            for (int i = 0; i < size; i++) {
+                Field field = fields.get(i);
+                String fieldTypeName = field.getType().getName();
+                if (isCollection(fieldTypeName) && isEntityList(field)) {
+                    if (!ValueWidget.isNullOrEmpty(ignoreProperties)
+                            && ArrayUtils.contains(ignoreProperties, field.getName())) {
+                        continue;
+                    }
+                    setVal2null(object, field);
+                }
+
+            }
+        }
+    }
+
+    /***
      * 用于 hibernate 关联查询时,设置成员变量为复杂对象时,设置成员变量的值为 null<br />
      * 避免序列化为 json 时,无用内容太多
      * @param object
@@ -193,6 +233,28 @@ public class ReflectHWUtils {
         if (null != val && !isSimpleType(val)) {
             setVal2null(object, field);
         }
+    }
+
+    /***
+     * 是否是List<GrabOrder>
+     * @param field
+     * @return
+     */
+    public static boolean isEntityList(Field field) {
+        boolean isList = false;
+        String genericTypeName = field.getGenericType().getTypeName();//java.util.List<oa.entity.HouseInfo>
+        if (BeanHWUtil.isEntity(genericTypeName)) {
+            isList = true;
+        }
+        return isList;
+    }
+
+    public static boolean isCollection(String fieldTypeName) {
+        return "java.util.List".equals(fieldTypeName)
+                || "java.util.ArrayList".equals(fieldTypeName)
+                || "java.util.Set".equals(fieldTypeName)
+                || "java.util.HashSet".equals(fieldTypeName)
+                || "java.util.TreeSet".equals(fieldTypeName);
     }
 
     public static void setVal2null(Object object, Field field) {
@@ -254,27 +316,54 @@ public class ReflectHWUtils {
 	 */
     public static void setObjectValue(Object obj, Map<String, Object> params) {
         if(ValueWidget.isNullOrEmpty(obj)){
-			return;
-		}
-		if (ValueWidget.isNullOrEmpty(params)) {
-			return;
-		}
-		Class<?> clazz = obj.getClass();
-		for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it
-					.next();
-			String key = entry.getKey();
-			Object propertyValue = entry.getValue();
-			if (ValueWidget.isNullOrEmpty(propertyValue)) {
-				continue;
-			}
-			Field name = getSpecifiedField(clazz, key);
-			if (name != null) {
-                setAccessibleAndVal(obj, name, propertyValue);
+            return;
+        }
+        if (ValueWidget.isNullOrEmpty(params)) {
+            return;
+        }
+        Class<?> clazz = obj.getClass();
+        for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it
+                    .next();
+            String key = entry.getKey();
+            Object propertyValue = entry.getValue();
+            if (ValueWidget.isNullOrEmpty(propertyValue)) {
+                continue;
             }
-		}
+            if (key.contains(".")) {
+                setPropValueReser(obj, key, propertyValue);
+            } else {
+                Field name = getSpecifiedField(clazz, key);
+                if (name != null) {
+                    setAccessibleAndVal(obj, name, propertyValue);
+                }
+            }
 
-	}
+        }
+
+    }
+
+    /***
+     * 成员变量如果包含英文句点,则表示设置成员变量对象中属性,支持多级,例如"houseInfo.houseOwner.id"
+     * @param obj
+     * @param key : 成员变量名称,例如:"username","agent.id"
+     * @param propertyValue
+     */
+    public static void setPropValueReser(Object obj, String key, Object propertyValue) {
+        if (key.contains(".")) {
+            String[] columns = key.split("\\.", 2);
+            Field name = getSpecifiedField(obj.getClass(), columns[0]);
+            Object val1 = getObjectValue(obj, name);
+            if (null == val1) {
+                val1 = ReflectHWUtils.createEmptyObj(name.getType());
+                setAccessibleAndVal(obj, name, val1);
+            }
+            setPropValueReser(val1, columns[1], propertyValue);
+        } else {
+            setAccessibleAndVal(obj, getSpecifiedField(obj.getClass(), key), propertyValue);
+        }
+
+    }
 
 	/***
 	 * Get Specified Field
@@ -501,6 +590,9 @@ public class ReflectHWUtils {
 	 */
 	public static boolean isSamePropertyValue(Object obj1, Object obj2,
                                               List<String> exclusiveProperties) {
+        if (obj1 == obj2) {
+            return true;
+        }
         if(!SystemHWUtil.checkSameByNull(obj1, obj2)){
 			return false;
 		}
@@ -849,6 +941,16 @@ public class ReflectHWUtils {
         if (obj == null) {
             return;
         }
+
+        //如果obj 是List
+        if (obj instanceof Collection) {
+            Collection collection = (Collection) obj;
+            for (Object o : collection) {
+                skipHibernatePersistentBag(o);
+            }
+            return;
+        }
+
         List<Field> fieldsList = getAllFieldList(obj.getClass());
         if (ValueWidget.isNullOrEmpty(fieldsList)) {
             return;
@@ -900,6 +1002,9 @@ public class ReflectHWUtils {
      * @return
      */
     public static List<String> getNullColumns(Object obj, boolean ignoreZero) {
+        if (null == obj) {
+            return null;
+        }
         List<Field> fields = getAllFieldList(obj.getClass());
         List<String> nullColumns = new ArrayList<>();
         int size = fields.size();
@@ -1090,6 +1195,20 @@ public class ReflectHWUtils {
 		return obj;
     }
 
+//    public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero) {
+//        return convertObj2Map(obj, excludeProperties, excludeZero, true);
+//    }
+//
+//    public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero, boolean excludeNull) {
+//        return convertObj2Map(obj, excludeProperties, excludeZero, excludeNull, true);
+//    }
+
+   /* public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero, boolean excludeNull, Boolean containColumnDescription
+    ) {
+        return convertObj2Map(obj, excludeProperties, excludeZero, excludeNull, containColumnDescription, false);
+    }*/
+    /* */
+
     /***
      * convert entity to Map
      * @param obj
@@ -1097,7 +1216,7 @@ public class ReflectHWUtils {
      * @param excludeZero : 是否过滤zero
      * @return
      * @throws SecurityException
-     */
+     *//*
     public static Map convertObj2Map(Object obj, String[] excludeProperties, boolean excludeZero) {
         Map map = new HashMap();
         List<Field> fieldsList = ReflectHWUtils.getAllFieldList(obj.getClass());
@@ -1114,7 +1233,7 @@ public class ReflectHWUtils {
             }
         }
         return map;
-    }
+    }*/
 
     public static boolean isIntervalSection(String fieldName) {
         return fieldName.endsWith("_intervalSection") || fieldName.endsWith(Constant2.COLUMN_IN_SPLIT);
@@ -1451,4 +1570,175 @@ public class ReflectHWUtils {
 		}
 		return resultList;
 	}
+
+    public static ConvertMapConf getConvertMapConf() {
+        return new ConvertMapConf();
+    }
+
+    public static class ConvertMapConf {
+        private String[] excludeProperties;
+        private boolean excludeZero;
+        private boolean excludeNull;
+        private boolean containColumnDescription;
+        private boolean containIntervalSection;
+
+        public String[] getExcludeProperties() {
+            return excludeProperties;
+        }
+
+        public ConvertMapConf setExcludeProperties(String[] excludeProperties) {
+            this.excludeProperties = excludeProperties;
+            return this;
+        }
+
+        public boolean isExcludeZero() {
+            return excludeZero;
+        }
+
+        public ConvertMapConf setExcludeZero(boolean excludeZero) {
+            this.excludeZero = excludeZero;
+            return this;
+        }
+
+        public boolean isExcludeNull() {
+            return excludeNull;
+        }
+
+        public ConvertMapConf setExcludeNull(boolean excludeNull) {
+            this.excludeNull = excludeNull;
+            return this;
+        }
+
+        public boolean getContainColumnDescription() {
+            return containColumnDescription;
+        }
+
+        public ConvertMapConf setContainColumnDescription(boolean containColumnDescription) {
+            this.containColumnDescription = containColumnDescription;
+            return this;
+        }
+
+        public boolean getContainIntervalSection() {
+            return containIntervalSection;
+        }
+
+        public ConvertMapConf setContainIntervalSection(boolean containIntervalSection) {
+            this.containIntervalSection = containIntervalSection;
+            return this;
+        }
+    }
+
+    public static Object getEnumStatus(Object lo) {
+        if (null == lo) {
+            return lo;
+        }
+        if (!(lo instanceof String || lo instanceof Number) && lo.getClass().getSimpleName().startsWith("E")) {
+            lo = getStatus(lo);
+
+        }
+        return lo;
+    }
+
+    public static String getServletPath(Object source) {
+        String methodName = "servletPath";
+        return (String) getGetterVal(source, methodName);
+    }
+
+    /***
+     * 有可能返回String[]
+     * @param source
+     * @return
+     */
+    public static Object getAnnotationVal(Object source) {
+        String methodName = "value";
+        return getGetterVal(source, methodName);
+    }
+
+    /***
+     * 调用getStatus()方法
+     * @param source
+     * @return
+     */
+    public static Object getStatus(Object source) {
+        String methodName = "getStatus";
+        return getGetterVal(source, methodName);
+    }
+
+    /***
+     * 调用方法:getGetterValNoPrefix(o,"status")
+     * @param e
+     * @param propertyName
+     * @return
+     */
+    public static Object getGetterValNoPrefix(Object e, String propertyName) {
+        return ReflectHWUtils.getGetterVal(e, "get" + ValueWidget.capitalize(propertyName));
+    }
+
+    /***
+     * 调用方法:getGetterVal(o,"getStatus")
+     * @param source
+     * @param methodName
+     * @return
+     */
+    public static Object getGetterVal(Object source, String methodName) {
+        if (null == source) {
+            System.out.println("source is null:" + source);
+            return null;
+        }
+        Class clazz = source.getClass();
+        Object obj = null;
+        Method m = null;
+        try {
+            m = clazz.getMethod(methodName, null);
+            m.setAccessible(true);
+            obj = m.invoke(source, null);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        return obj;
+    }
+
+    public static Object queryStatus(Object source, int status) {
+        Class clazz = source.getClass();
+        Object obj = null;
+        Method m = null;
+        try {
+            m = clazz.getMethod("query", int.class);
+            m.setAccessible(true);
+            obj = m.invoke(source, status);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        return obj;
+    }
+
+    public static String inSplit(/*String propertyName,*/Object... value1) {
+        List valList = new ArrayList();
+        int size = value1.length;
+        for (int i = 0; i < size; i++) {
+            Object val = value1[i];
+            val = ReflectHWUtils.getEnumStatus(val);
+            valList.add(val);
+        }
+        return Joiner.on(",,").join(valList);
+//        return this;
+    }
 }

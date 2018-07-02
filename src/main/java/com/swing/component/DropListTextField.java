@@ -1,6 +1,7 @@
 package com.swing.component;
 
 import com.swing.callback.ActionCallback;
+import com.swing.callback.Callback2;
 import com.swing.event.EventHWUtil;
 import com.swing.menu.DropListMenuActionListener;
 import com.swing.menu.MenuUtil2;
@@ -32,6 +33,8 @@ public abstract class DropListTextField extends AssistPopupTextField {
 	public DropListTextField(String text) {
 		super(text);
 	}
+
+    protected Callback2 callback2;
 
 	@Override
 	protected void initlize(boolean needSearch) {
@@ -90,7 +93,7 @@ public abstract class DropListTextField extends AssistPopupTextField {
 							textPopupMenu.setBackground(Color.GREEN);
 							List<String> dropListValue=getDropListValue();
 							int size=dropListValue.size();
-							DropListMenuActionListener dropListMenuActionListener=new DropListMenuActionListener(DropListTextField.this);
+                            DropListMenuActionListener dropListMenuActionListener = new DropListMenuActionListener(DropListTextField.this, callback2);
 							for(int i=0;i<size;i++){
 								String item=dropListValue.get(i);
 								JMenuItem itemM = new JMenuItem(item);
@@ -109,4 +112,13 @@ public abstract class DropListTextField extends AssistPopupTextField {
 					}
 		});
 	}
+
+    public Callback2 getCallback2() {
+        return callback2;
+    }
+
+    public DropListTextField setCallback2(Callback2 callback2) {
+        this.callback2 = callback2;
+        return this;
+    }
 }

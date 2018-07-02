@@ -69,6 +69,13 @@ public class EventHWUtil {
         }
     }
 
+
+    public static boolean isOnlyEscape(KeyEvent e) {
+        return e.getKeyCode() == KeyEvent.VK_ESCAPE
+                && (!e.isShiftDown()) && (!e.isAltDown())
+                && (!e.isControlDown());
+    }
+
     /**
      * 用在KeyAdapter 中
      *

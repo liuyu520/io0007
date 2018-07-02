@@ -24,6 +24,14 @@ public class PrivPubKeyBean implements Serializable {
 	 * 签名算法
 	 */
 	private String sigAlgName;
+    /***
+     * RSA 私钥
+     */
+    private byte[] privateKeyBytes = null;
+    /***
+     * RSA 公钥
+     */
+    private byte[] publicKeyBytes = null;
 	public PrivateKey getPrivKey() {
 		return privKey;
 	}
@@ -47,6 +55,20 @@ public class PrivPubKeyBean implements Serializable {
 		return "PrivPubKeyBean [privKey=" + privKey + ", publKey=" + publKey
 				+ ", sigAlgName=" + sigAlgName + "]";
 	}
-	
-	
+
+    public byte[] getPrivateKeyBytes() {
+        return privateKeyBytes;
+    }
+
+    public void setPrivateKeyBytes(byte[] privateKeyBytes) {
+        this.privateKeyBytes = privateKeyBytes;
+    }
+
+    public byte[] getPublicKeyBytes() {
+        return publicKeyBytes;
+    }
+
+    public void setPublicKeyBytes(byte[] publicKeyBytes) {
+        this.publicKeyBytes = publicKeyBytes;
+    }
 }

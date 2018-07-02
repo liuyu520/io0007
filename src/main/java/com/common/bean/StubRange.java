@@ -35,6 +35,11 @@ public class StubRange implements Serializable {
         return selectedIndex;
     }
 
+    /***
+     * 当前的stub,序号从零开始
+     * @param selectedIndex
+     * @return
+     */
     public StubRange setSelectedIndex(int selectedIndex) {
         this.selectedIndex = selectedIndex;
         return this;

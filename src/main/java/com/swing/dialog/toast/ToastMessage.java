@@ -1,17 +1,10 @@
 package com.swing.dialog.toast;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Toolkit;
-
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.LineBorder;
-
 import com.string.widget.util.ValueWidget;
+
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import java.awt.*;
 /***
  * Android like Toast in Swing <br>
  * 参考:http://stackoverflow.com/questions/10161149/android-like-toast-in-swing
@@ -96,6 +89,15 @@ public class ToastMessage extends JDialog {
         toast(toastString, time, (Integer) null);
     }
 
+    /**
+     * 绿色
+     *
+     * @param toastString
+     * @param miliseconds
+     */
+    public static void toastRight(String toastString, int miliseconds) {
+        toast(toastString, miliseconds, Color.GREEN, (ToastCallback) null, (Integer) null);
+    }
 	/***
 	 * 弹框
 	 * @param toastString

@@ -5,6 +5,7 @@ import com.common.bean.TimeLong;
 import com.common.bean.exception.LogicBusinessException;
 import com.common.util.ReflectHWUtils;
 import com.common.util.SystemHWUtil;
+import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.ValueWidget;
 import org.apache.log4j.Logger;
 
@@ -28,6 +29,7 @@ public class TimeHWUtil {
 	 */
 	public static final String yyyyMMddHHmmss = "yyyy-MM-dd HH:mm:ss";
     public static final String yyyyMMddHHmmss_NO_DELIMITER = "yyyyMMddHHmmss";
+    public static final String yyyyMMddHHmmssSS_NO_DELIMITER = "yyyyMMddHHmmssSS";
     public static final String YYYYMMDDHHMM = "yyyy-MM-dd HH:mm";
 	public static final String YYYYMMDDHHMM_ZH = "yyyy年MM月dd HH点mm分";
 	public static final String YYYYMMDDHHMMSS_ZH="yyyy年MM月dd日 HH点mm分ss秒";
@@ -170,16 +172,34 @@ public class TimeHWUtil {
 
     public static Date getDate4Str(String formatStr) {
         String format=null;
-        if (formatStr.length() > 17) {
+        int length = formatStr.length();
+        if (length > 17) {
             format=yyyyMMddHHmmss;
-        } else if (formatStr.length() > 10) {
+        } else if (length > 10) {
             format = YYYYMMDDHHMM;
-        }else{
-            format=yyyyMMdd;
+        } else if (length > 5) {
+            format = yyyyMMdd;
+        } else {
+            format = "yyyy";
         }
         return parseDateByPattern(formatStr, format);
 
 	}
+
+    public static String getWeekOfDate(Date date) {
+        String[] weekDaysName = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
+
+
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.setTime(date);
+
+        int intWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+
+        return weekDaysName[intWeek];
+
+
+    }
 
 	public static Date getUSDate4Str(String dateStr){
 		SimpleDateFormat sdf = new SimpleDateFormat("MMM d HH:mm:ss", Locale.US);
@@ -358,6 +378,15 @@ public class TimeHWUtil {
 	public static Timestamp getCurrentTimestamp() {
 		return new Timestamp(System.currentTimeMillis());
 	}
+
+    /***
+     *
+     * @return : 当前时间的毫秒数
+     */
+    public static long getCurrentMillisecond() {
+        return new Date().getTime();
+    }
+
 	/***
 	 * 获取当前时间,并且格式化为"yyyy-MM-dd HH:mm:ss"
 	 * @return
@@ -860,4 +889,43 @@ public class TimeHWUtil {
 			System.out.println("还没有过期");
 		}
 	}
+
+    public static CreateTimeDto getCreateTimeDao() {
+        CreateTimeDto createTimeDto = new CreateTimeDto();
+        createTimeDto.init();
+        return createTimeDto;
+    }
+
+    public static List<TimeInterval> getTimeIntervalDto(String visitTimeList2) {
+        List<TimeInterval> timeIntervalList = HWJacksonUtils.deSerializeList(visitTimeList2, TimeInterval.class);
+        if (!ValueWidget.isNullOrEmpty(timeIntervalList)) {
+            int size = timeIntervalList.size();
+            for (int i = 0; i < size; i++) {
+                TimeInterval timeInterval = timeIntervalList.get(i);
+                if (!ValueWidget.isNullOrEmpty(timeInterval.getStartTime())) {
+                    timeInterval.setStartTimestamp(TimeHWUtil.getDate4Str(timeInterval.getStartTime()).getTime());
+                }
+
+                if (!ValueWidget.isNullOrEmpty(timeInterval.getEndTime())) {
+                    timeInterval.setEndTimestamp(TimeHWUtil.getDate4Str(timeInterval.getEndTime()).getTime());
+                }
+            }
+        }
+        return timeIntervalList;
+    }
+
+    public static Date validateDate(String negotiationTime) {
+        boolean success = true;
+        try {
+            Date negotiationTime2 = TimeHWUtil.getDate4Str(negotiationTime);
+            return negotiationTime2;
+        } catch (LogicBusinessException ex) {
+            ex.printStackTrace();
+            success = false;
+        }
+        if (!success) {
+            LogicBusinessException.throwException("1001", "日期格式不对negotiationTime:" + negotiationTime);
+        }
+        return null;
+    }
 }

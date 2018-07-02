@@ -1350,4 +1350,30 @@ imgOldStr:"/yhyc/upload/image/20141010231443_4202014-10-07_12-17-58.jpg" alt=""
     public static String formStrByBr(String input, int diveLength) {
         return input.replaceAll("([^\\s]{" + diveLength + "})(?=\\w)", "$1" + SystemHWUtil.CRLF + deltaSpace);
     }
+
+    /***
+     * 类似于:<br />
+     * <code>
+     *     map = Splitter.on(",").withKeyValueSeparator("=").split(key)
+     *     </code>
+     * @param key
+     * @param separator
+     * @param keyValSeparator
+     * @return
+     */
+    public static Map splitToMap(String key, String separator, String keyValSeparator) {
+        Map map = new HashMap();
+        if (ValueWidget.isNullOrEmpty(key)) {
+            return map;
+        }
+        String[] arr = key.split(separator);
+        int length = arr.length;
+
+        for (int i = 0; i < length; i++) {
+            String[] keyVal = arr[i].split(keyValSeparator, 2);
+            map.put(keyVal[0], keyVal[1]);
+        }
+        return map;
+    }
+
 }

@@ -5,6 +5,7 @@ import com.common.util.SystemHWUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.callback.ActionCallback;
 import com.swing.component.inf.IPlaceHolder;
+import com.swing.config.TextFieldConfigInfo;
 import com.swing.dialog.GenericDialog;
 import com.swing.listener.DoubleKeyAdapter;
 
@@ -54,6 +55,10 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
      */
     protected Integer maxStatus = 0;
     protected JDialog maxJDialog;
+    /***
+     * 文本框的全局配置都在此
+     */
+    protected static TextFieldConfigInfo textFieldConfigInfo;
 
 	public UndoTextField(String text, boolean needSearch) {
 		super(text);
@@ -235,5 +240,13 @@ public class UndoTextField extends JTextField  implements IPlaceHolder{
 
     public void setMaxJDialog(JDialog maxJDialog) {
         this.maxJDialog = maxJDialog;
+    }
+
+    public static TextFieldConfigInfo getTextFieldConfigInfo() {
+        return textFieldConfigInfo;
+    }
+
+    public static void setTextFieldConfigInfo(TextFieldConfigInfo textFieldConfigInfo) {
+        UndoTextField.textFieldConfigInfo = textFieldConfigInfo;
     }
 }

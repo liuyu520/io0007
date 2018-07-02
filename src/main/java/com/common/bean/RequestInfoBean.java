@@ -3,6 +3,7 @@ package com.common.bean;
 import com.common.dict.Constant2;
 import com.common.util.SystemHWUtil;
 import com.common.util.WebServletUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 import org.apache.commons.collections.map.ListOrderedMap;
@@ -68,6 +69,9 @@ public class RequestInfoBean implements Serializable {
      * 本请求的参数名称
      */
     private String currRequestParameterName;
+    /***
+     * 前置请求的id
+     */
     private String preRequestId;
     /***
      * 请求的cookie
@@ -113,6 +117,11 @@ public class RequestInfoBean implements Serializable {
      * 单个请求的备忘
      */
     private String singleRequestNote;
+    /***
+     * 单个请求的应答信息,包括应答体(response body)和response cookie<br />
+     * 不包括请求参数
+     */
+    private String responseOfSingleRequest;
     private boolean isEncodingCheckbox;
     /***
      * http or https
@@ -184,6 +193,15 @@ public class RequestInfoBean implements Serializable {
      */
     private String copyFieldName;
     private RequestInRangeInfo requestInRangeInfo;
+    private GlobalConfig globalConfig;
+    /***
+     * 插件类名,例如:"UpdateLicensePluginCallback"
+     */
+    private String pluginClassSimpleName;
+    /***
+     * POST请求时,是否把请求体中的加号进行URL编码(只对加号进行URL编码)
+     */
+    private Boolean plus2percent2BWhenPost;
 
     public String getPreRequestId() {
         return preRequestId;
@@ -620,5 +638,42 @@ public class RequestInfoBean implements Serializable {
 
     public void setRequestInRangeInfo(RequestInRangeInfo requestInRangeInfo) {
         this.requestInRangeInfo = requestInRangeInfo;
+    }
+
+    @JsonIgnore
+    public GlobalConfig getGlobalConfig() {
+        return globalConfig;
+    }
+
+    public void setGlobalConfig(GlobalConfig globalConfig) {
+        this.globalConfig = globalConfig;
+    }
+
+    public String getResponseOfSingleRequest() {
+        return responseOfSingleRequest;
+    }
+
+    public void setResponseOfSingleRequest(String responseOfSingleRequest) {
+        this.responseOfSingleRequest = responseOfSingleRequest;
+    }
+
+    public String getPluginClassSimpleName() {
+        return pluginClassSimpleName;
+    }
+
+    public void setPluginClassSimpleName(String pluginClassSimpleName) {
+        this.pluginClassSimpleName = pluginClassSimpleName;
+    }
+
+    /***
+     * POST请求时,是否把请求体中的加号进行URL编码(只对加号进行URL编码)
+     * @return
+     */
+    public Boolean getPlus2percent2BWhenPost() {
+        return plus2percent2BWhenPost;
+    }
+
+    public void setPlus2percent2BWhenPost(Boolean plus2percent2BWhenPost) {
+        this.plus2percent2BWhenPost = plus2percent2BWhenPost;
     }
 }

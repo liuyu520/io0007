@@ -13,7 +13,10 @@ import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 import com.swing.callback.ActionCallback;
+import com.swing.component.bean.CompDoubleMenuConf;
 import com.swing.component.inf.IRightMenu;
+import com.swing.component.listener.DoubleMenuListener;
+import com.swing.config.ConfigParam;
 import com.swing.dialog.*;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
@@ -56,9 +59,13 @@ public class TextCompUtil2 {
 	public static final AbstractAction searchAction=new AbstractAction("search111") {
 		private static final long serialVersionUID = -3548620001691220571L;
 
-		public void actionPerformed(ActionEvent evt) {
-			searchMnemonicAction(evt);
-		}
+        /***
+         * 文本框搜索,文本框关键字搜索
+         * @param evt
+         */
+        public void actionPerformed(ActionEvent evt) {
+            searchMnemonicAction(evt);
+        }
 	};
     public static final AbstractAction maximizeTAAction=new AbstractAction("maximizeTA111") {
         private static final long serialVersionUID = -3548620001691220571L;
@@ -260,19 +267,21 @@ public class TextCompUtil2 {
 		});
 		tc.getInputMap().put(KeyStroke.getKeyStroke("control S"), "Save");*/
 
-		//按Ctrl+R 使文本框只读,不可编辑
+        //按Ctrl+shift+R 使文本框只读,不可编辑
 		tc.getActionMap().put("Readonly", new AbstractAction("Readonly111") {
 			private static final long serialVersionUID = -3548620001691220571L;
 			public void actionPerformed(ActionEvent evt) {
 				JTextComponent tf=(JTextComponent)evt.getSource();
 				if(!ValueWidget.isNullOrEmpty(tf)){
 					tf.setEditable(false);
+                    ToastMessage.toastRight("变为只读", 1000);
 				}
 			}
 		});
-        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, getDefaultModifier()/*"control R"*/), "Readonly");
+        //command+R-->command+shift+R
+        tc.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, getDefaultModifier() | InputEvent.SHIFT_DOWN_MASK/*"control R"*/), "Readonly");
 
-        //按Ctrl+E 使文本框可编辑
+        //按 shift + Ctrl+E 使文本框可编辑
 		tc.getActionMap().put("Editable", new AbstractAction("Editable111") {
 			private static final long serialVersionUID = -3548620001691220571L;
 			public void actionPerformed(ActionEvent evt) {
@@ -284,6 +293,7 @@ public class TextCompUtil2 {
 					tf.requestFocus();
 					tf.repaint();
 					tf.updateUI();
+                tf.selectAll();//全选
 				}
 		});
         //on Mac ,this would be command key
@@ -581,7 +591,7 @@ public class TextCompUtil2 {
                 inputTextArea.setCaretPosition(inputTextArea.getText().length());
             }
         }
-        toggleUpperLowerCase(e, inputTextArea);
+        toggleUpperLowerCase(e, inputTextArea, doubleKeyAdapter);
 
 //        System.out.println(e);
         if (EventHWUtil.isJustKeyDown(e, KeyEvent.VK_DOWN)) {//在文本框聚焦的情况下,双击下方向键,可以全选
@@ -639,40 +649,126 @@ public class TextCompUtil2 {
      * @param e
      * @param inputTextArea
      */
-    public static void toggleUpperLowerCase(KeyEvent e, JTextComponent inputTextArea) {
-        //command+shift+U : 转化为大写或小写,只对英文字母有效
-        if ((e.getKeyCode() == KeyEvent.VK_U)
-                && (((InputEvent) e)
-                .isShiftDown()) && ((InputEvent) e)
-                .isMetaDown()/*MAC 的command键*/ && e.getID() == KeyEvent.KEY_PRESSED) {
-            String selectContent = inputTextArea.getSelectedText();
-            if (!ValueWidget.isNullOrEmpty(selectContent)) {
-                int selectionStart = inputTextArea.getSelectionStart();
-                int selectionEnd = inputTextArea.getSelectionEnd();
-                String upperCase = selectContent.toUpperCase();
-                if (selectContent.equals(upperCase)) {//当前选中字符串只有全为大写,才转化为小写
-                    //如果既有小写也有大写,则转为大写
-                    inputTextArea.replaceSelection(selectContent.toLowerCase());
-                } else {
-                    inputTextArea.replaceSelection(upperCase);
+    public static void toggleUpperLowerCase(KeyEvent e, JTextComponent inputTextArea, DoubleKeyAdapter doubleKeyAdapter) {
+        if (e.getID() == KeyEvent.KEY_PRESSED) {
+            //command+shift+U : 转化为大写或小写,只对英文字母有效
+            if ((e.getKeyCode() == KeyEvent.VK_U)
+                    && (((InputEvent) e)
+                    .isShiftDown()) && ((InputEvent) e)
+                    .isMetaDown()/*MAC 的command键*/) {
+                String selectContent = inputTextArea.getSelectedText();
+                if (!ValueWidget.isNullOrEmpty(selectContent)) {
+                    int selectionStart = inputTextArea.getSelectionStart();
+                    int selectionEnd = inputTextArea.getSelectionEnd();
+                    String upperCase = selectContent.toUpperCase();
+                    if (selectContent.equals(upperCase)) {//当前选中字符串只有全为大写,才转化为小写
+                        //如果既有小写也有大写,则转为大写
+                        inputTextArea.replaceSelection(selectContent.toLowerCase());
+                    } else {
+                        inputTextArea.replaceSelection(upperCase);
+                    }
+                    inputTextArea.setSelectionStart(selectionStart);
+                    inputTextArea.setSelectionEnd(selectionEnd);
                 }
-                inputTextArea.setSelectionStart(selectionStart);
-                inputTextArea.setSelectionEnd(selectionEnd);
+            } else if (isWillComment(e)/*MAC 的option 键*/) {//注释的快捷键同IDEA 的多行注释快捷键
+                String selectContent = inputTextArea.getSelectedText();
+                if (ValueWidget.isNullOrEmpty(selectContent)) {
+                    //没有选择文本,也删除注释 /*  */,并且同时删除空格
+                    selectContent = inputTextArea.getText();
+                    selectContent = selectContent.replaceAll("/\\*[\\s]*(.*)[\\s]*\\*/", "$1").replaceAll("[\\s]+", SystemHWUtil.EMPTY);
+                    inputTextArea.setText(selectContent);
+                } else {
+                    if (selectContent.startsWith("/*") && selectContent.endsWith("*/")) {
+                        selectContent = selectContent.replaceAll("/\\*[\\s]*(.*)[\\s]*\\*/", "$1");
+                        inputTextArea.replaceSelection(selectContent);
+                    } else {
+                        inputTextArea.replaceSelection("/* " + selectContent + "*/");
+                    }
+                }
+            }
+
+            if (EventHWUtil.isOnlyEscape(e)) {//双击escape 只读
+                if (doubleKeyAdapter.getLastTimeMillSencond() == 0) {
+                    doubleKeyAdapter.setLastTimeMillSencond(System.currentTimeMillis());
+                    searchNoDialog(inputTextArea);
+                } else {
+                    long currentTime = System.currentTimeMillis();
+                    if (MenuUtil2.isDoubleClick(currentTime - doubleKeyAdapter.getLastTimeMillSencond())) {
+                        inputTextArea.setEditable(false);
+                        ToastMessage.toastRight("变为只读", 1000);
+                        doubleKeyAdapter.setLastTimeMillSencond(0);
+                    } else {
+                        doubleKeyAdapter.setLastTimeMillSencond(System.currentTimeMillis());
+                        searchNoDialog(inputTextArea);
+                    }
+                }
+            } /*else { 必须注释掉,否则双击escape 无效,因为按escape 还会触发其他按键
+                doubleKeyAdapter.setLastTimeMillSencond(0);
+            }*/
+
+        } else if (e.getID() == KeyEvent.KEY_RELEASED) {//仅仅是为了删除多余的"¿"
+            if (e.getKeyCode() == KeyEvent.VK_SLASH) {//注释的快捷键同IDEA 的多行注释快捷键
+//                System.out.println("aaa :" );
+                String source = inputTextArea.getText();
+                System.out.println("source :" + source);
+                inputTextArea.setText(source.replace("¿", SystemHWUtil.EMPTY));
             }
         }
     }
 
 	/***
-	 * 清除placeholder
-	 * @param inputTextArea
-	 * @param placeHolder
-	 */
-	private static void cleanPlaceHolder(final JTextComponent inputTextArea,final String placeHolder){
-		if(isPlaceHolder(inputTextArea, placeHolder)){
-			inputTextArea.setText(SystemHWUtil.EMPTY);
-			inputTextArea.setForeground(TextCompUtil2.DEFAULT_TF_FOREGROUND);
-		}
-	}
+     * 双击escape :文本框变为只读<br />
+     * 单击escape:循环搜索
+     * @param inputTextArea
+     */
+    public static void searchNoDialog(JTextComponent inputTextArea) {
+        FindTxtResultBean findTxtResultBean = (FindTxtResultBean) ReflectHWUtils.getObjectValue(inputTextArea, Constant2.FINDTXTRESULTBEAN_FIELD);
+        if (null != findTxtResultBean
+                && (null == findTxtResultBean.getHideDialog() || (!findTxtResultBean.getHideDialog()))) {
+            findTxtResultBean.setHideDialog(true);
+            ToastMessage.toastRight("搜索不弹框", 1000);
+        }
+    }
+
+    public static void bindKeyEvent(final JTextComponent textField) {
+        textField.addKeyListener(new DoubleKeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyTyped(e);
+                TextCompUtil2.toggleUpperLowerCase(e, textField, this);
+            }
+
+            /***
+             * 仅仅是为了删除多余的"¿"
+             * @param e
+             */
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                TextCompUtil2.toggleUpperLowerCase(e, textField, this);
+            }
+
+        });
+    }
+
+    public static boolean isWillComment(KeyEvent e) {
+        return (e.getKeyCode() == KeyEvent.VK_SLASH)
+                && (((InputEvent) e)
+                .isShiftDown()) && ((InputEvent) e)
+                .isAltDown();
+    }
+
+    /***
+     * 清除placeholder
+     * @param inputTextArea
+     * @param placeHolder
+     */
+    private static void cleanPlaceHolder(final JTextComponent inputTextArea, final String placeHolder){
+        if(isPlaceHolder(inputTextArea, placeHolder)){
+            inputTextArea.setText(SystemHWUtil.EMPTY);
+            inputTextArea.setForeground(TextCompUtil2.DEFAULT_TF_FOREGROUND);
+        }
+    }
 	public static void generateJsonPopup(){
 	}
 
@@ -703,7 +799,7 @@ public class TextCompUtil2 {
         textPopupMenu.setLightWeightPopupEnabled(true);
         textPopupMenu.setBackground(Color.GREEN);
         GenerateJsonActionListener dropListMenuActionListener = new GenerateJsonActionListener(
-                inputTextArea);
+                inputTextArea, new ConfigParam());//TODO ConfigParam是直接初始化的
         if (!isSimple) {
             JMenuItem openFolderM = new JMenuItem("获取json");
             openFolderM.addActionListener(dropListMenuActionListener);
@@ -759,13 +855,47 @@ public class TextCompUtil2 {
         return textPopupMenu;
     }
 
+
+    /***
+     * 被com/yunma/dialog/rsa/RSADoublePopupMenuTextArea.java 使用
+     * @param inputTextArea
+     * @param compDoubleMenuConfs
+     * @return
+     */
+    private static JPopupMenu getDoublePopupMenu(JComponent inputTextArea, java.util.List<CompDoubleMenuConf> compDoubleMenuConfs) {
+        if (ValueWidget.isNullOrEmpty(compDoubleMenuConfs)) {
+            return null;
+        }
+        JPopupMenu textPopupMenu = new JPopupMenu();
+        textPopupMenu.setLabel("打开文件");
+        textPopupMenu.setLightWeightPopupEnabled(true);
+        textPopupMenu.setBackground(Color.GREEN);
+        int size = compDoubleMenuConfs.size();
+
+        DoubleMenuListener doubleMenuListener = new DoubleMenuListener(compDoubleMenuConfs, inputTextArea);
+        for (int i = 0; i < size; i++) {
+            CompDoubleMenuConf compDoubleMenuConf = compDoubleMenuConfs.get(i);
+            JMenuItem formSubmitDataM = new JMenuItem(compDoubleMenuConf.getDisplayLabel());
+            if (!ValueWidget.isNullOrEmpty(compDoubleMenuConf.getCommand())) {
+                formSubmitDataM.setActionCommand(compDoubleMenuConf.getCommand());
+            }
+            formSubmitDataM.addActionListener(doubleMenuListener);
+            textPopupMenu.add(formSubmitDataM);
+        }
+        return textPopupMenu;
+    }
+
+    public static void dropListMenuCommon(final JTextComponent inputTextArea, java.util.List<CompDoubleMenuConf> compDoubleMenuConfs) {
+        final JPopupMenu textPopupMenu = getDoublePopupMenu(inputTextArea, compDoubleMenuConfs);
+        dropListMenu(inputTextArea, textPopupMenu);
+    }
     private static JPopupMenu getRequestBodyPopupMenu(JTextComponent inputTextArea) {
         JPopupMenu textPopupMenu = new JPopupMenu();
         textPopupMenu.setLabel("打开文件");
         textPopupMenu.setLightWeightPopupEnabled(true);
         textPopupMenu.setBackground(Color.GREEN);
         GenerateJsonActionListener dropListMenuActionListener = new GenerateJsonActionListener(
-                inputTextArea);
+                inputTextArea, new ConfigParam());//TODO ConfigParam是直接初始化的
 
         //删除后黏贴
         JMenuItem formSubmitDataM = new JMenuItem("转化为标准表单数据");
@@ -820,6 +950,7 @@ public class TextCompUtil2 {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (!EventHWUtil.isJustShiftDown(e)) {
+                    lastTimeMillSencond = 0;
                     return;
                 }
                 if (lastTimeMillSencond == 0) {
@@ -844,7 +975,10 @@ public class TextCompUtil2 {
      * 截图,截屏
      * @param area2
      */
-    public static void copyImgAction(JTextComponent area2) {
+    public static void copyImgAction(JComponent area2) {
+        if (null == area2) {
+            return;
+        }
 		HeightWidthBean heightWidthBean=new HeightWidthBean();
 		heightWidthBean.setHeight(area2.getHeight());//默认高度
 		heightWidthBean.setWidth(area2.getWidth());//默认宽度
@@ -961,7 +1095,7 @@ public class TextCompUtil2 {
         return baos;
     }
 
-	public static GenericDialog showScreenshotDialog(JTextComponent area2,int width,int height){
+    public static GenericDialog showScreenshotDialog(JComponent area2, int width, int height) {
 		Class clazz=area2.getClass();
 		  Object obj=null;
 		    Method m = null;
@@ -990,7 +1124,7 @@ public class TextCompUtil2 {
 		return null;
 	}
 
-    public static GenericDialog getScreenshotDialog(JTextComponent area2) {
+    public static GenericDialog getScreenshotDialog(JComponent area2) {
         return (GenericDialog) getReflectGetMethod(area2, "getScreenshotDialog", null, null);
     }
 
@@ -1055,10 +1189,12 @@ public class TextCompUtil2 {
 
 	static class GenerateJsonActionListener implements ActionListener {
 		private JTextComponent ta;
+        private ConfigParam configParam;
 
-		public GenerateJsonActionListener(JTextComponent tf) {
+        public GenerateJsonActionListener(JTextComponent tf, ConfigParam configParam) {
 			super();
 			this.ta = tf;
+            this.configParam = configParam;
 		}
 
 		@Override
@@ -1066,7 +1202,7 @@ public class TextCompUtil2 {
             String command = e.getActionCommand();
             if (command.equals("获取json")) {
 //				System.out.println(command);
-                GenerateJsonPane generateJsonPane = new GenerateJsonPane(ta, true);
+                GenerateJsonPane generateJsonPane = new GenerateJsonPane(ta, true, this.configParam);
                 generateJsonPane.setVisible(true);
             }else if (command.equals(MenuUtil2.ACTION_CREATE_MD5)) {//获取MD5值
                 String text = ta.getText();

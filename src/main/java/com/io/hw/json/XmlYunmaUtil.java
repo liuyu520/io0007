@@ -4,6 +4,7 @@ import com.common.bean.PomDependency;
 import com.common.bean.StubRange;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
+import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
 import org.apache.log4j.Logger;
 
@@ -27,6 +28,11 @@ public class XmlYunmaUtil {
     public static final char TAG_END_CHAR = '>';
     public static final String TAG_END_STRING = ">";
     static int index;
+    /***
+     * 是否兼容特殊字符<br />
+     * 例如:"a<script></script>"
+     */
+    public static boolean isCompatibleSpecial = true;
 
 
     /**
@@ -68,7 +74,8 @@ public class XmlYunmaUtil {
         int totalLength = xmlContent.length();
         int i = pos;
         boolean isQuote = false;
-        while (i < totalLength) {
+        boolean hasSpecialStart = false;
+        while (i < totalLength) {//a<script></script>
             char c = xmlContent.charAt(i);
             if (c == '"' && xmlContent.charAt(i - 1) != '\\') {
                 isQuote = !isQuote;
@@ -82,11 +89,33 @@ public class XmlYunmaUtil {
 //				}
                 continue;
             }
-            if (c == '<' && xmlContent.charAt(i + 1) != '/') {
-                return -1;
+            if (c == '<') {
+                if (xmlContent.charAt(i + 1) != '/') {
+                    if (isCompatibleSpecial && isSpecialKeyword(xmlContent, i)) {
+                        hasSpecialStart = true;//遇到<script> 的第一个<
+                        i++;
+                        continue;
+                    }
+                    return -1;
+                } else if (isCompatibleSpecial && hasSpecialStart) {//遇到"a<script></script>"的</中的<时
+                    hasSpecialStart = false;
+                    if (isCompatibleSpecial && isSpecialKeyword(xmlContent, i + 1)) {
+                        i += 2;
+                        continue;
+                    }
+                    // "accd<script></scriptdd"
+                    //find TODO
+                    //优化:</aaa>如果没有对应的开始标签,则直接忽略
+                }
             }
             if (c == '<') {
                 return i;
+            }
+            if (c == '>') {
+                if (isCompatibleSpecial && isSpecialKeyword2(xmlContent, i)) {//遇到<script> 的第一个>
+                    i++;
+                    continue;
+                }
             }
         }
         return -1;
@@ -179,6 +208,9 @@ public class XmlYunmaUtil {
                 continue;
             }
             if (c == XmlYunmaUtil.TAG_BEGIN_CHAR/*  > */) {
+                if (isCompatibleSpecial && isSpecialKeyword(input, i)) {
+                    return -1;
+                }
                 return i;
             }
             //不是空格,但是又不是>,所以还没有结尾
@@ -187,6 +219,42 @@ public class XmlYunmaUtil {
         return -1;
     }
 
+    private static boolean isSpecialKeyword(String input, int i) {
+        return isContainsKeyword(input, i, "script") ||
+                isContainsKeyword(input, i, "image");
+    }
+
+    private static boolean isSpecialKeyword2(String input, int i) {
+        return isContainsKeyword2(input, i, "script") ||
+                isContainsKeyword2(input, i, "image");
+    }
+
+    /***
+     * 如果是特殊符号,特殊标签,例如"script","image",则直接忽略<br />
+     * '<'...
+     * @param input
+     * @param i
+     * @param keyword
+     * @return
+     */
+    private static boolean isContainsKeyword(String input, int i, String keyword) {
+        int length2 = keyword.length();
+        return input.substring(i + 1, i + length2 + 1).equalsIgnoreCase(keyword)
+                && RegexUtil.equalsWildcard(input.substring(i + length2 + 1, i + length2 + 2), "[\\s,.>]");
+    }
+
+    /***
+     * ...'>'
+     * @param input
+     * @param i
+     * @param keyword
+     * @return
+     */
+    private static boolean isContainsKeyword2(String input, int i, String keyword) {
+        int length2 = keyword.length();
+        return input.substring(i - length2, i).equalsIgnoreCase(keyword)
+                && RegexUtil.equalsWildcard(input.substring(i - length2 - 1, i - length2), "[\\s,.></]");
+    }
     /***
      * </html>
      * @param xmlContent
@@ -227,7 +295,8 @@ public class XmlYunmaUtil {
             boolean end = false;
             if (begin != -1) {//遇到了<
                 char c2 = xmlContent.charAt(begin + 1);//可能是/
-                if (c2 == '/') {
+                if (c2 == '/') {//'</value>'中的斜杠
+                    //正常情况下,不会走到这一步,因为下面的index = root.getEndTag().length() + textNodeIndex; 直接跳过了结束标签
                     break;
                 } else {
                     root = readElement(xmlContent, parentElement, attributes, begin);
@@ -250,7 +319,7 @@ public class XmlYunmaUtil {
                 break;
             }
             boolean loop = false;
-            if (end) {
+            if (end && (null != parentElement)) {
                 int endIndex = isEnd(xmlContent, index, parentElement.getEndTag());
                 if (endIndex != -1) {
                     index = endIndex;
@@ -288,6 +357,9 @@ public class XmlYunmaUtil {
         String attributeStr = parseBean.getResult();
         if (!ValueWidget.isNullOrEmpty(attributeStr)) {
             String[] strs = attributeStr.split("=");
+            if (strs.length < 2) {
+                strs = new String[]{strs[0], ""};
+            }
             //删除属性值两边的双引号
             attributes.put(strs[0], SystemHWUtil.delDoubleQuotation(strs[1]));
             index = parseBean.getLengthHasRead();

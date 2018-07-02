@@ -2,6 +2,7 @@ package com.common.util;
 
 import com.common.bean.CookieSetInfo;
 import com.string.widget.util.ValueWidget;
+import org.springframework.util.MultiValueMap;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -113,6 +114,9 @@ public class RequestUtil {
         CookieSetInfo cookieSetInfo = new CookieSetInfo();
         StringBuffer cookieSet = new StringBuffer();
         List<String> headerVals = responseHeaderFields.get(key);
+        if (null == headerVals) {
+            return cookieSetInfo;
+        }
         int size = headerVals.size();
         for (int i = 0; i < size; i++) {
             String headerVal = headerVals.get(i);
@@ -127,4 +131,124 @@ public class RequestUtil {
         cookieSetInfo.setCookies(cookieSet.toString());
         return cookieSetInfo;
     }
+
+    /*public static Integer[] getParameterIntArr(String paramName) {
+        if (ValueWidget.isNullOrEmpty(paramName)) {
+            return null;
+        }
+        String val = SpringMVCUtil.getParameter(paramName);
+        if (ValueWidget.isNullOrEmpty(val)) {
+            return null;
+        }
+        String[] strs = val.split("(,,)|(,)");
+        int size = strs.length;
+        Integer[] ints = new Integer[size];
+        for (int i = 0; i < size; i++) {
+            ints[i] = Integer.parseInt(strs[i]);
+        }
+        return ints;
+    }
+
+    /***
+     * 向已有url 中 增加参数 <br />
+     * 前提条件:url 中没有该参数<br />
+     * 注意:没有对参数进行url编码
+     * @param parameterName
+     * @param val
+     * @param redirect
+     * @return
+     */
+    public static String addParameter(String redirect, String parameterName, String val) {
+        if (ValueWidget.isNullOrEmpty(redirect)) {
+            return redirect;
+        }
+        if (!ValueWidget.isNullOrEmpty(val) && (!redirect.contains(parameterName + "="))) {
+            redirect = redirect.replaceAll("#$", "");
+            if (redirect.contains("?")) {
+                redirect = redirect + "&" + parameterName + "=" + val;
+            } else {
+                redirect = redirect + "?" + parameterName + "=" + val;
+            }
+        }
+        return redirect;
+    }
+
+    /***
+     * <String,List<String>> --><String,String>
+     * @param formParameters
+     * @return
+     */
+    public static Map<String, String> parseFormParameters(MultiValueMap<String, String> formParameters) {
+        if (null == formParameters) {
+            return null;
+        }
+        Map<String, String> parameterMap = new HashMap<>();
+
+        for (String key : formParameters.keySet()) {
+            List<String> values = formParameters.get(key);
+            if (values.size() == 1) {
+                String val2 = values.get(0);
+                if (ValueWidget.isNullOrEmpty(val2)) {
+                    continue;
+                }
+                parameterMap.put(key, val2);
+            } else {
+                parameterMap.put(key, SystemHWUtil.formatArr(values, ","));
+            }
+        }
+        return parameterMap;
+    }
+
+    public static Map<String, String> parseFormParameters(Map<String, String[]> formParameters) {
+        if (null == formParameters) {
+            return null;
+        }
+        Map<String, String> parameterMap = new HashMap<>();
+
+        for (String key : formParameters.keySet()) {
+            String[] values = formParameters.get(key);
+            if (values.length == 1) {
+                String val2 = values[0];
+                if (ValueWidget.isNullOrEmpty(val2)) {
+                    continue;
+                }
+                parameterMap.put(key, val2);
+            } else {
+                parameterMap.put(key, SystemHWUtil.formatArr(values, ","));
+            }
+        }
+        return parameterMap;
+    }
+
+    /***
+     * 获取请求体,兼容各种请求方式;<br />
+     * 解决 POST请求,请求体读取一遍之后,后面读取不到的问题
+     * @param httpServletRequest
+     * @return
+     * @throws IOException
+     *//*
+    public static MultiValueMap<String, String> readFormParameters(HttpServletRequest httpServletRequest, CustomFormHttpMessageConverter formConverter) {
+        HttpInputMessage inputMessage = new ServletServerHttpRequest(httpServletRequest) {
+            @Override
+            public InputStream getBody() throws IOException {
+                return httpServletRequest.getInputStream();
+            }
+        };
+
+        //2. 容错,如果contentType is null,那么this.formConverter.read((Class) null, inputMessage) 会报错
+        MediaType contentType = inputMessage.getHeaders().getContentType();
+        if (null == contentType) {
+            inputMessage.getHeaders().setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        }
+        MultiValueMap<String, String> formParameters = null;//<String,List<String>>
+        try {
+            formParameters = formConverter.read((Class) null, inputMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error(e.getMessage(), e);
+        }
+        return formParameters;
+    }*/
+
+
 }

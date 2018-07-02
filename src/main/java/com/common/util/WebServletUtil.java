@@ -3,8 +3,10 @@ package com.common.util;
 import com.common.bean.ClientOsInfo;
 import com.common.dict.Constant2;
 import com.http.util.HttpSocketUtil;
+import com.io.hw.json.HWJacksonUtils;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
+import org.apache.log4j.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
@@ -22,6 +24,7 @@ import java.util.*;
  * @since 2014年11月24日
  */
 public final class WebServletUtil {
+    private final static Logger logger = Logger.getLogger(WebServletUtil.class);
 	private static final String[] HEADERS_TO_TRY = {
 	    "X-Forwarded-For",
 	    "Proxy-Client-IP",
@@ -438,17 +441,23 @@ public final class WebServletUtil {
 		return SystemHWUtil.parseObj(parameterValue);
 	}
 
+    public static Map getHeaderMap(HttpServletRequest request) {
+        return getHeaderMap(request, null);
+    }
 	/***
 	 * 获取header 的所有内容
 	 * @param request
 	 * @return
 	 */
-	public static Map getHeaderMap(HttpServletRequest request){
+    public static Map getHeaderMap(HttpServletRequest request, String[] headerKeys) {
 		Enumeration e= request.getHeaderNames();
-		Map resultMap=new HashMap();
+        Map<String, String> resultMap = new HashMap<String, String>();
 		 for(;e.hasMoreElements();){
 			 Object obj=e.nextElement();
 			 String key=(String)obj;
+             if (!ValueWidget.isNullOrEmpty(headerKeys) && (!SystemHWUtil.isContains(headerKeys, key))) {
+                 continue;
+             }
 //			 String message="key:\t\t"+key;
 //			 System.out.println(message);
 			 String headerValue=request.getHeader(key);
@@ -872,10 +881,20 @@ public final class WebServletUtil {
 			userAgent=request.getHeader("User-Agent");
 		}
 		ClientOsInfo info= HeaderUtil.getMobilOS(userAgent);
+        if (null == info) {
+//            logger.error("userAgent:" + userAgent);
+        }
+        if (ValueWidget.isNullOrEmpty(info.getOsType())) {
+            info.setOsType(request.getParameter("osType"));//HeaderUtil 中有常量
+        }
         //设备标示（device token or clientid） 用于消息推送时,定位设备
         String deviceId = request.getParameter("deviceId");
         info.setUserAgent(userAgent);
         info.setDeviceId(deviceId);
+
+        //request header
+        Map headers = getHeaderMap(request, new String[]{"deviceId", "osVersion", "osType", "deviceInfo", "appId"});
+        info.setRequestHeaderStr(HWJacksonUtils.getJsonP(headers));
         return info;
 	}
 	/***
@@ -979,6 +998,9 @@ public final class WebServletUtil {
 	 * @return
 	 */
 	public static boolean isLocalIp(HttpServletRequest request){
+        if (null == request) {
+            return false;
+        }
 		String ip=WebServletUtil.getClientIpAddr(request);
 		return ip.equals("127.0.0.1")||ip.equals("localhost")||ip.equals("0:0:0:0:0:0:0:1");
 	}
@@ -1010,7 +1032,7 @@ public final class WebServletUtil {
         if (!prefixPath.endsWith("/") && (!relativePath.startsWith("/"))) {
             prefixPath = prefixPath + "/";
         }
-        if (relativePath.endsWith("/")) {
+        if (relativePath.endsWith("/") && !ValueWidget.isNullOrEmpty(finalFileName)) {
             relativePath = relativePath + finalFileName;//upload/image/20150329170823_2122015-03-23_01-42-03.jpg
         }
         fullUrl = prefixPath + relativePath;
@@ -1057,4 +1079,50 @@ public final class WebServletUtil {
                 body + SystemHWUtil.CRLF_LINUX;
     }
 
+    public static void writeResponse(HttpServletResponse response, Object content) throws IOException {
+        if (content instanceof String) {
+            writeResponse(response, (String) content);
+        } else {
+            writeResponse(response, HWJacksonUtils.getJsonP(content));
+        }
+    }
+
+    public static void writeResponse(HttpServletResponse response, String content) throws IOException {
+        response.setCharacterEncoding(SystemHWUtil.CHARSET_UTF);
+        response.setContentType(SystemHWUtil.RESPONSE_CONTENTTYPE_JSON_UTF);
+        PrintWriter out = response.getWriter();
+        out.print(content);
+        out.flush();
+        out.close();
+    }
+
+    public static void noCache(HttpServletResponse response) {
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+    }
+
+    /***
+     * 如果请求特别耗时,请求响应时间超过4 (时间可配置DecideUseCacheWhenOvertimeFilter.secondLimitOvertime) 秒,则设置缓存<br />
+     *  see com/common/web/filter/RequestbodyFilter.java 中 cacheWhenOvertime <br />
+     *  目的:接口访问特别慢时自动切换到缓存,但是缓存也只能使用 RequestbodyFilter.timesCanUseCacheWhenOvertime 次 <br />
+     *  如果结果是false,则不缓存
+     * @param body
+     * @param httpServletRequest
+     * @param servletPath
+     */
+    public static void backUpResponseResult(Object body, HttpServletRequest httpServletRequest, String servletPath) {
+        /*try { // 必须注释掉,否则RequestRetrySendFilter 中没法实现重试
+            BaseResponseDto baseResponseDto = BaseResponseDto.parseObject((String) body);
+            if (null != baseResponseDto && (!baseResponseDto.result)) {
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+        /*if (null != body && httpServletRequest instanceof HttpPutFormContentRequestWrapper) {
+            HttpPutFormContentRequestWrapper requestWrapper = (HttpPutFormContentRequestWrapper) httpServletRequest;
+            requestWrapper.put(servletPath, body);
+        }*/
+    }
 }

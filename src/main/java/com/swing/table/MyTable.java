@@ -1,5 +1,7 @@
 package com.swing.table;
 
+import com.swing.config.ConfigParam;
+
 import javax.swing.*;
 /***
  * 还需要增加如下功能:<br>
@@ -15,7 +17,7 @@ public class MyTable extends JTable{
 	 * 清空表格数据
 	 */
 	public void cleanUp(){
-		TableUtil3.cleanTableData(this);  
+        TableUtil3.cleanTableData(this, new ConfigParam());
         repaint();  
 	}
 	/***

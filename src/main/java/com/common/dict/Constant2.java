@@ -477,7 +477,7 @@ public class Constant2 {
     public static final String COLUMN_IN_SPLIT = "_split";
     public static final String COLUMN_ACCEPT_AGENT_IDS = "acceptAgentIds";
     public static final String condition_between_Split = ",,";
-
+    public static final String HIBERNATE_COLLECTION_PERSISTENT_BAG = "org.hibernate.collection.internal.PersistentBag";
     /***
      * 上传文件的结果
      */
@@ -616,6 +616,12 @@ public class Constant2 {
     public static final int NUMBER_TYPE_BigInteger = 3;
     public static final int NUMBER_TYPE_BigDecimal = 4;
     /***
+     * 接口请求参数<br />
+     *      * POST请求参数 也存储在 queryString 中
+     */
+    public static final String JSON_PLACEHOLDER_QUERYSTRING = "{{json_placeholder_queryString}}";
+    /***
      * 用于socket 传输信息,表示换行
      */
+    public static final String CRLF_newLine_placeholder = "%0A###";
 }
