@@ -94,6 +94,9 @@ public class RegexUtil {
 	 * @return
 	 */
 	public static String deleteComment(String content, String domain) {
+        if (null == content) {
+            return content;
+        }
 		String regex = "[ ]*#[\\s]*(127.0.0.1[\\s]*" + domain + ")";
 		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(content);
