@@ -348,18 +348,15 @@ public class ValueWidget extends RegexUtil{
 	}
 
 	/**
-	 * ɾ��input�ַ��е�html��ʽ
 	 * 
 	 * @param input
 	 * @param length
-	 *            ��ʾ���ַ�ĸ���
 	 * @return
 	 */
 	public static String splitAndFilterString(String input, int length) {
 		if (input == null || input.trim().equals("")) {
 			return "";
 		}
-		// ȥ������htmlԪ��,
 		String str = input.replaceAll("\\&[a-zA-Z]{1,10};", "").replaceAll(
 				"<[^>]*>", "");
 		str = str.replaceAll("[(/>)<]", "");

@@ -332,7 +332,9 @@ public class UnitTest4 {
     public void test_queryString() {
         String url = "http://store.kunlunsoft.com/order/startPay?orderId=INTE2016031701837=&payType=chanpay&orgId=90001001032&callack= ";
         Map<String, Object> argMap = RequestUtil.parseQueryString(url);
-        Assert.assertEquals(argMap.toString(), "{orgId=90001001032, callack= , payType=chanpay, orderId=INTE2016031701837=}");
+//        Assert.assertEquals(argMap.toString(), "{orgId=90001001032, callack= , payType=chanpay, orderId=INTE2016031701837=}");
+        Assert.assertTrue(argMap.get("orgId").equals("90001001032"));
+        Assert.assertTrue(argMap.get("orderId").equals("INTE2016031701837="));
         System.out.println(argMap);
     }
 
